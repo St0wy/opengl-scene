@@ -5,7 +5,7 @@
 #define SDL_MAIN_HANDLED
 #include<SDL.h>
 
-int main(int argc, char* argv[])
+std::tuple<SDL_Window*, SDL_GLContext> setup_window()
 {
 	SDL_SetMainReady();
 
@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-	auto window = SDL_CreateWindow(
+	SDL_Window* window = SDL_CreateWindow(
 		"GPR5300",
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
@@ -27,9 +27,14 @@ int main(int argc, char* argv[])
 		720,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
 	);
-	auto glRenderContext = SDL_GL_CreateContext(window);
+	SDL_GLContext glRenderContext = SDL_GL_CreateContext(window);
 	SDL_GL_SetSwapInterval(1);
 
+	return { window, glRenderContext };
+}
+
+void update_window(SDL_Window* window)
+{
 	bool isOpen = true;
 	while (isOpen)
 	{
@@ -60,9 +65,20 @@ int main(int argc, char* argv[])
 			SDL_GL_SwapWindow(window);
 		}
 	}
+}
+
+void clean_window(SDL_Window* window, SDL_GLContext glRenderContext)
+{
 	spdlog::info("Closing window");
 
 	SDL_GL_DeleteContext(glRenderContext);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
+}
+
+int main(int argc, char* argv[])
+{
+	auto [window, glRenderContext] = setup_window();
+	update_window(window);
+	clean_window(window, glRenderContext);
 }
