@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.25)
+project(opengl_scene)
+
+set(CMAKE_CXX_STANDARD 23)
+
+include(cmake/download-cpm.cmake)
+
+CPMAddPackage("gh:libsdl-org/SDL#release-2.26.5")
+CPMAddPackage("gh:fmtlib/fmt#9.1.0")
+CPMAddPackage("gh:gabime/spdlog@1.11.0")
+
+add_executable(opengl_scene src/main.cpp)
+target_link_libraries(opengl_scene fmt::fmt SDL2::SDL2-static SDL2::SDL2main spdlog::spdlog)
