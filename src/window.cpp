@@ -3,6 +3,8 @@
 //
 #include "window.hpp"
 #include "spdlog/spdlog.h"
+#include "GL/glew.h"
+#include "utils.hpp"
 
 stw::Window::Window(
 	std::unique_ptr<Scene> scene,
@@ -32,12 +34,21 @@ stw::Window::Window(
 	);
 	m_GlRenderContext = SDL_GL_CreateContext(m_Window);
 	SDL_GL_SetSwapInterval(1);
+
+	if (GLEW_OK != glewInit())
+	{
+		spdlog::error("Failed to initialize OpenGL context");
+		assert(false);
+	}
+
+	m_Scene->Begin();
 }
 
 stw::Window::~Window()
 {
 	spdlog::info("Closing window");
 
+	m_Scene->End();
 	SDL_GL_DeleteContext(m_GlRenderContext);
 	SDL_DestroyWindow(m_Window);
 	SDL_Quit();
@@ -71,8 +82,12 @@ void stw::Window::Loop()
 			default:
 				break;
 			}
-
-			SDL_GL_SwapWindow(m_Window);
 		}
+
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		m_Scene->Update(0.0f);
+		SDL_GL_SwapWindow(m_Window);
 	}
 }
