@@ -20,7 +20,7 @@ add_executable(opengl_scene
     include/triangle_scene.hpp
     include/triangle_scene.hpp
     include/utils.hpp
-    src/utils.cpp)
+    src/utils.cpp include/square_scene.hpp)
 target_include_directories(opengl_scene PRIVATE include/)
 target_link_libraries(opengl_scene fmt::fmt SDL2::SDL2-static SDL2::SDL2main spdlog::spdlog libglew_static)
 add_dependencies(opengl_scene shader_target data_target)
