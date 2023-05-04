@@ -3,6 +3,7 @@
 //
 #include "window.hpp"
 
+#include <chrono>
 #include <spdlog/spdlog.h>
 #include <GL/glew.h>
 #include <glm/vec2.hpp>
@@ -59,9 +60,16 @@ stw::Window::~Window()
 
 void stw::Window::Loop()
 {
+	std::chrono::time_point<std::chrono::system_clock> clock = std::chrono::system_clock::now();
+
 	bool isOpen = true;
 	while (isOpen)
 	{
+		const auto start = std::chrono::system_clock::now();
+		using seconds = std::chrono::duration<float, std::ratio<1, 1>>;
+		const auto deltaTime = std::chrono::duration_cast<seconds>(start - clock);
+		clock = start;
+
 		SDL_Event event;
 		while (SDL_PollEvent(&event))
 		{
@@ -97,7 +105,7 @@ void stw::Window::Loop()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		m_Scene->Update(0.0f);
+		m_Scene->Update(deltaTime.count());
 		SDL_GL_SwapWindow(m_Window);
 	}
 }
