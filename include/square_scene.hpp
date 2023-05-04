@@ -18,13 +18,9 @@ namespace stw
 class SquareScene : public stw::Scene
 {
 public:
-	std::array<float, 9> VERTICES = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f, 0.5f, 0.0f,
-	};
+	static constexpr std::size_t LOG_SIZE = 512;
 
-	void Begin() override
+	void LoadShaders()
 	{
 		std::string vertexSource = OpenFile("shaders/uniform.vert");
 		const char* vertexSourcePtr = vertexSource.c_str();
@@ -36,7 +32,9 @@ public:
 		glGetShaderiv(m_VertexShader, GL_COMPILE_STATUS, &success);
 		if (!success)
 		{
-			spdlog::error("Error while loading vertex shader");
+			char infoLog[LOG_SIZE];
+			glGetShaderInfoLog(m_VertexShader, LOG_SIZE, nullptr, infoLog);
+			spdlog::error("Error while loading vertex shader. {}", infoLog);
 		}
 
 		std::string fragmentSource = OpenFile("shaders/uniform.frag");
@@ -48,7 +46,9 @@ public:
 		glGetShaderiv(m_FragmentShader, GL_COMPILE_STATUS, &success);
 		if (!success)
 		{
-			spdlog::error("Error while loading fragment shader");
+			char infoLog[LOG_SIZE];
+			glGetShaderInfoLog(m_FragmentShader, LOG_SIZE, nullptr, infoLog);
+			spdlog::error("Error while loading fragment shader. {}", infoLog);
 		}
 
 		m_ShaderProgram = glCreateProgram();
@@ -59,35 +59,49 @@ public:
 		glGetProgramiv(m_ShaderProgram, GL_LINK_STATUS, &success);
 		if (!success)
 		{
-			spdlog::error("Error while linking shader program");
+			char infoLog[LOG_SIZE];
+			glGetProgramInfoLog(m_ShaderProgram, LOG_SIZE, nullptr, infoLog);
+			spdlog::error("Error while linking shader program. {}", infoLog);
 		}
 
+		glDeleteShader(m_FragmentShader);
+		glDeleteShader(m_VertexShader);
+	}
+
+	void Begin() override
+	{
+		LoadShaders();
+
+		constexpr std::array<float, 9> VERTICES = {
+			-0.5f, -0.5f, 0.0f,
+			0.5f, -0.5f, 0.0f,
+			0.0f, 0.5f, 0.0f,
+		};
+
 		glGenVertexArrays(1, &m_Vao);
+		glGenBuffers(1, &m_Vbo);
 		glBindVertexArray(m_Vao);
 
-		glGenBuffers(1, &m_Vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
+		glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(VERTICES.size()), VERTICES.data(), GL_STATIC_DRAW);
 
-		glBufferData(GL_ARRAY_BUFFER, VERTICES.size(), VERTICES.data(), GL_STATIC_DRAW);
-
-		glVertexAttribPointer(0, VERTICES.size(), GL_FLOAT, GL_FALSE, VERTICES.size() * sizeof(float), nullptr);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
 		glEnableVertexAttribArray(0);
-
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
 	}
 
 	void End() override
 	{
-		glDeleteShader(m_FragmentShader);
-		glDeleteShader(m_VertexShader);
-		glDeleteProgram(m_ShaderProgram);
 		glDeleteVertexArrays(1, &m_Vao);
+		glDeleteBuffers(1, &m_Vbo);
+		glDeleteProgram(m_ShaderProgram);
 	}
 
 	void Update(float dt) override
 	{
 		glUseProgram(m_ShaderProgram);
 		glBindVertexArray(m_Vao);
-		// TODO: Regarder pourquoi le draw array fait tout crash
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 

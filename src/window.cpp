@@ -2,8 +2,11 @@
 // Created by stowy on 03/05/2023.
 //
 #include "window.hpp"
-#include "spdlog/spdlog.h"
-#include "GL/glew.h"
+
+#include <spdlog/spdlog.h>
+#include <GL/glew.h>
+#include <glm/vec2.hpp>
+
 #include "utils.hpp"
 
 stw::Window::Window(
@@ -35,7 +38,7 @@ stw::Window::Window(
 	m_GlRenderContext = SDL_GL_CreateContext(m_Window);
 	SDL_GL_SetSwapInterval(1);
 
-	if (GLEW_OK != glewInit())
+	if (glewInit() != GLEW_OK)
 	{
 		spdlog::error("Failed to initialize OpenGL context");
 		assert(false);
@@ -74,6 +77,13 @@ void stw::Window::Loop()
 				case SDL_WINDOWEVENT_CLOSE:
 					isOpen = false;
 					break;
+				case SDL_WINDOWEVENT_RESIZED:
+				{
+					GLsizei windowWidth = event.window.data1;
+					GLsizei windowHeigth = event.window.data2;
+					glViewport(0, 0, windowWidth, windowHeigth);
+					break;
+				}
 				default:
 					break;
 				}

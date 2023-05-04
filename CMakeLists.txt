@@ -7,6 +7,7 @@ include(cmake/download-cpm.cmake)
 
 CPMAddPackage("gh:libsdl-org/SDL#release-2.26.5")
 CPMAddPackage("gh:Perlmint/glew-cmake#glew-cmake-2.2.0")
+CPMAddPackage("gh:g-truc/glm#0.9.9.8")
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:gabime/spdlog@1.11.0")
 
@@ -22,5 +23,5 @@ add_executable(opengl_scene
     include/utils.hpp
     src/utils.cpp include/square_scene.hpp)
 target_include_directories(opengl_scene PRIVATE include/)
-target_link_libraries(opengl_scene fmt::fmt SDL2::SDL2-static SDL2::SDL2main spdlog::spdlog libglew_static)
+target_link_libraries(opengl_scene fmt::fmt SDL2::SDL2-static SDL2::SDL2main spdlog::spdlog libglew_static glm::glm)
 add_dependencies(opengl_scene shader_target data_target)
