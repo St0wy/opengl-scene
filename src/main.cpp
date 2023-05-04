@@ -1,8 +1,8 @@
 #include "window.hpp"
-#include "square_scene.hpp"
+#include "texture_scene.hpp"
 
 int main()
 {
-	stw::Window window(std::make_unique<stw::SquareScene>(), "OpenGL Scene");
+	stw::Window window(std::make_unique<stw::TextureScene>(), "OpenGL Scene");
 	window.Loop();
 }
