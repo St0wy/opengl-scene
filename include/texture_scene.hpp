@@ -15,6 +15,7 @@
 
 #include "scene.hpp"
 #include "utils.hpp"
+#include "pipeline.hpp"
 
 namespace stw
 {
@@ -41,59 +42,9 @@ public:
 		1, 2, 3,
 	};
 
-	static constexpr std::size_t LOG_SIZE = 512;
-
-	void LoadShaders()
-	{
-		std::string vertexSource = OpenFile("shaders/texture.vert");
-		const char* vertexSourcePtr = vertexSource.c_str();
-		m_VertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(m_VertexShader, 1, &vertexSourcePtr, nullptr);
-		glCompileShader(m_VertexShader);
-
-		GLint success;
-		glGetShaderiv(m_VertexShader, GL_COMPILE_STATUS, &success);
-		if (!success)
-		{
-			char infoLog[LOG_SIZE];
-			glGetShaderInfoLog(m_VertexShader, LOG_SIZE, nullptr, infoLog);
-			spdlog::error("Error while loading vertex shader. {}", infoLog);
-		}
-
-		std::string fragmentSource = OpenFile("shaders/texture.frag");
-		const char* fragmentSourcePtr = fragmentSource.c_str();
-		m_FragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(m_FragmentShader, 1, &fragmentSourcePtr, nullptr);
-		glCompileShader(m_FragmentShader);
-
-		glGetShaderiv(m_FragmentShader, GL_COMPILE_STATUS, &success);
-		if (!success)
-		{
-			char infoLog[LOG_SIZE];
-			glGetShaderInfoLog(m_FragmentShader, LOG_SIZE, nullptr, infoLog);
-			spdlog::error("Error while loading fragment shader. {}", infoLog);
-		}
-
-		m_ShaderProgram = glCreateProgram();
-		glAttachShader(m_ShaderProgram, m_VertexShader);
-		glAttachShader(m_ShaderProgram, m_FragmentShader);
-		glLinkProgram(m_ShaderProgram);
-
-		glGetProgramiv(m_ShaderProgram, GL_LINK_STATUS, &success);
-		if (!success)
-		{
-			char infoLog[LOG_SIZE];
-			glGetProgramInfoLog(m_ShaderProgram, LOG_SIZE, nullptr, infoLog);
-			spdlog::error("Error while linking shader program. {}", infoLog);
-		}
-
-		glDeleteShader(m_FragmentShader);
-		glDeleteShader(m_VertexShader);
-	}
-
 	void Begin() override
 	{
-		LoadShaders();
+		m_Pipeline.InitFromPath("shaders/texture.vert", "shaders/texture.frag");
 
 		glGenVertexArrays(1, &m_Vao);
 		glGenBuffers(1, &m_VboVertices);
@@ -142,15 +93,14 @@ public:
 		}
 		stbi_image_free(data);
 
-		glUseProgram(m_ShaderProgram);
-		glUniform1i(glGetUniformLocation(m_ShaderProgram, "ourTexture"), 0);
+		m_Pipeline.Use();
+		m_Pipeline.SetInt("outTexture", 0);
 	}
 
 	void End() override
 	{
 		glDeleteVertexArrays(1, &m_Vao);
 		glDeleteBuffers(1, &m_VboVertices);
-		glDeleteProgram(m_ShaderProgram);
 	}
 
 	void Update(float deltaTime) override
@@ -161,8 +111,8 @@ public:
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_Texture);
 
-		glUseProgram(m_ShaderProgram);
-		glUniform1f(glGetUniformLocation(m_ShaderProgram, "value"), value);
+		m_Pipeline.Use();
+		m_Pipeline.SetFloat("value", value);
 
 		glBindVertexArray(m_Vao);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
@@ -171,14 +121,12 @@ public:
 	}
 
 private:
-	GLuint m_VertexShader{};
-	GLuint m_FragmentShader{};
-	GLuint m_ShaderProgram{};
 	GLuint m_Vao{};
 	GLuint m_VboVertices{};
 	GLuint m_VboTexCoords{};
 	GLuint m_Ebo{};
 	GLuint m_Texture{};
-	float time;
+	Pipeline m_Pipeline;
+	float time{};
 };
 }
