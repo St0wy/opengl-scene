@@ -10,12 +10,10 @@
 #include <fmt/core.h>
 #include <spdlog/spdlog.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
 #include "scene.hpp"
 #include "utils.hpp"
 #include "pipeline.hpp"
+#include "texture.hpp"
 
 namespace stw
 {
@@ -23,27 +21,19 @@ namespace stw
 class TextureScene : public stw::Scene
 {
 public:
-	static constexpr std::array VERTICES{
-		0.5f, 0.5f, 0.0f,  // top right
-		0.5f, -0.5f, 0.0f,  // bottom right
-		-0.5f, -0.5f, 0.0f,  // bottom left
-		-0.5f, 0.5f, 0.0f   // top left
+	static constexpr std::array VERTICES{ 0.5f, 0.5f, 0.0f,  // top right
+										  0.5f, -0.5f, 0.0f,  // bottom right
+										  -0.5f, -0.5f, 0.0f,  // bottom left
+										  -0.5f, 0.5f, 0.0f   // top left
 	};
 
-	static constexpr std::array TEX_COORDS{
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-	};
+	static constexpr std::array TEX_COORDS{ 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, };
 
-	static constexpr std::array<uint32_t, 6> INDICES{
-		0, 1, 3,
-		1, 2, 3,
-	};
+	static constexpr std::array<uint32_t, 6> INDICES{ 0, 1, 3, 1, 2, 3, };
 
 	void Begin() override
 	{
+
 		m_Pipeline.InitFromPath("shaders/texture.vert", "shaders/texture.frag");
 
 		glGenVertexArrays(1, &m_Vao);
@@ -68,33 +58,8 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 
-
-		// Handle texture
-		glGenTextures(1, &m_Texture);
-		glBindTexture(GL_TEXTURE_2D, m_Texture);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		int32_t width, height, nbrChannels;
-		stbi_set_flip_vertically_on_load(true);
-		unsigned char* data = stbi_load("./data/container.jpg", &width, &height, &nbrChannels, 0);
-
-		if (data)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-		}
-		else
-		{
-			spdlog::error("Failed to load texture ");
-		}
-		stbi_image_free(data);
-
-		m_Pipeline.Use();
-		m_Pipeline.SetInt("outTexture", 0);
+		m_BoxTexture.Init("./data/container.jpg", "texture2", 0, &m_Pipeline);
+		m_FaceTexture.Init("./data/face.png", "texture1", 1, &m_Pipeline, GL_RGBA);
 	}
 
 	void End() override
@@ -108,10 +73,10 @@ public:
 		time += deltaTime * 2.0f;
 		float value = MapRange(std::cos(time), -1.0f, 1.0f, 0.0f, 1.0f);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_Texture);
-
 		m_Pipeline.Use();
+
+		m_BoxTexture.Bind(GL_TEXTURE0);
+		m_FaceTexture.Bind(GL_TEXTURE1);
 		m_Pipeline.SetFloat("value", value);
 
 		glBindVertexArray(m_Vao);
@@ -125,7 +90,8 @@ private:
 	GLuint m_VboVertices{};
 	GLuint m_VboTexCoords{};
 	GLuint m_Ebo{};
-	GLuint m_Texture{};
+	Texture m_BoxTexture;
+	Texture m_FaceTexture;
 	Pipeline m_Pipeline;
 	float time{};
 };

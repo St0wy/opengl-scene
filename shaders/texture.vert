@@ -6,7 +6,7 @@ layout (location = 1) in vec2 inTexCoord;
 
 out vec2 texCoord;
 
-uniform float value;
+//uniform float value;
 
 void main()
 {
