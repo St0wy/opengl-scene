@@ -19,7 +19,7 @@ stw::Texture::~Texture()
 	if (m_TextureId == 0)
 		return;
 
-	glDeleteTexturesEXT(1, &m_TextureId);
+	glDeleteTextures(1, &m_TextureId);
 }
 
 void
