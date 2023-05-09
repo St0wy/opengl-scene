@@ -32,3 +32,4 @@ add_executable(opengl_scene
 target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_libraries(opengl_scene fmt::fmt SDL2::SDL2-static SDL2::SDL2main spdlog::spdlog libglew_static glm::glm)
 add_dependencies(opengl_scene shader_target data_target)
+set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION true)
