@@ -7,6 +7,8 @@
 #include <string_view>
 #include <GL/glew.h>
 
+#include "glm/fwd.hpp"
+
 namespace stw
 {
 class Pipeline
@@ -24,6 +26,7 @@ public:
 	void SetBool(std::string_view name, bool value) const;
 	void SetInt(std::string_view name, int value) const;
 	void SetFloat(std::string_view name, float value) const;
+	void SetMat4(std::string_view name, const glm::mat4& mat) const;
 
 private:
 	GLuint m_ProgramId;

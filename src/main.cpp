@@ -1,9 +1,20 @@
-#include "texture_scene.hpp"
+#include <spdlog/common.h>
+
+#include "cube_scene.hpp"
 #include "window.hpp"
 
 int main(int, char* [])
 {
-	stw::Window window(std::make_unique<stw::TextureScene>(), "OpenGL Scene");
+#ifndef NDEBUG
+	spdlog::set_level(spdlog::level::debug);
+#endif
+
+	constexpr int32_t windowWidth = 1280;
+	constexpr int32_t windowHeight = 720;
+	stw::Window window(std::make_unique<stw::CubeScene>(windowWidth, windowHeight),
+		"OpenGL Scene",
+		windowWidth,
+		windowHeight);
 	window.Loop();
 	return 0;
 }

@@ -28,7 +28,11 @@ add_executable(opengl_scene
     include/pipeline.hpp
     src/pipeline.cpp
     include/texture.hpp
-    src/texture.cpp)
+    src/texture.cpp
+    include/cube_scene.hpp
+    include/camera.hpp
+    src/camera.cpp
+)
 target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_libraries(opengl_scene fmt::fmt SDL2::SDL2-static SDL2::SDL2main spdlog::spdlog libglew_static glm::glm)
 add_dependencies(opengl_scene shader_target data_target)

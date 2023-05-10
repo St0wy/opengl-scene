@@ -22,10 +22,11 @@ public:
 	Window& operator=(Window&& other) = default;
 	Window& operator=(const Window& other) = delete;
 
-	void Loop() const;
+	void Loop();
 private:
 	std::unique_ptr<Scene> m_Scene;
 	SDL_Window* m_Window;
 	SDL_GLContext m_GlRenderContext;
+	bool m_IsActive = true;
 };
 }

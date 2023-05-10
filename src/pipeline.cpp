@@ -4,6 +4,7 @@
 
 #include "pipeline.hpp"
 
+#include <glm/matrix.hpp>
 #include <spdlog/spdlog.h>
 
 #include "utils.hpp"
@@ -28,6 +29,11 @@ void stw::Pipeline::SetInt(const std::string_view name, const int value) const
 void stw::Pipeline::SetFloat(const std::string_view name, const float value) const
 {
 	glUniform1f(glGetUniformLocation(m_ProgramId, name.data()), value);
+}
+
+void stw::Pipeline::SetMat4(const std::string_view name, const glm::mat4& mat) const
+{
+	glUniformMatrix4fv(glGetUniformLocation(m_ProgramId, name.data()), 1, GL_FALSE, &mat[0][0]);
 }
 
 stw::Pipeline::~Pipeline()

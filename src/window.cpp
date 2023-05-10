@@ -5,17 +5,14 @@
 
 #include <chrono>
 #include <GL/glew.h>
-#include <glm/vec2.hpp>
 #include <spdlog/spdlog.h>
 
 #include "utils.hpp"
 
-stw::Window::Window(
-	std::unique_ptr<Scene> scene,
+stw::Window::Window(std::unique_ptr<Scene> scene,
 	const char* windowName,
 	const int32_t windowWidth,
-	const int32_t windowHeight
-)
+	const int32_t windowHeight)
 	: m_Scene(std::move(scene))
 {
 	SDL_SetMainReady();
@@ -28,16 +25,15 @@ stw::Window::Window(
 
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-	m_Window = SDL_CreateWindow(
-		windowName,
+	m_Window = SDL_CreateWindow(windowName,
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
 		windowWidth,
 		windowHeight,
-		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
-	);
+		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 	m_GlRenderContext = SDL_GL_CreateContext(m_Window);
 	SDL_GL_SetSwapInterval(1);
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	if (glewInit() != GLEW_OK)
 	{
@@ -58,7 +54,7 @@ stw::Window::~Window()
 	SDL_Quit();
 }
 
-void stw::Window::Loop() const
+void stw::Window::Loop()
 {
 	std::chrono::time_point<std::chrono::system_clock> clock = std::chrono::system_clock::now();
 
@@ -97,15 +93,30 @@ void stw::Window::Loop() const
 				}
 				break;
 			}
+			case SDL_KEYDOWN:
+				if (event.key.keysym.sym == SDLK_ESCAPE && m_IsActive)
+				{
+					SDL_SetRelativeMouseMode(SDL_FALSE);
+					m_IsActive = false;
+				}
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				SDL_SetRelativeMouseMode(SDL_TRUE);
+				m_IsActive = true;
 			default:
 				break;
 			}
+
+			if (m_IsActive)
+			{
+				m_Scene->OnEvent(event);
+			}
 		}
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		m_Scene->Update(deltaTime.count());
+		if (m_IsActive)
+		{
+			m_Scene->Update(deltaTime.count());
+		}
 		SDL_GL_SwapWindow(m_Window);
 	}
 }

@@ -31,7 +31,6 @@ public:
 
 	void Begin() override
 	{
-
 		m_Pipeline.InitFromPath("shaders/texture.vert", "shaders/texture.frag");
 
 		glGenVertexArrays(1, &m_Vao);
@@ -68,6 +67,8 @@ public:
 
 	void Update(const float deltaTime) override
 	{
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 		m_Time += deltaTime * 2.0f;
 		const float value = MapRange(std::cos(m_Time), -1.0f, 1.0f, 0.0f, 1.0f);
 

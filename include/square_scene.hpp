@@ -12,6 +12,7 @@
 
 #include "scene.hpp"
 #include "utils.hpp"
+#include "camera.hpp"
 
 namespace stw
 {
@@ -149,5 +150,6 @@ private:
 	GLuint m_VboColor{};
 	GLuint m_Ebo{};
 	float time;
+	Camera m_Camera{};
 };
 }
