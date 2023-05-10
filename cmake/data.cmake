@@ -14,7 +14,8 @@ if(WIN32)
         set(GLSL_VALIDATOR "$ENV{VULKAN_SDK}/Bin32/glslangValidator.exe")
     endif()
 elseif(UNIX)
-    set(GLSL_VALIDATOR "glslangValidator")
+    find_program(GLSL_VALIDATOR "glslangValidator")
+    # set(GLSL_VALIDATOR "glslangValidator")
 endif()
 
 # Validate every shader
@@ -24,13 +25,22 @@ foreach(SHADER ${SHADER_FILES})
     get_filename_component(EXTENSION ${SHADER} EXT)
     file(RELATIVE_PATH PATH_NAME "${CMAKE_CURRENT_SOURCE_DIR}" ${PATH_NAME})
     set(SHADER_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${PATH_NAME}/${FILE_NAME}")
-    add_custom_command(
-        OUTPUT ${SHADER_OUTPUT}
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${SHADER}
-        ${SHADER_OUTPUT}
-        COMMAND ${GLSL_VALIDATOR}  ${SHADER}
-        DEPENDS ${SHADER})
+    if(GLSL_VALIDATOR)
+        add_custom_command(
+            OUTPUT ${SHADER_OUTPUT}
+            COMMAND ${CMAKE_COMMAND} -E copy
+            ${SHADER}
+            ${SHADER_OUTPUT}
+            COMMAND ${GLSL_VALIDATOR}  ${SHADER}
+            DEPENDS ${SHADER})
+    else()
+        add_custom_command(
+            OUTPUT ${SHADER_OUTPUT}
+            COMMAND ${CMAKE_COMMAND} -E copy
+            ${SHADER}
+            ${SHADER_OUTPUT}
+            DEPENDS ${SHADER})
+    endif()
     list(APPEND SCRIPT_OUTPUT_FILES ${SHADER_OUTPUT})
 endforeach(SHADER)
 
