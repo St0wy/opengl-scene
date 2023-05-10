@@ -8,7 +8,6 @@
 
 namespace stw
 {
-
 class Scene
 {
 public:

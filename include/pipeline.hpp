@@ -20,10 +20,11 @@ public:
 	~Pipeline();
 
 	void InitFromPath(std::string_view vertexPath, std::string_view fragmentPath);
-	void Use();
+	void Use() const;
 	void SetBool(std::string_view name, bool value) const;
 	void SetInt(std::string_view name, int value) const;
 	void SetFloat(std::string_view name, float value) const;
+
 private:
 	GLuint m_ProgramId;
 	GLuint m_VertexShaderId;

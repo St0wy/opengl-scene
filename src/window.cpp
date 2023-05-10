@@ -4,17 +4,17 @@
 #include "window.hpp"
 
 #include <chrono>
-#include <spdlog/spdlog.h>
 #include <GL/glew.h>
 #include <glm/vec2.hpp>
+#include <spdlog/spdlog.h>
 
 #include "utils.hpp"
 
 stw::Window::Window(
 	std::unique_ptr<Scene> scene,
 	const char* windowName,
-	int32_t windowWidth,
-	int32_t windowHeight
+	const int32_t windowWidth,
+	const int32_t windowHeight
 )
 	: m_Scene(std::move(scene))
 {
@@ -58,7 +58,7 @@ stw::Window::~Window()
 	SDL_Quit();
 }
 
-void stw::Window::Loop()
+void stw::Window::Loop() const
 {
 	std::chrono::time_point<std::chrono::system_clock> clock = std::chrono::system_clock::now();
 
@@ -66,8 +66,8 @@ void stw::Window::Loop()
 	while (isOpen)
 	{
 		const auto start = std::chrono::system_clock::now();
-		using seconds = std::chrono::duration<float, std::ratio<1, 1>>;
-		const auto deltaTime = std::chrono::duration_cast<seconds>(start - clock);
+		using Seconds = std::chrono::duration<float, std::ratio<1, 1>>;
+		const auto deltaTime = std::chrono::duration_cast<Seconds>(start - clock);
 		clock = start;
 
 		SDL_Event event;
@@ -87,9 +87,9 @@ void stw::Window::Loop()
 					break;
 				case SDL_WINDOWEVENT_RESIZED:
 				{
-					GLsizei windowWidth = event.window.data1;
-					GLsizei windowHeigth = event.window.data2;
-					glViewport(0, 0, windowWidth, windowHeigth);
+					const GLsizei windowWidth = event.window.data1;
+					const GLsizei windowHeight = event.window.data2;
+					glViewport(0, 0, windowWidth, windowHeight);
 					break;
 				}
 				default:

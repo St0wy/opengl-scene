@@ -8,7 +8,7 @@
 #include <stb_image.h>
 #include <spdlog/spdlog.h>
 
-void stw::Texture::Bind(GLenum activeTexture) const
+void stw::Texture::Bind(const GLenum activeTexture) const
 {
 	glActiveTexture(activeTexture);
 	glBindTexture(GL_TEXTURE_2D, m_TextureId);
@@ -22,8 +22,11 @@ stw::Texture::~Texture()
 	glDeleteTextures(1, &m_TextureId);
 }
 
-void
-stw::Texture::Init(std::string_view path, std::string_view textureUniformName, GLint uniformValue, Pipeline* pipeline, GLint format)
+void stw::Texture::Init(const std::string_view path,
+	const std::string_view textureUniformName,
+	const GLint uniformValue,
+	Pipeline* pipeline,
+	const GLint format)
 {
 	m_Pipeline = pipeline;
 

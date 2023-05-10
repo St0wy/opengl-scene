@@ -8,24 +8,24 @@
 
 #include "utils.hpp"
 
-constexpr std::size_t LOG_SIZE = 512;
+constexpr std::size_t LogSize = 512;
 
-void stw::Pipeline::Use()
+void stw::Pipeline::Use() const
 {
 	glUseProgram(m_ProgramId);
 }
 
-void stw::Pipeline::SetBool(std::string_view name, bool value) const
+void stw::Pipeline::SetBool(const std::string_view name, const bool value) const
 {
 	glUniform1i(glGetUniformLocation(m_ProgramId, name.data()), static_cast<int>(value));
 }
 
-void stw::Pipeline::SetInt(std::string_view name, int value) const
+void stw::Pipeline::SetInt(const std::string_view name, const int value) const
 {
 	glUniform1i(glGetUniformLocation(m_ProgramId, name.data()), value);
 }
 
-void stw::Pipeline::SetFloat(std::string_view name, float value) const
+void stw::Pipeline::SetFloat(const std::string_view name, const float value) const
 {
 	glUniform1f(glGetUniformLocation(m_ProgramId, name.data()), value);
 }
@@ -38,9 +38,9 @@ stw::Pipeline::~Pipeline()
 	glDeleteProgram(m_ProgramId);
 }
 
-void stw::Pipeline::InitFromPath(std::string_view vertexPath, std::string_view fragmentPath)
+void stw::Pipeline::InitFromPath(const std::string_view vertexPath, const std::string_view fragmentPath)
 {
-	std::string vertexSource = OpenFile(vertexPath);
+	const std::string vertexSource = OpenFile(vertexPath);
 	const char* vertexSourcePtr = vertexSource.c_str();
 	m_VertexShaderId = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(m_VertexShaderId, 1, &vertexSourcePtr, nullptr);
@@ -50,12 +50,12 @@ void stw::Pipeline::InitFromPath(std::string_view vertexPath, std::string_view f
 	glGetShaderiv(m_VertexShaderId, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		char infoLog[LOG_SIZE];
-		glGetShaderInfoLog(m_VertexShaderId, LOG_SIZE, nullptr, infoLog);
+		char infoLog[LogSize];
+		glGetShaderInfoLog(m_VertexShaderId, LogSize, nullptr, infoLog);
 		spdlog::error("Error while loading vertex shader. {}", infoLog);
 	}
 
-	std::string fragmentSource = OpenFile(fragmentPath);
+	const std::string fragmentSource = OpenFile(fragmentPath);
 	const char* fragmentSourcePtr = fragmentSource.c_str();
 	m_FragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(m_FragmentShaderId, 1, &fragmentSourcePtr, nullptr);
@@ -64,8 +64,8 @@ void stw::Pipeline::InitFromPath(std::string_view vertexPath, std::string_view f
 	glGetShaderiv(m_FragmentShaderId, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		char infoLog[LOG_SIZE];
-		glGetShaderInfoLog(m_FragmentShaderId, LOG_SIZE, nullptr, infoLog);
+		char infoLog[LogSize];
+		glGetShaderInfoLog(m_FragmentShaderId, LogSize, nullptr, infoLog);
 		spdlog::error("Error while loading fragment shader. {}", infoLog);
 	}
 
@@ -77,8 +77,8 @@ void stw::Pipeline::InitFromPath(std::string_view vertexPath, std::string_view f
 	glGetProgramiv(m_ProgramId, GL_LINK_STATUS, &success);
 	if (!success)
 	{
-		char infoLog[LOG_SIZE];
-		glGetProgramInfoLog(m_ProgramId, LOG_SIZE, nullptr, infoLog);
+		char infoLog[LogSize];
+		glGetProgramInfoLog(m_ProgramId, LogSize, nullptr, infoLog);
 		spdlog::error("Error while linking shader program. {}", infoLog);
 	}
 

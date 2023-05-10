@@ -3,10 +3,10 @@
 //
 
 #pragma once
-#include <string_view>
 #include <cassert>
+#include <string_view>
 
-#define assertm(expression, message) assert(((void)message, expression));
+#define ASSERT_MESSAGE(expression, message) assert(((void)(message), expression));
 
 namespace stw
 {
