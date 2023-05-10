@@ -21,6 +21,6 @@ template <typename T> T MapRange(T value, T a, T b, T c, T d)
     return c + value * (d - c);
 }
 
-bool CheckGlError(std::string_view file, uint32_t line);
+bool CheckGlError(std::string_view file, std::uint32_t line);
 #define CHECK_GL_ERROR() stw::CheckGlError(__FILE__, __LINE__)
 } // namespace stw
