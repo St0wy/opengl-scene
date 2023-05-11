@@ -26,109 +26,41 @@ public:
 		-0.5f,
 		0.0f,
 		0.0f,
-		0.5f,
-		-0.5f,
-		-0.5f,
-		1.0f,
-		0.0f,
-		0.5f,
-		0.5f,
-		-0.5f,
-		1.0f,
-		1.0f,
-		0.5f,
-		0.5f,
-		-0.5f,
-		1.0f,
-		1.0f,
-		-0.5f,
-		0.5f,
-		-0.5f,
-		0.0f,
-		1.0f,
-		-0.5f,
-		-0.5f,
-		-0.5f,
-		0.0f,
-		0.0f,
-		-0.5f,
-		-0.5f,
-		0.5f,
-		0.0f,
-		0.0f,
-		0.5f,
-		-0.5f,
-		0.5f,
-		1.0f,
-		0.0f,
-		0.5f,
-		0.5f,
-		0.5f,
-		1.0f,
-		1.0f,
-		0.5f,
-		0.5f,
-		0.5f,
-		1.0f,
-		1.0f,
-		-0.5f,
-		0.5f,
-		0.5f,
-		0.0f,
-		1.0f,
-		-0.5f,
-		-0.5f,
-		0.5f,
-		0.0f,
-		0.0f,
-		-0.5f,
-		0.5f,
-		0.5f,
-		1.0f,
-		0.0f,
-		-0.5f,
-		0.5f,
-		-0.5f,
-		1.0f,
-		1.0f,
-		-0.5f,
-		-0.5f,
-		-0.5f,
-		0.0f,
-		1.0f,
-		-0.5f,
-		-0.5f,
-		-0.5f,
-		0.0f,
-		1.0f,
-		-0.5f,
-		-0.5f,
-		0.5f,
-		0.0f,
-		0.0f,
-		-0.5f,
-		0.5f,
-		0.5f,
-		1.0f,
-		0.0f,
-		0.5f,
-		0.5f,
-		0.5f,
-		1.0f,
-		0.0f,
-		0.5f,
-		0.5f,
-		-0.5f,
-		1.0f,
-		1.0f,
+		-1.0f,
 		0.5f,
 		-0.5f,
 		-0.5f,
 		0.0f,
-		1.0f,
+		0.0f,
+		-1.0f,
+		0.5f,
 		0.5f,
 		-0.5f,
+		0.0f,
+		0.0f,
+		-1.0f,
+		0.5f,
+		0.5f,
 		-0.5f,
+		0.0f,
+		0.0f,
+		-1.0f,
+		-0.5f,
+		0.5f,
+		-0.5f,
+		0.0f,
+		0.0f,
+		-1.0f,
+		-0.5f,
+		-0.5f,
+		-0.5f,
+		0.0f,
+		0.0f,
+		-1.0f,
+		-0.5f,
+		-0.5f,
+		0.5f,
+		0.0f,
 		0.0f,
 		1.0f,
 		0.5f,
@@ -136,155 +68,263 @@ public:
 		0.5f,
 		0.0f,
 		0.0f,
+		1.0f,
+		0.5f,
+		0.5f,
+		0.5f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.5f,
+		0.5f,
+		0.5f,
+		0.0f,
+		0.0f,
+		1.0f,
+		-0.5f,
+		0.5f,
+		0.5f,
+		0.0f,
+		0.0f,
+		1.0f,
+		-0.5f,
+		-0.5f,
+		0.5f,
+		0.0f,
+		0.0f,
+		1.0f,
+		-0.5f,
+		0.5f,
+		0.5f,
+		-1.0f,
+		0.0f,
+		0.0f,
+		-0.5f,
+		0.5f,
+		-0.5f,
+		-1.0f,
+		0.0f,
+		0.0f,
+		-0.5f,
+		-0.5f,
+		-0.5f,
+		-1.0f,
+		0.0f,
+		0.0f,
+		-0.5f,
+		-0.5f,
+		-0.5f,
+		-1.0f,
+		0.0f,
+		0.0f,
+		-0.5f,
+		-0.5f,
+		0.5f,
+		-1.0f,
+		0.0f,
+		0.0f,
+		-0.5f,
+		0.5f,
+		0.5f,
+		-1.0f,
+		0.0f,
+		0.0f,
 		0.5f,
 		0.5f,
 		0.5f,
 		1.0f,
 		0.0f,
-		-0.5f,
-		-0.5f,
-		-0.5f,
-		0.0f,
-		1.0f,
-		0.5f,
-		-0.5f,
-		-0.5f,
-		1.0f,
-		1.0f,
-		0.5f,
-		-0.5f,
-		0.5f,
-		1.0f,
 		0.0f,
 		0.5f,
+		0.5f,
+		-0.5f,
+		1.0f,
+		0.0f,
+		0.0f,
+		0.5f,
+		-0.5f,
+		-0.5f,
+		1.0f,
+		0.0f,
+		0.0f,
+		0.5f,
+		-0.5f,
+		-0.5f,
+		1.0f,
+		0.0f,
+		0.0f,
+		0.5f,
 		-0.5f,
 		0.5f,
 		1.0f,
 		0.0f,
-		-0.5f,
-		-0.5f,
-		0.5f,
-		0.0f,
-		0.0f,
-		-0.5f,
-		-0.5f,
-		-0.5f,
-		0.0f,
-		1.0f,
-		-0.5f,
-		0.5f,
-		-0.5f,
-		0.0f,
-		1.0f,
-		0.5f,
-		0.5f,
-		-0.5f,
-		1.0f,
-		1.0f,
-		0.5f,
-		0.5f,
-		0.5f,
-		1.0f,
 		0.0f,
 		0.5f,
 		0.5f,
 		0.5f,
 		1.0f,
 		0.0f,
+		0.0f,
+		-0.5f,
+		-0.5f,
+		-0.5f,
+		0.0f,
+		-1.0f,
+		0.0f,
+		0.5f,
+		-0.5f,
+		-0.5f,
+		0.0f,
+		-1.0f,
+		0.0f,
+		0.5f,
+		-0.5f,
+		0.5f,
+		0.0f,
+		-1.0f,
+		0.0f,
+		0.5f,
+		-0.5f,
+		0.5f,
+		0.0f,
+		-1.0f,
+		0.0f,
+		-0.5f,
+		-0.5f,
+		0.5f,
+		0.0f,
+		-1.0f,
+		0.0f,
+		-0.5f,
+		-0.5f,
+		-0.5f,
+		0.0f,
+		-1.0f,
+		0.0f,
+		-0.5f,
+		0.5f,
+		-0.5f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.5f,
+		0.5f,
+		-0.5f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.5f,
+		0.5f,
+		0.5f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.5f,
+		0.5f,
+		0.5f,
+		0.0f,
+		1.0f,
+		0.0f,
 		-0.5f,
 		0.5f,
 		0.5f,
 		0.0f,
+		1.0f,
 		0.0f,
 		-0.5f,
 		0.5f,
 		-0.5f,
 		0.0f,
-		1.0f
-	};
-
-	static constexpr std::array CubePositions = {
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(2.0f, 5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f, 3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f, 2.0f, -2.5f),
-		glm::vec3(1.5f, 0.2f, -1.5f),
-		glm::vec3(-1.3f, 1.0f, -1.5f)
+		1.0f,
+		0.0f
 	};
 
 	void Begin() override
 	{
 		glEnable(GL_DEPTH_TEST);
 
-		m_Pipeline.InitFromPath("shaders/cube.vert", "shaders/cube.frag");
+		m_PipelineLightCube.InitFromPath("shaders/light/light_cube.vert", "shaders/light/light_cube.frag");
+		m_PipelineLightSource.InitFromPath("shaders/light/light_source.vert", "shaders/light/light_source.frag");
 
-		glGenVertexArrays(1, &m_Vao);
+		glGenVertexArrays(1, &m_VaoCube);
 		glGenBuffers(1, &m_Vbo);
-		glGenBuffers(1, &m_Ebo);
-		glBindVertexArray(m_Vao);
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
 		glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(float), Vertices.data(), GL_STATIC_DRAW);
 
-		// Position
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
+		glBindVertexArray(m_VaoCube);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
 		glEnableVertexAttribArray(0);
 
-		// Texture Coordinates
-		glVertexAttribPointer(1,
-			2,
-			GL_FLOAT,
-			GL_FALSE,
-			5 * sizeof(float),
-			reinterpret_cast<const void*>(3 * sizeof(float))); // NOLINT(performance-no-int-to-ptr)
+		const auto offset = reinterpret_cast<void*>(3 * sizeof(float)); // NOLINT(performance-no-int-to-ptr)
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), offset);
 		glEnableVertexAttribArray(1);
+
+		glGenVertexArrays(1, &m_VaoLightSource);
+		glBindVertexArray(m_VaoLightSource);
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
+		glEnableVertexAttribArray(0);
+
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
-
-		m_BoxTexture.Init("./data/container.jpg", "texture2", 0, &m_Pipeline);
-		m_FaceTexture.Init("./data/face.png", "texture1", 1, &m_Pipeline, GL_RGBA);
 	}
 
 	void End() override
 	{
-		glDeleteVertexArrays(1, &m_Vao);
+		glDeleteVertexArrays(1, &m_VaoCube);
 		glDeleteBuffers(1, &m_Vbo);
 	}
 
 	void Update(const f32 deltaTime) override
 	{
 		m_Time += deltaTime;
+
+		constexpr f32 lightRadius = 2.0f;
+		m_LightPosition.x = std::cos(m_Time) * lightRadius;
+		m_LightPosition.y = std::cos(m_Time * 6.0f) * 0.1f + 1.0f;
+		m_LightPosition.z = std::sin(m_Time) * lightRadius;
+
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		m_Pipeline.Use();
+		// Cube 
+		m_PipelineLightCube.Use();
 
-		m_BoxTexture.Bind(GL_TEXTURE0);
-		m_FaceTexture.Bind(GL_TEXTURE1);
+		m_PipelineLightCube.SetVec3("objectColor", {1.0f, 0.5f, 0.31f});
+		m_PipelineLightCube.SetVec3("lightColor", {1.0f, 1.0f, 1.0f});
+		m_PipelineLightCube.SetVec3("lightPos", m_LightPosition);
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
 		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
-		m_Pipeline.SetMat4("projection", projection);
-		m_Pipeline.SetMat4("view", view);
+		m_PipelineLightCube.SetMat4("projection", projection);
+		m_PipelineLightCube.SetMat4("view", view);
 
-		glBindVertexArray(m_Vao);
+		constexpr glm::mat4 cubeModel{1.0f};
+		m_PipelineLightCube.SetMat4("model", cubeModel);
 
-		for (u32 i = 0; i < 10; i++)
-		{
-			glm::mat4 model{1.0f};
-			model = translate(model, CubePositions[i]);
-			const f32 angle = 20.0f * static_cast<float>(i + 1) * m_Time;
-			model = rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-			m_Pipeline.SetMat4("model", model);
+		glBindVertexArray(m_VaoCube);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+		// Light source
+		m_PipelineLightSource.Use();
 
+		m_PipelineLightSource.SetMat4("projection", projection);
+		m_PipelineLightSource.SetMat4("view", view);
+
+		glm::mat4 lightModel{1.0f};
+		lightModel = translate(lightModel, m_LightPosition);
+		lightModel = scale(lightModel, glm::vec3{0.2f});
+		m_PipelineLightSource.SetMat4("model", lightModel);
+
+		glBindVertexArray(m_VaoLightSource);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		// Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
 		const CameraMovementState cameraMovementState{
 			.forward = static_cast<bool>(keyboardState[SDL_SCANCODE_W]),
@@ -328,13 +368,13 @@ public:
 	}
 
 private:
-	GLuint m_Vao{};
+	Pipeline m_PipelineLightCube{};
+	Pipeline m_PipelineLightSource{};
+	GLuint m_VaoCube{};
+	GLuint m_VaoLightSource{};
 	GLuint m_Vbo{};
-	GLuint m_Ebo{};
-	Texture m_BoxTexture;
-	Texture m_FaceTexture;
-	Pipeline m_Pipeline{};
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
+	glm::vec3 m_LightPosition{1.2f, 1.0f, 2.0f};
 };
 } // namespace stw
