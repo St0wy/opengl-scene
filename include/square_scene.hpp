@@ -142,6 +142,11 @@ class SquareScene : public stw::Scene
         }
     }
 
+	void OnResize(const i32 windowWidth, const i32 windowHeight) override
+	{
+		glViewport(0, 0, windowWidth, windowHeight);
+	}
+
   private:
     GLuint m_VertexShader{};
     GLuint m_FragmentShader{};

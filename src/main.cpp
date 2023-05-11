@@ -9,12 +9,7 @@ int main(int, char*[])
 	spdlog::set_level(spdlog::level::debug);
 #endif
 
-	constexpr i32 windowWidth = 1280;
-	constexpr i32 windowHeight = 720;
-	stw::Window window(std::make_unique<stw::CubeScene>(windowWidth, windowHeight),
-		"OpenGL Scene",
-		windowWidth,
-		windowHeight);
+	stw::Window window(std::make_unique<stw::CubeScene>(), "OpenGL Scene");
 	window.Loop();
 	return 0;
 }

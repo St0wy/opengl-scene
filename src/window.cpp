@@ -39,6 +39,7 @@ stw::Window::Window(std::unique_ptr<Scene> scene, const char* windowName, const 
 	}
 
 	m_Scene->Begin();
+	m_Scene->OnResize(windowWidth, windowHeight);
 }
 
 stw::Window::~Window()
@@ -82,7 +83,8 @@ void stw::Window::Loop()
 				{
 					const GLsizei windowWidth = event.window.data1;
 					const GLsizei windowHeight = event.window.data2;
-					glViewport(0, 0, windowWidth, windowHeight);
+					m_Scene->OnResize(windowWidth, windowHeight);
+
 					break;
 				}
 				default:
@@ -110,10 +112,8 @@ void stw::Window::Loop()
 			}
 		}
 
-		if (m_IsActive)
-		{
-			m_Scene->Update(deltaTime.count());
-		}
+		const f32 dt = m_IsActive ? deltaTime.count() : 0.0f;
+		m_Scene->Update(dt);
 		SDL_GL_SwapWindow(m_Window);
 	}
 }

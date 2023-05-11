@@ -23,13 +23,18 @@ public:
 	explicit Camera(glm::vec3 position = glm::vec3(0.0f),
 		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
 		f32 yaw = DefaultYaw,
-		f32 pitch = DefaultPitch);
+		f32 pitch = DefaultPitch,
+		f32 aspectRatio = DefaultAspectRatio);
+
+	[[nodiscard]] f32 FovY() const;
+	void SetAspectRatio(f32 aspectRatio);
 
 	[[nodiscard]] glm::mat4 GetViewMatrix() const;
+	[[nodiscard]] glm::mat4 GetProjectionMatrix() const;
+
 	void ProcessMovement(const CameraMovementState& cameraMovementState, f32 deltaTime);
 	void ProcessMouseMovement(f32 xOffset, f32 yOffset, bool constrainPitch = true);
 	void ProcessMouseScroll(f32 yOffset);
-	[[nodiscard]] f32 FovY() const;
 
 private:
 	static constexpr f32 DefaultYaw = -90.0f;
@@ -40,6 +45,9 @@ private:
 	static constexpr f32 MinFovY = 1.0f;
 	static constexpr f32 MaxFovY = 120.0f;
 	static constexpr f32 MaxPitchAngle = 89.0f;
+	static constexpr f32 DefaultAspectRatio = 16.0f / 9.0f;
+	static constexpr f32 NearPlane = 0.001f;
+	static constexpr f32 FarPlane = 1000.0f;
 
 	glm::vec3 m_Position;
 	glm::vec3 m_Front;
@@ -51,6 +59,7 @@ private:
 	f32 m_MovementSpeed;
 	f32 m_MouseSensitivity;
 	f32 m_FovY;
+	f32 m_AspectRatio;
 
 	void UpdateCameraVectors();
 };

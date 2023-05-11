@@ -27,5 +27,9 @@ public:
 	virtual void OnEvent(const SDL_Event& event)
 	{
 	}
+
+	virtual void OnResize(const i32 windowWidth, const i32 windowHeight)
+	{
+	}
 };
 }

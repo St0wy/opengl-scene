@@ -216,11 +216,6 @@ public:
 		glm::vec3(-1.3f, 1.0f, -1.5f)
 	};
 
-	CubeScene(const i32 windowWidth, const i32 windowHeight)
-		: m_WindowWidth(windowWidth), m_WindowHeight(windowHeight)
-	{
-	}
-
 	void Begin() override
 	{
 		glEnable(GL_DEPTH_TEST);
@@ -273,8 +268,7 @@ public:
 		m_FaceTexture.Bind(GL_TEXTURE1);
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
-		const f32 aspectRatio = static_cast<f32>(m_WindowWidth) / static_cast<f32>(m_WindowHeight);
-		const glm::mat4 projection = glm::perspective(glm::radians(m_Camera.FovY()), aspectRatio, 0.1f, 1000.0f);
+		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
 		m_Pipeline.SetMat4("projection", projection);
 		m_Pipeline.SetMat4("view", view);
 
@@ -327,6 +321,12 @@ public:
 		}
 	}
 
+	void OnResize(const i32 windowWidth, const i32 windowHeight) override
+	{
+		glViewport(0, 0, windowWidth, windowHeight);
+		m_Camera.SetAspectRatio(static_cast<f32>(windowWidth) / static_cast<f32>(windowHeight));
+	}
+
 private:
 	GLuint m_Vao{};
 	GLuint m_Vbo{};
@@ -335,8 +335,6 @@ private:
 	Texture m_FaceTexture;
 	Pipeline m_Pipeline{};
 	f32 m_Time{};
-	u32 m_WindowWidth{};
-	u32 m_WindowHeight{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
 };
 } // namespace stw

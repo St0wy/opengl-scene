@@ -4,8 +4,9 @@
 #include <glm/geometric.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
 
-stw::Camera::Camera(glm::vec3 position, glm::vec3 up, f32 yaw, f32 pitch)
+stw::Camera::Camera(glm::vec3 position, glm::vec3 up, f32 yaw, f32 pitch, f32 aspectRatio)
 	: m_Position(position),
 	m_Front(glm::vec3(0.0f, 0.0f, -1.0f)),
 	m_Up(up),
@@ -15,7 +16,8 @@ stw::Camera::Camera(glm::vec3 position, glm::vec3 up, f32 yaw, f32 pitch)
 	m_Pitch(pitch),
 	m_MovementSpeed(DefaultSpeed),
 	m_MouseSensitivity(DefaultSensitivity),
-	m_FovY(DefaultFovY)
+	m_FovY(DefaultFovY),
+	m_AspectRatio(aspectRatio)
 
 {
 	UpdateCameraVectors();
@@ -24,6 +26,11 @@ stw::Camera::Camera(glm::vec3 position, glm::vec3 up, f32 yaw, f32 pitch)
 glm::mat4 stw::Camera::GetViewMatrix() const
 {
 	return lookAt(m_Position, m_Position + m_Front, m_Up);
+}
+
+glm::mat4 stw::Camera::GetProjectionMatrix() const
+{
+	return glm::perspective(glm::radians(m_FovY), m_AspectRatio, NearPlane, FarPlane);
 }
 
 void stw::Camera::ProcessMovement(const CameraMovementState& cameraMovementState, const f32 deltaTime)
@@ -69,6 +76,11 @@ void stw::Camera::ProcessMouseScroll(const f32 yOffset)
 float stw::Camera::FovY() const
 {
 	return m_FovY;
+}
+
+void stw::Camera::SetAspectRatio(const f32 aspectRatio)
+{
+	m_AspectRatio = aspectRatio;
 }
 
 void stw::Camera::UpdateCameraVectors()

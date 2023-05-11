@@ -73,6 +73,11 @@ public:
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 
+	void OnResize(i32 windowWidth, i32 windowHeight) override
+	{
+		glViewport(0, 0, windowWidth, windowHeight);
+	}
+
 private:
 	GLuint m_VertexShader{};
 	GLuint m_FragmentShader{};
