@@ -311,6 +311,19 @@ public:
 		1.0f
 	};
 
+	static constexpr std::array CubePositions{
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(2.0f, 5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f, 3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f, 2.0f, -2.5f),
+		glm::vec3(1.5f, 0.2f, -1.5f),
+		glm::vec3(-1.3f, 1.0f, -1.5f)
+	};
+
 	void Begin() override
 	{
 		glEnable(GL_DEPTH_TEST);
@@ -375,7 +388,6 @@ public:
 
 		m_PipelineLightCube.SetFloat("material.shininess", 32.0f);
 
-		m_PipelineLightCube.SetVec3("lightPosition", m_LightPosition);
 		m_PipelineLightCube.SetVec3("light.ambient", {0.2f, 0.2f, 0.2f});
 		m_PipelineLightCube.SetVec3("light.diffuse", {0.5f, 0.5f, 0.5f}); // darken diffuse light a bit
 		m_PipelineLightCube.SetVec3("light.specular", {1.0f, 1.0f, 1.0f});
@@ -387,31 +399,39 @@ public:
 		m_PipelineLightCube.SetMat4("projection", projection);
 		m_PipelineLightCube.SetMat4("view", view);
 
-		constexpr glm::mat4 cubeModel{1.0f};
-		m_PipelineLightCube.SetMat4("model", cubeModel);
-
-		const glm::mat3 normalMatrix = inverseTranspose(view * cubeModel);
-		m_PipelineLightCube.SetMat3("normal", normalMatrix);
+		m_PipelineLightCube.SetVec3("light.direction", {-0.2f, -1.0f, -0.3f});
 
 		m_DiffuseMap.Bind();
 		m_SpecularMap.Bind();
 
 		glBindVertexArray(m_VaoCube);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		for (u32 i = 0; i < 10; i++)
+		{
+			glm::mat4 model{1.0f};
+			model = translate(model, CubePositions[i]);
+			const f32 angle = 20.0f * static_cast<float>(i);
+			model = rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			m_PipelineLightCube.SetMat4("model", model);
+
+			const glm::mat3 normalMatrix = inverseTranspose(view * model);
+			m_PipelineLightCube.SetMat3("normal", normalMatrix);
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 		// Light source
-		m_PipelineLightSource.Use();
+		//m_PipelineLightSource.Use();
 
-		m_PipelineLightSource.SetMat4("projection", projection);
-		m_PipelineLightSource.SetMat4("view", view);
+		//m_PipelineLightSource.SetMat4("projection", projection);
+		//m_PipelineLightSource.SetMat4("view", view);
 
-		glm::mat4 lightModel{1.0f};
-		lightModel = translate(lightModel, m_LightPosition);
-		lightModel = scale(lightModel, glm::vec3{0.2f});
-		m_PipelineLightSource.SetMat4("model", lightModel);
+		//glm::mat4 lightModel{1.0f};
+		//lightModel = translate(lightModel, m_LightPosition);
+		//lightModel = scale(lightModel, glm::vec3{0.2f});
+		//m_PipelineLightSource.SetMat4("model", lightModel);
 
-		glBindVertexArray(m_VaoLightSource);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//glBindVertexArray(m_VaoLightSource);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
