@@ -5,6 +5,7 @@
 #pragma once
 #include <cassert>
 #include <string_view>
+#include <GL/glew.h>
 
 #include "number_types.hpp"
 
@@ -13,6 +14,8 @@
 namespace stw
 {
 std::string OpenFile(std::string_view filename);
+
+GLenum GetTextureFromId(i32 id);
 
 template <typename T>
 T MapRange(T value, T a, T b, T c, T d)

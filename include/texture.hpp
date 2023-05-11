@@ -5,7 +5,7 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <cstdint>
+#include <string>
 #include <string_view>
 
 #include "pipeline.hpp"
@@ -23,17 +23,19 @@ public:
 	Texture& operator=(Texture&& other) noexcept = default;
 
 	void Init(std::string_view path,
-		std::string_view textureUniformName,
-		GLint uniformValue,
+		std::string uniformName,
+		GLint uniformId,
 		Pipeline* pipeline,
 		GLint format = GL_RGB);
-	void Bind(GLenum activeTexture = GL_TEXTURE0) const;
+	void Bind() const;
 
 private:
 	GLuint m_TextureId{};
 	i32 m_Width{};
 	i32 m_Height{};
 	i32 m_ChannelsInFile{};
+	std::string m_UniformName{};
+	GLint m_UniformId{};
 	Pipeline* m_Pipeline{};
 };
 } // namespace stw

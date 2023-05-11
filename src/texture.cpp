@@ -8,9 +8,14 @@
 #include <stb_image.h>
 #include <spdlog/spdlog.h>
 
-void stw::Texture::Bind(const GLenum activeTexture) const
+#include "utils.hpp"
+
+void stw::Texture::Bind() const
 {
+	const GLenum activeTexture = GetTextureFromId(m_UniformId);
+
 	glActiveTexture(activeTexture);
+	m_Pipeline->SetInt(m_UniformName.c_str(), m_UniformId);
 	glBindTexture(GL_TEXTURE_2D, m_TextureId);
 }
 
@@ -23,12 +28,14 @@ stw::Texture::~Texture()
 }
 
 void stw::Texture::Init(const std::string_view path,
-	const std::string_view textureUniformName,
-	const GLint uniformValue,
+	std::string uniformName,
+	const GLint uniformId,
 	Pipeline* pipeline,
 	const GLint format)
 {
 	m_Pipeline = pipeline;
+	m_UniformId = uniformId;
+	m_UniformName = std::move(uniformName);
 
 	glGenTextures(1, &m_TextureId);
 	glBindTexture(GL_TEXTURE_2D, m_TextureId);
@@ -54,5 +61,5 @@ void stw::Texture::Init(const std::string_view path,
 	stbi_image_free(data);
 
 	m_Pipeline->Use();
-	m_Pipeline->SetInt(textureUniformName, uniformValue);
+	m_Pipeline->SetInt(m_UniformName.c_str(), m_UniformId);
 }

@@ -27,47 +27,71 @@ public:
 		0.0f,
 		0.0f,
 		-1.0f,
+		0.0f,
+		0.0f,
 		0.5f,
 		-0.5f,
 		-0.5f,
 		0.0f,
 		0.0f,
 		-1.0f,
+		1.0f,
+		0.0f,
 		0.5f,
 		0.5f,
 		-0.5f,
 		0.0f,
 		0.0f,
 		-1.0f,
+		1.0f,
+		1.0f,
 		0.5f,
 		0.5f,
 		-0.5f,
 		0.0f,
 		0.0f,
 		-1.0f,
+		1.0f,
+		1.0f,
 		-0.5f,
 		0.5f,
 		-0.5f,
 		0.0f,
 		0.0f,
 		-1.0f,
+		0.0f,
+		1.0f,
 		-0.5f,
 		-0.5f,
 		-0.5f,
 		0.0f,
 		0.0f,
 		-1.0f,
+		0.0f,
+		0.0f,
 		-0.5f,
 		-0.5f,
 		0.5f,
 		0.0f,
 		0.0f,
 		1.0f,
+		0.0f,
+		0.0f,
 		0.5f,
 		-0.5f,
 		0.5f,
 		0.0f,
 		0.0f,
+		1.0f,
+		1.0f,
+		0.0f,
+		0.5f,
+		0.5f,
+		0.5f,
+		0.0f,
+		0.0f,
+		1.0f,
+		1.0f,
 		1.0f,
 		0.5f,
 		0.5f,
@@ -75,16 +99,14 @@ public:
 		0.0f,
 		0.0f,
 		1.0f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.0f,
-		0.0f,
+		1.0f,
 		1.0f,
 		-0.5f,
 		0.5f,
 		0.5f,
 		0.0f,
+		0.0f,
+		1.0f,
 		0.0f,
 		1.0f,
 		-0.5f,
@@ -93,34 +115,6 @@ public:
 		0.0f,
 		0.0f,
 		1.0f,
-		-0.5f,
-		0.5f,
-		0.5f,
-		-1.0f,
-		0.0f,
-		0.0f,
-		-0.5f,
-		0.5f,
-		-0.5f,
-		-1.0f,
-		0.0f,
-		0.0f,
-		-0.5f,
-		-0.5f,
-		-0.5f,
-		-1.0f,
-		0.0f,
-		0.0f,
-		-0.5f,
-		-0.5f,
-		-0.5f,
-		-1.0f,
-		0.0f,
-		0.0f,
-		-0.5f,
-		-0.5f,
-		0.5f,
-		-1.0f,
 		0.0f,
 		0.0f,
 		-0.5f,
@@ -129,11 +123,55 @@ public:
 		-1.0f,
 		0.0f,
 		0.0f,
+		1.0f,
+		0.0f,
+		-0.5f,
+		0.5f,
+		-0.5f,
+		-1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		1.0f,
+		-0.5f,
+		-0.5f,
+		-0.5f,
+		-1.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		-0.5f,
+		-0.5f,
+		-0.5f,
+		-1.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		-0.5f,
+		-0.5f,
+		0.5f,
+		-1.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		-0.5f,
+		0.5f,
+		0.5f,
+		-1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.0f,
 		0.5f,
 		0.5f,
 		0.5f,
 		1.0f,
 		0.0f,
+		0.0f,
+		1.0f,
 		0.0f,
 		0.5f,
 		0.5f,
@@ -141,28 +179,78 @@ public:
 		1.0f,
 		0.0f,
 		0.0f,
+		1.0f,
+		1.0f,
 		0.5f,
 		-0.5f,
 		-0.5f,
 		1.0f,
 		0.0f,
 		0.0f,
+		0.0f,
+		1.0f,
 		0.5f,
 		-0.5f,
 		-0.5f,
 		1.0f,
 		0.0f,
 		0.0f,
+		0.0f,
+		1.0f,
 		0.5f,
 		-0.5f,
 		0.5f,
 		1.0f,
 		0.0f,
 		0.0f,
+		0.0f,
+		0.0f,
 		0.5f,
 		0.5f,
 		0.5f,
 		1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.0f,
+		-0.5f,
+		-0.5f,
+		-0.5f,
+		0.0f,
+		-1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.5f,
+		-0.5f,
+		-0.5f,
+		0.0f,
+		-1.0f,
+		0.0f,
+		1.0f,
+		1.0f,
+		0.5f,
+		-0.5f,
+		0.5f,
+		0.0f,
+		-1.0f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.5f,
+		-0.5f,
+		0.5f,
+		0.0f,
+		-1.0f,
+		0.0f,
+		1.0f,
+		0.0f,
+		-0.5f,
+		-0.5f,
+		0.5f,
+		0.0f,
+		-1.0f,
+		0.0f,
 		0.0f,
 		0.0f,
 		-0.5f,
@@ -171,45 +259,29 @@ public:
 		0.0f,
 		-1.0f,
 		0.0f,
-		0.5f,
-		-0.5f,
-		-0.5f,
 		0.0f,
-		-1.0f,
-		0.0f,
-		0.5f,
-		-0.5f,
-		0.5f,
-		0.0f,
-		-1.0f,
-		0.0f,
-		0.5f,
-		-0.5f,
-		0.5f,
-		0.0f,
-		-1.0f,
-		0.0f,
-		-0.5f,
-		-0.5f,
-		0.5f,
-		0.0f,
-		-1.0f,
-		0.0f,
-		-0.5f,
-		-0.5f,
-		-0.5f,
-		0.0f,
-		-1.0f,
-		0.0f,
+		1.0f,
 		-0.5f,
 		0.5f,
 		-0.5f,
 		0.0f,
 		1.0f,
 		0.0f,
+		0.0f,
+		1.0f,
 		0.5f,
 		0.5f,
 		-0.5f,
+		0.0f,
+		1.0f,
+		0.0f,
+		1.0f,
+		1.0f,
+		0.5f,
+		0.5f,
+		0.5f,
+		0.0f,
+		1.0f,
 		0.0f,
 		1.0f,
 		0.0f,
@@ -219,10 +291,6 @@ public:
 		0.0f,
 		1.0f,
 		0.0f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.0f,
 		1.0f,
 		0.0f,
 		-0.5f,
@@ -231,12 +299,16 @@ public:
 		0.0f,
 		1.0f,
 		0.0f,
+		0.0f,
+		0.0f,
 		-0.5f,
 		0.5f,
 		-0.5f,
 		0.0f,
 		1.0f,
-		0.0f
+		0.0f,
+		0.0f,
+		1.0f
 	};
 
 	void Begin() override
@@ -254,21 +326,27 @@ public:
 
 		glBindVertexArray(m_VaoCube);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), nullptr);
 		glEnableVertexAttribArray(0);
 
-		const auto offset = reinterpret_cast<void*>(3 * sizeof(float)); // NOLINT(performance-no-int-to-ptr)
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), offset);
+		auto offset = reinterpret_cast<void*>(3 * sizeof(float)); // NOLINT(performance-no-int-to-ptr)
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), offset);
 		glEnableVertexAttribArray(1);
+
+		offset = reinterpret_cast<void*>(6 * sizeof(float)); // NOLINT(performance-no-int-to-ptr)
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), offset);
+		glEnableVertexAttribArray(2);
 
 		glGenVertexArrays(1, &m_VaoLightSource);
 		glBindVertexArray(m_VaoLightSource);
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), nullptr);
 		glEnableVertexAttribArray(0);
 
+		m_DiffuseMap.Init("data/container2.png", "material.diffuse", 0, &m_PipelineLightCube, GL_RGBA);
+		m_SpecularMap.Init("data/container2_specular.png", "material.specular", 1, &m_PipelineLightCube, GL_RGBA);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
@@ -295,9 +373,13 @@ public:
 		// Cube 
 		m_PipelineLightCube.Use();
 
-		m_PipelineLightCube.SetVec3("objectColor", {1.0f, 0.5f, 0.31f});
-		m_PipelineLightCube.SetVec3("lightColor", {1.0f, 1.0f, 1.0f});
-		m_PipelineLightCube.SetVec3("lightPos", m_LightPosition);
+		m_PipelineLightCube.SetFloat("material.shininess", 32.0f);
+
+		m_PipelineLightCube.SetVec3("lightPosition", m_LightPosition);
+		m_PipelineLightCube.SetVec3("light.ambient", {0.2f, 0.2f, 0.2f});
+		m_PipelineLightCube.SetVec3("light.diffuse", {0.5f, 0.5f, 0.5f}); // darken diffuse light a bit
+		m_PipelineLightCube.SetVec3("light.specular", {1.0f, 1.0f, 1.0f});
+
 		m_PipelineLightCube.SetVec3("viewPos", m_Camera.Position());
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
@@ -310,6 +392,9 @@ public:
 
 		const glm::mat3 normalMatrix = inverseTranspose(view * cubeModel);
 		m_PipelineLightCube.SetMat3("normal", normalMatrix);
+
+		m_DiffuseMap.Bind();
+		m_SpecularMap.Bind();
 
 		glBindVertexArray(m_VaoCube);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -340,7 +425,10 @@ public:
 		};
 		m_Camera.ProcessMovement(cameraMovementState, deltaTime);
 
-		assert(!CHECK_GL_ERROR());
+		if (CHECK_GL_ERROR())
+		{
+			SDL_SetRelativeMouseMode(SDL_FALSE);
+		}
 	}
 
 	void OnEvent(const SDL_Event& event) override
@@ -380,5 +468,7 @@ private:
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
 	glm::vec3 m_LightPosition{1.2f, 1.0f, 2.0f};
+	Texture m_DiffuseMap{};
+	Texture m_SpecularMap{};
 };
 } // namespace stw
