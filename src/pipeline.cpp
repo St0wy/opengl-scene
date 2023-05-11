@@ -39,7 +39,8 @@ void stw::Pipeline::SetMat4(const std::string_view name, const glm::mat4& mat) c
 stw::Pipeline::~Pipeline()
 {
 	// Check if the pipeline was initialized
-	if (m_ProgramId == 0) return;
+	if (m_ProgramId == 0)
+		return;
 
 	glDeleteProgram(m_ProgramId);
 }

@@ -6,6 +6,8 @@
 
 #include <SDL.h>
 
+#include "number_types.hpp"
+
 namespace stw
 {
 class Scene
@@ -20,7 +22,7 @@ public:
 
 	virtual void Begin() = 0;
 	virtual void End() = 0;
-	virtual void Update(float dt) = 0;
+	virtual void Update(f32 deltaTime) = 0;
 
 	virtual void OnEvent(const SDL_Event& event)
 	{

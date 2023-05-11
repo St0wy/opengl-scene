@@ -3,6 +3,7 @@
 //
 
 #pragma once
+
 #include <GL/glew.h>
 #include <array>
 #include <cstdint>
@@ -35,7 +36,7 @@ class SquareScene : public stw::Scene
         0.0f, 1.0f, 0.0f  // top left
     };
 
-    static constexpr std::array<std::uint32_t, 6> INDICES = {
+    static constexpr std::array<u32, 6> INDICES = {
         0, 1, 3, 1, 2, 3,
     };
 
@@ -100,17 +101,17 @@ class SquareScene : public stw::Scene
         glBindVertexArray(m_Vao);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VboVertices);
-        glBufferData(GL_ARRAY_BUFFER, VERTICES.size() * sizeof(float), VERTICES.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+        glBufferData(GL_ARRAY_BUFFER, VERTICES.size() * sizeof(f32), VERTICES.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), nullptr);
         glEnableVertexAttribArray(0);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VboColor);
-        glBufferData(GL_ARRAY_BUFFER, COLORS.size() * sizeof(float), COLORS.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+        glBufferData(GL_ARRAY_BUFFER, COLORS.size() * sizeof(f32), COLORS.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), nullptr);
         glEnableVertexAttribArray(1);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDICES.size() * sizeof(float), INDICES.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDICES.size() * sizeof(f32), INDICES.data(), GL_STATIC_DRAW);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -123,10 +124,10 @@ class SquareScene : public stw::Scene
         glDeleteProgram(m_ShaderProgram);
     }
 
-    void Update(float deltaTime) override
+    void Update(f32 deltaTime) override
     {
         time += deltaTime * 2.0f;
-        float value = MapRange(std::cos(time), -1.0f, 1.0f, 0.0f, 1.0f);
+        f32 value = MapRange(std::cos(time), -1.0f, 1.0f, 0.0f, 1.0f);
 
         glUseProgram(m_ShaderProgram);
         glUniform1f(0, value);
@@ -149,7 +150,7 @@ class SquareScene : public stw::Scene
     GLuint m_VboVertices{};
     GLuint m_VboColor{};
     GLuint m_Ebo{};
-    float time;
+    f32 time;
     Camera m_Camera{};
 };
 } // namespace stw

@@ -3,6 +3,8 @@
 #include <glm/fwd.hpp>
 #include <glm/vec3.hpp>
 
+#include "number_types.hpp"
+
 namespace stw
 {
 struct CameraMovementState
@@ -20,35 +22,35 @@ class Camera
 public:
 	explicit Camera(glm::vec3 position = glm::vec3(0.0f),
 		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
-		float yaw = DefaultYaw,
-		float pitch = DefaultPitch);
+		f32 yaw = DefaultYaw,
+		f32 pitch = DefaultPitch);
 
 	[[nodiscard]] glm::mat4 GetViewMatrix() const;
-	void ProcessMovement(const CameraMovementState& cameraMovementState, float deltaTime);
-	void ProcessMouseMovement(float xOffset, float yOffset, bool constrainPitch = true);
-	void ProcessMouseScroll(float yOffset);
-	[[nodiscard]] float FovY() const;
+	void ProcessMovement(const CameraMovementState& cameraMovementState, f32 deltaTime);
+	void ProcessMouseMovement(f32 xOffset, f32 yOffset, bool constrainPitch = true);
+	void ProcessMouseScroll(f32 yOffset);
+	[[nodiscard]] f32 FovY() const;
 
 private:
-	static constexpr float DefaultYaw = -90.0f;
-	static constexpr float DefaultPitch = 0.0f;
-	static constexpr float DefaultSpeed = 2.5f;
-	static constexpr float DefaultSensitivity = 0.1f;
-	static constexpr float DefaultFovY = 45.0f;
-	static constexpr float MinFovY = 1.0f;
-	static constexpr float MaxFovY = 120.0f;
-	static constexpr float MaxPitchAngle = 89.0f;
+	static constexpr f32 DefaultYaw = -90.0f;
+	static constexpr f32 DefaultPitch = 0.0f;
+	static constexpr f32 DefaultSpeed = 2.5f;
+	static constexpr f32 DefaultSensitivity = 0.1f;
+	static constexpr f32 DefaultFovY = 45.0f;
+	static constexpr f32 MinFovY = 1.0f;
+	static constexpr f32 MaxFovY = 120.0f;
+	static constexpr f32 MaxPitchAngle = 89.0f;
 
 	glm::vec3 m_Position;
 	glm::vec3 m_Front;
 	glm::vec3 m_Up;
 	glm::vec3 m_Right;
 	glm::vec3 m_WorldUp;
-	float m_Yaw;
-	float m_Pitch;
-	float m_MovementSpeed;
-	float m_MouseSensitivity;
-	float m_FovY;
+	f32 m_Yaw;
+	f32 m_Pitch;
+	f32 m_MovementSpeed;
+	f32 m_MouseSensitivity;
+	f32 m_FovY;
 
 	void UpdateCameraVectors();
 };

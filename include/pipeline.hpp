@@ -7,6 +7,7 @@
 #include <string_view>
 #include <GL/glew.h>
 
+#include "number_types.hpp"
 #include "glm/fwd.hpp"
 
 namespace stw
@@ -24,8 +25,8 @@ public:
 	void InitFromPath(std::string_view vertexPath, std::string_view fragmentPath);
 	void Use() const;
 	void SetBool(std::string_view name, bool value) const;
-	void SetInt(std::string_view name, int value) const;
-	void SetFloat(std::string_view name, float value) const;
+	void SetInt(std::string_view name, i32 value) const;
+	void SetFloat(std::string_view name, f32 value) const;
 	void SetMat4(std::string_view name, const glm::mat4& mat) const;
 
 private:

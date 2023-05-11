@@ -66,7 +66,7 @@ public:
 		glDeleteVertexArrays(1, &m_Vao);
 	}
 
-	void Update(float dt) override
+	void Update(f32 dt) override
 	{
 		glUseProgram(m_ShaderProgram);
 		glBindVertexArray(m_Vao);

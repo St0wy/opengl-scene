@@ -10,6 +10,7 @@ cpmaddpackage("gh:Perlmint/glew-cmake#glew-cmake-2.2.0")
 cpmaddpackage("gh:g-truc/glm#0.9.9.8")
 cpmaddpackage("gh:fmtlib/fmt#9.1.0")
 cpmaddpackage("gh:gabime/spdlog@1.11.0")
+cpmaddpackage("gh:boostorg/math#boost-1.82.0")
 
 include(cmake/data.cmake)
 
@@ -32,8 +33,16 @@ add_executable(opengl_scene
     include/cube_scene.hpp
     include/camera.hpp
     src/camera.cpp
+    include/number_types.hpp
 )
 target_include_directories(opengl_scene PRIVATE include/ external/)
-target_link_libraries(opengl_scene fmt::fmt SDL2::SDL2-static SDL2::SDL2main spdlog::spdlog libglew_static glm::glm)
+target_link_libraries(opengl_scene 
+    fmt::fmt 
+    SDL2::SDL2-static SDL2::SDL2main 
+    spdlog::spdlog 
+    libglew_static 
+    glm::glm 
+    Boost::math
+)
 add_dependencies(opengl_scene shader_target data_target)
 set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION true)
