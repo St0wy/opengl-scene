@@ -27,6 +27,7 @@ public:
 		f32 aspectRatio = DefaultAspectRatio);
 
 	[[nodiscard]] f32 FovY() const;
+	[[nodiscard]] glm::vec3 Position() const;
 	void SetAspectRatio(f32 aspectRatio);
 
 	[[nodiscard]] glm::mat4 GetViewMatrix() const;

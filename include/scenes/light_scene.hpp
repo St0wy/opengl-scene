@@ -298,6 +298,7 @@ public:
 		m_PipelineLightCube.SetVec3("objectColor", {1.0f, 0.5f, 0.31f});
 		m_PipelineLightCube.SetVec3("lightColor", {1.0f, 1.0f, 1.0f});
 		m_PipelineLightCube.SetVec3("lightPos", m_LightPosition);
+		m_PipelineLightCube.SetVec3("viewPos", m_Camera.Position());
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
 		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
@@ -306,6 +307,9 @@ public:
 
 		constexpr glm::mat4 cubeModel{1.0f};
 		m_PipelineLightCube.SetMat4("model", cubeModel);
+
+		const glm::mat3 normalMatrix = inverseTranspose(view * cubeModel);
+		m_PipelineLightCube.SetMat3("normal", normalMatrix);
 
 		glBindVertexArray(m_VaoCube);
 		glDrawArrays(GL_TRIANGLES, 0, 36);

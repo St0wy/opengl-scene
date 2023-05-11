@@ -28,6 +28,7 @@ public:
 	void SetInt(std::string_view name, i32 value) const;
 	void SetFloat(std::string_view name, f32 value) const;
 	void SetVec3(std::string_view name, glm::vec3 value) const;
+	void SetMat3(std::string_view name, const glm::mat3& mat) const;
 	void SetMat4(std::string_view name, const glm::mat4& mat) const;
 
 private:

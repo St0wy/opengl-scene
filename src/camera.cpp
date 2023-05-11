@@ -78,6 +78,11 @@ float stw::Camera::FovY() const
 	return m_FovY;
 }
 
+glm::vec3 stw::Camera::Position() const
+{
+	return m_Position;
+}
+
 void stw::Camera::SetAspectRatio(const f32 aspectRatio)
 {
 	m_AspectRatio = aspectRatio;
