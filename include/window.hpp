@@ -3,13 +3,13 @@
 //
 
 #pragma once
-#include <cstdint>
 #include <memory>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-#include "scene.hpp"
+#include "number_types.hpp"
+#include "scenes/scene.hpp"
 
 namespace stw
 {

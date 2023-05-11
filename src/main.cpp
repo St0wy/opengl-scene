@@ -1,7 +1,7 @@
-#include <spdlog/common.h>
+#include <spdlog/spdlog.h>
 
-#include "cube_scene.hpp"
 #include "window.hpp"
+#include "scenes/cube_scene.hpp"
 
 int main(int, char*[])
 {

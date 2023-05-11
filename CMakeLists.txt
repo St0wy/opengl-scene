@@ -15,22 +15,22 @@ cpmaddpackage("gh:boostorg/math#boost-1.82.0")
 include(cmake/data.cmake)
 
 add_executable(opengl_scene
+    external/stb_image.h
     src/main.cpp
     include/window.hpp
-    include/scene.hpp
     src/window.cpp
-    include/triangle_scene.hpp
-    include/triangle_scene.hpp
+    include/scenes/scene.hpp
+    include/scenes/triangle_scene.hpp
+    include/scenes/square_scene.hpp
+    include/scenes/texture_scene.hpp
+    include/scenes/cube_scene.hpp
+    include/scenes/light_scene.hpp
     include/utils.hpp
     src/utils.cpp
-    include/square_scene.hpp
-    include/texture_scene.hpp
-    external/stb_image.h
     include/pipeline.hpp
     src/pipeline.cpp
     include/texture.hpp
     src/texture.cpp
-    include/cube_scene.hpp
     include/camera.hpp
     src/camera.cpp
     include/number_types.hpp
