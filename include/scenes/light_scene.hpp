@@ -375,7 +375,7 @@ public:
 	{
 		m_Time += deltaTime;
 
-		constexpr f32 lightRadius = 2.0f;
+		constexpr f32 lightRadius = 2.0f; 
 		m_LightPosition.x = std::cos(m_Time) * lightRadius;
 		m_LightPosition.y = std::cos(m_Time * 6.0f) * 0.1f + 1.0f;
 		m_LightPosition.z = std::sin(m_Time) * lightRadius;
@@ -388,9 +388,13 @@ public:
 
 		m_PipelineLightCube.SetFloat("material.shininess", 32.0f);
 
+
 		m_PipelineLightCube.SetVec3("light.ambient", {0.2f, 0.2f, 0.2f});
 		m_PipelineLightCube.SetVec3("light.diffuse", {0.5f, 0.5f, 0.5f}); // darken diffuse light a bit
 		m_PipelineLightCube.SetVec3("light.specular", {1.0f, 1.0f, 1.0f});
+		m_PipelineLightCube.SetFloat("light.constant", 1.0f);
+		m_PipelineLightCube.SetFloat("light.linear", 0.09f);
+		m_PipelineLightCube.SetFloat("light.quadratic", 0.032f);
 
 		m_PipelineLightCube.SetVec3("viewPos", m_Camera.Position());
 
@@ -398,6 +402,9 @@ public:
 		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
 		m_PipelineLightCube.SetMat4("projection", projection);
 		m_PipelineLightCube.SetMat4("view", view);
+
+		const auto lightPos = glm::vec3(view * glm::vec4(m_LightPosition, 1.0));
+		m_PipelineLightCube.SetVec3("light.position", lightPos);
 
 		m_PipelineLightCube.SetVec3("light.direction", {-0.2f, -1.0f, -0.3f});
 
@@ -420,18 +427,18 @@ public:
 		}
 
 		// Light source
-		//m_PipelineLightSource.Use();
+		m_PipelineLightSource.Use();
 
-		//m_PipelineLightSource.SetMat4("projection", projection);
-		//m_PipelineLightSource.SetMat4("view", view);
+		m_PipelineLightSource.SetMat4("projection", projection);
+		m_PipelineLightSource.SetMat4("view", view);
 
-		//glm::mat4 lightModel{1.0f};
-		//lightModel = translate(lightModel, m_LightPosition);
-		//lightModel = scale(lightModel, glm::vec3{0.2f});
-		//m_PipelineLightSource.SetMat4("model", lightModel);
+		glm::mat4 lightModel{1.0f};
+		lightModel = translate(lightModel, m_LightPosition);
+		lightModel = scale(lightModel, glm::vec3{0.2f});
+		m_PipelineLightSource.SetMat4("model", lightModel);
 
-		//glBindVertexArray(m_VaoLightSource);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(m_VaoLightSource);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
