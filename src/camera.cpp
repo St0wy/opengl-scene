@@ -83,6 +83,11 @@ glm::vec3 stw::Camera::Position() const
 	return m_Position;
 }
 
+glm::vec3 stw::Camera::Front() const
+{
+	return m_Front;
+}
+
 void stw::Camera::SetAspectRatio(const f32 aspectRatio)
 {
 	m_AspectRatio = aspectRatio;

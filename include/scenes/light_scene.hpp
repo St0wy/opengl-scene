@@ -375,7 +375,7 @@ public:
 	{
 		m_Time += deltaTime;
 
-		constexpr f32 lightRadius = 2.0f; 
+		constexpr f32 lightRadius = 2.0f;
 		m_LightPosition.x = std::cos(m_Time) * lightRadius;
 		m_LightPosition.y = std::cos(m_Time * 6.0f) * 0.1f + 1.0f;
 		m_LightPosition.z = std::sin(m_Time) * lightRadius;
@@ -387,7 +387,6 @@ public:
 		m_PipelineLightCube.Use();
 
 		m_PipelineLightCube.SetFloat("material.shininess", 32.0f);
-
 
 		m_PipelineLightCube.SetVec3("light.ambient", {0.2f, 0.2f, 0.2f});
 		m_PipelineLightCube.SetVec3("light.diffuse", {0.5f, 0.5f, 0.5f}); // darken diffuse light a bit
@@ -403,10 +402,10 @@ public:
 		m_PipelineLightCube.SetMat4("projection", projection);
 		m_PipelineLightCube.SetMat4("view", view);
 
-		const auto lightPos = glm::vec3(view * glm::vec4(m_LightPosition, 1.0));
-		m_PipelineLightCube.SetVec3("light.position", lightPos);
-
-		m_PipelineLightCube.SetVec3("light.direction", {-0.2f, -1.0f, -0.3f});
+		m_PipelineLightCube.SetVec3("light.position", m_Camera.Position());
+		m_PipelineLightCube.SetVec3("light.direction", m_Camera.Front());
+		m_PipelineLightCube.SetFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+		m_PipelineLightCube.SetFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 
 		m_DiffuseMap.Bind();
 		m_SpecularMap.Bind();
@@ -427,7 +426,7 @@ public:
 		}
 
 		// Light source
-		m_PipelineLightSource.Use();
+		/*m_PipelineLightSource.Use();
 
 		m_PipelineLightSource.SetMat4("projection", projection);
 		m_PipelineLightSource.SetMat4("view", view);
@@ -438,7 +437,7 @@ public:
 		m_PipelineLightSource.SetMat4("model", lightModel);
 
 		glBindVertexArray(m_VaoLightSource);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDrawArrays(GL_TRIANGLES, 0, 36);*/
 
 		// Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
