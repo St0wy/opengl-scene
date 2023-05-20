@@ -13,6 +13,7 @@ cpmaddpackage("gh:gabime/spdlog@1.11.0")
 cpmaddpackage("gh:boostorg/math#boost-1.82.0")
 
 include(cmake/data.cmake)
+include(cmake/SystemLink.cmake)
 
 add_executable(opengl_scene
     external/stb_image.h
@@ -36,7 +37,7 @@ add_executable(opengl_scene
     include/number_types.hpp
 )
 target_include_directories(opengl_scene PRIVATE include/ external/)
-target_link_libraries(opengl_scene 
+target_link_system_libraries(opengl_scene PRIVATE
     fmt::fmt 
     SDL2::SDL2-static SDL2::SDL2main 
     spdlog::spdlog 
