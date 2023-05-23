@@ -12,6 +12,7 @@
 stw::Window::Window(std::unique_ptr<Scene> scene, const char* windowName, const i32 windowWidth, const i32 windowHeight)
 	: m_Scene(std::move(scene))
 {
+	spdlog::debug("Creating window...");
 	SDL_SetMainReady();
 
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
@@ -73,25 +74,25 @@ void stw::Window::Loop()
 				isOpen = false;
 				break;
 			case SDL_WINDOWEVENT:
-			{
-				switch (event.window.event)
 				{
-				case SDL_WINDOWEVENT_CLOSE:
-					isOpen = false;
-					break;
-				case SDL_WINDOWEVENT_RESIZED:
-				{
-					const GLsizei windowWidth = event.window.data1;
-					const GLsizei windowHeight = event.window.data2;
-					m_Scene->OnResize(windowWidth, windowHeight);
+					switch (event.window.event)
+					{
+					case SDL_WINDOWEVENT_CLOSE:
+						isOpen = false;
+						break;
+					case SDL_WINDOWEVENT_RESIZED:
+						{
+							const GLsizei windowWidth = event.window.data1;
+							const GLsizei windowHeight = event.window.data2;
+							m_Scene->OnResize(windowWidth, windowHeight);
 
+							break;
+						}
+					default:
+						break;
+					}
 					break;
 				}
-				default:
-					break;
-				}
-				break;
-			}
 			case SDL_KEYDOWN:
 				if (event.key.keysym.sym == SDLK_ESCAPE && m_IsActive)
 				{

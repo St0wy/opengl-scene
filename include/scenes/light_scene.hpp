@@ -324,6 +324,13 @@ public:
 		glm::vec3(-1.3f, 1.0f, -1.5f)
 	};
 
+	static constexpr std::array PointLightPositions = {
+		glm::vec3(1.2f, 1.0f, 2.0f),
+		glm::vec3(2.3f, -3.3f, -4.0f),
+		glm::vec3(-4.0f, 2.0f, -12.0f),
+		glm::vec3(0.0f, 0.0f, -3.0f)
+	};
+
 	void Begin() override
 	{
 		glEnable(GL_DEPTH_TEST);
@@ -339,15 +346,16 @@ public:
 
 		glBindVertexArray(m_VaoCube);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), nullptr);
+		constexpr auto stride = 8 * sizeof(float);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, nullptr);
 		glEnableVertexAttribArray(0);
 
 		auto offset = reinterpret_cast<void*>(3 * sizeof(float)); // NOLINT(performance-no-int-to-ptr)
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), offset);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, offset);
 		glEnableVertexAttribArray(1);
 
 		offset = reinterpret_cast<void*>(6 * sizeof(float)); // NOLINT(performance-no-int-to-ptr)
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), offset);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, offset);
 		glEnableVertexAttribArray(2);
 
 		glGenVertexArrays(1, &m_VaoLightSource);
@@ -355,7 +363,7 @@ public:
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), nullptr);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, nullptr);
 		glEnableVertexAttribArray(0);
 
 		m_DiffuseMap.Init("data/container2.png", "material.diffuse", 0, &m_PipelineLightCube, GL_RGBA);
@@ -375,37 +383,56 @@ public:
 	{
 		m_Time += deltaTime;
 
-		constexpr f32 lightRadius = 2.0f;
-		m_LightPosition.x = std::cos(m_Time) * lightRadius;
-		m_LightPosition.y = std::cos(m_Time * 6.0f) * 0.1f + 1.0f;
-		m_LightPosition.z = std::sin(m_Time) * lightRadius;
+		//constexpr f32 lightRadius = 2.0f;
+		//m_LightPosition.x = std::cos(m_Time) * lightRadius;
+		//m_LightPosition.y = std::cos(m_Time * 6.0f) * 0.1f + 1.0f;
+		//m_LightPosition.z = std::sin(m_Time) * lightRadius;
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Cube 
 		m_PipelineLightCube.Use();
-
+		m_PipelineLightCube.SetVec3("viewPos", m_Camera.Position());
 		m_PipelineLightCube.SetFloat("material.shininess", 32.0f);
 
-		m_PipelineLightCube.SetVec3("light.ambient", {0.2f, 0.2f, 0.2f});
-		m_PipelineLightCube.SetVec3("light.diffuse", {0.5f, 0.5f, 0.5f}); // darken diffuse light a bit
-		m_PipelineLightCube.SetVec3("light.specular", {1.0f, 1.0f, 1.0f});
-		m_PipelineLightCube.SetFloat("light.constant", 1.0f);
-		m_PipelineLightCube.SetFloat("light.linear", 0.09f);
-		m_PipelineLightCube.SetFloat("light.quadratic", 0.032f);
-
-		m_PipelineLightCube.SetVec3("viewPos", m_Camera.Position());
+		m_PipelineLightCube.SetVec3("directionalLight.direction", {-0.2f, -1.0f, -0.3f});
+		m_PipelineLightCube.SetVec3("directionalLight.ambient", {0.05f, 0.05f, 0.05f});
+		m_PipelineLightCube.SetVec3("directionalLight.diffuse", {0.4f, 0.4f, 0.4f});
+		m_PipelineLightCube.SetVec3("directionalLight.specular", {0.5f, 0.5f, 0.5f});
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
 		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
+
+		for (std::size_t i = 0; i < 4; i++)
+		{
+			const auto viewSpaceLightPosition = glm::vec3(view * glm::vec4(PointLightPositions[i], 1.0f));
+			m_PipelineLightCube.SetVec3(fmt::format("pointLights[{}].position", i), viewSpaceLightPosition);
+
+			m_PipelineLightCube.SetVec3(fmt::format("pointLights[{}].ambient", i), {0.2f, 0.2f, 0.2f});
+			m_PipelineLightCube.SetVec3(fmt::format("pointLights[{}].diffuse", i), {0.5f, 0.5f, 0.5f});
+			m_PipelineLightCube.SetVec3(fmt::format("pointLights[{}].specular", i), {1.0f, 1.0f, 1.0f});
+
+			m_PipelineLightCube.SetFloat(fmt::format("pointLights[{}].constant", i), 1.0f);
+			m_PipelineLightCube.SetFloat(fmt::format("pointLights[{}].linear", i), 0.09f);
+			m_PipelineLightCube.SetFloat(fmt::format("pointLights[{}].quadratic", i), 0.032f);
+		}
+
+		const auto viewSpaceCameraPosition = glm::vec3(view * glm::vec4(m_Camera.Position(), 1.0f));
+		m_PipelineLightCube.SetVec3("spotLight.position", viewSpaceCameraPosition);
+		const auto viewSpaceCameraDirection = glm::vec3(view * glm::vec4(m_Camera.Position() + m_Camera.Front(), 1.0f));
+		m_PipelineLightCube.SetVec3("spotLight.direction", viewSpaceCameraDirection);
+		m_PipelineLightCube.SetVec3("spotLight.ambient", {0.0f, 0.0f, 0.0f});
+		m_PipelineLightCube.SetVec3("spotLight.diffuse", {1.0f, 1.0f, 1.0f});
+		m_PipelineLightCube.SetVec3("spotLight.specular", {1.0f, 1.0f, 1.0f});
+		m_PipelineLightCube.SetFloat("spotLight.constant", 1.0f);
+		m_PipelineLightCube.SetFloat("spotLight.linear", 0.09f);
+		m_PipelineLightCube.SetFloat("spotLight.quadratic", 0.032f);
+		m_PipelineLightCube.SetFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+		m_PipelineLightCube.SetFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
 		m_PipelineLightCube.SetMat4("projection", projection);
 		m_PipelineLightCube.SetMat4("view", view);
-
-		m_PipelineLightCube.SetVec3("light.position", m_Camera.Position());
-		m_PipelineLightCube.SetVec3("light.direction", m_Camera.Front());
-		m_PipelineLightCube.SetFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-		m_PipelineLightCube.SetFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 
 		m_DiffuseMap.Bind();
 		m_SpecularMap.Bind();
@@ -426,18 +453,22 @@ public:
 		}
 
 		// Light source
-		/*m_PipelineLightSource.Use();
+		m_PipelineLightSource.Use();
 
 		m_PipelineLightSource.SetMat4("projection", projection);
 		m_PipelineLightSource.SetMat4("view", view);
 
-		glm::mat4 lightModel{1.0f};
-		lightModel = translate(lightModel, m_LightPosition);
-		lightModel = scale(lightModel, glm::vec3{0.2f});
-		m_PipelineLightSource.SetMat4("model", lightModel);
-
 		glBindVertexArray(m_VaoLightSource);
-		glDrawArrays(GL_TRIANGLES, 0, 36);*/
+
+		for (std::size_t i = 0; i < 4; i++)
+		{
+			glm::mat4 lightModel{1.0f};
+			lightModel = translate(lightModel, PointLightPositions[i]);
+			lightModel = scale(lightModel, glm::vec3{0.2f});
+			m_PipelineLightSource.SetMat4("model", lightModel);
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 		// Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
@@ -462,18 +493,18 @@ public:
 		switch (event.type)
 		{
 		case SDL_MOUSEMOTION:
-		{
-			const auto xOffset = static_cast<f32>(event.motion.xrel);
-			const auto yOffset = static_cast<f32>(-event.motion.yrel);
-			m_Camera.ProcessMouseMovement(xOffset, yOffset);
-			break;
-		}
+			{
+				const auto xOffset = static_cast<f32>(event.motion.xrel);
+				const auto yOffset = static_cast<f32>(-event.motion.yrel);
+				m_Camera.ProcessMouseMovement(xOffset, yOffset);
+				break;
+			}
 		case SDL_MOUSEWHEEL:
-		{
-			const f32 yOffset = event.wheel.preciseY;
-			m_Camera.ProcessMouseScroll(yOffset);
-			break;
-		}
+			{
+				const f32 yOffset = event.wheel.preciseY;
+				m_Camera.ProcessMouseScroll(yOffset);
+				break;
+			}
 		default:
 			break;
 		}
@@ -493,7 +524,7 @@ private:
 	GLuint m_Vbo{};
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
-	glm::vec3 m_LightPosition{1.2f, 1.0f, 2.0f};
+	//glm::vec3 m_LightPosition{1.2f, 1.0f, 2.0f};
 	Texture m_DiffuseMap{};
 	Texture m_SpecularMap{};
 };
