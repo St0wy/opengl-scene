@@ -19,18 +19,12 @@ cpmaddpackage(
     OPTIONS "SPDLOG_FMT_EXTERNAL ON"
 )
 
-set(ASSIMP_WARNINGS_AS_ERRORS OFF)
 CPMAddPackage(
   NAME Assimp
   VERSION 5.2.5
   GITHUB_REPOSITORY assimp/assimp
-  # Assmip's CMakeLists forces compiler warnings, and it doesn't compile here
-  DOWNLOAD_ONLY True
+  OPTIONS "ASSIMP_WARNINGS_AS_ERRORS OFF"
 )
-
-if (Assimp_ADDED)
-    add_subdirectory(${Assimp_SOURCE_DIR})
-endif()
 
 include(cmake/data.cmake)
 include(cmake/SystemLink.cmake)
