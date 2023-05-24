@@ -12,6 +12,26 @@ cpmaddpackage("gh:fmtlib/fmt#9.1.0")
 cpmaddpackage("gh:gabime/spdlog@1.11.0")
 cpmaddpackage("gh:boostorg/math#boost-1.82.0")
 
+cpmaddpackage(
+    NAME spdlog
+    VERSION 1.11.0
+    GITHUB_REPOSITORY "gabime/spdlog"
+    OPTIONS "SPDLOG_FMT_EXTERNAL ON"
+)
+
+set(ASSIMP_WARNINGS_AS_ERRORS OFF)
+CPMAddPackage(
+  NAME Assimp
+  VERSION 5.2.5
+  GITHUB_REPOSITORY assimp/assimp
+  # Assmip's CMakeLists forces compiler warnings, and it doesn't compile here
+  DOWNLOAD_ONLY True
+)
+
+if (Assimp_ADDED)
+    add_subdirectory(${Assimp_SOURCE_DIR})
+endif()
+
 include(cmake/data.cmake)
 include(cmake/SystemLink.cmake)
 
@@ -44,6 +64,7 @@ target_link_system_libraries(opengl_scene PRIVATE
     libglew_static 
     glm::glm 
     Boost::math
+    assimp::assimp
 )
 add_dependencies(opengl_scene shader_target data_target)
 set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION true)
