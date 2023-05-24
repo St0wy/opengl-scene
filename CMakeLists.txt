@@ -8,16 +8,16 @@ include(cmake/download-cpm.cmake)
 cpmaddpackage("gh:libsdl-org/SDL#release-2.26.5")
 cpmaddpackage("gh:Perlmint/glew-cmake#glew-cmake-2.2.0")
 cpmaddpackage("gh:g-truc/glm#0.9.9.8")
-cpmaddpackage("gh:fmtlib/fmt#9.1.0")
+cpmaddpackage("gh:fmtlib/fmt#10.0.0")
 cpmaddpackage("gh:gabime/spdlog@1.11.0")
 cpmaddpackage("gh:boostorg/math#boost-1.82.0")
 
-cpmaddpackage(
-    NAME spdlog
-    VERSION 1.11.0
-    GITHUB_REPOSITORY "gabime/spdlog"
-    OPTIONS "SPDLOG_FMT_EXTERNAL ON"
-)
+# cpmaddpackage(
+#     NAME spdlog
+#     VERSION 1.11.0
+#     GITHUB_REPOSITORY "gabime/spdlog"
+#     OPTIONS "SPDLOG_FMT_EXTERNAL ON"
+# )
 
 CPMAddPackage(
   NAME Assimp
@@ -52,11 +52,11 @@ add_executable(opengl_scene
 )
 target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_system_libraries(opengl_scene PRIVATE
-    fmt::fmt 
-    SDL2::SDL2-static SDL2::SDL2main 
-    spdlog::spdlog 
-    libglew_static 
-    glm::glm 
+    fmt::fmt
+    SDL2::SDL2-static SDL2::SDL2main
+    spdlog::spdlog
+    libglew_static
+    glm::glm
     Boost::math
     assimp::assimp
 )

@@ -396,40 +396,63 @@ public:
 		m_PipelineLightCube.SetVec3("viewPos", m_Camera.Position());
 		m_PipelineLightCube.SetFloat("material.shininess", 32.0f);
 
-		m_PipelineLightCube.SetVec3("directionalLight.direction", {-0.2f, -1.0f, -0.3f});
-		m_PipelineLightCube.SetVec3("directionalLight.ambient", {0.05f, 0.05f, 0.05f});
-		m_PipelineLightCube.SetVec3("directionalLight.diffuse", {0.4f, 0.4f, 0.4f});
-		m_PipelineLightCube.SetVec3("directionalLight.specular", {0.5f, 0.5f, 0.5f});
+		m_PipelineLightCube.SetDirectionalLightsCount(1);
+		DirectionalLight directionalLight{
+			{-0.2f, -1.0f, -0.3f},
+			{0.05f, 0.05f, 0.05f},
+			{0.4f, 0.4f, 0.4f},
+			{0.5f, 0.5f, 0.5f}
+		};
+		m_PipelineLightCube.SetDirectionalLight("directionalLights", 0, directionalLight);
+
+		if (CHECK_GL_ERROR())
+		{
+			SDL_SetRelativeMouseMode(SDL_FALSE);
+		}
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
 		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
 
-		for (std::size_t i = 0; i < 4; i++)
+		m_PipelineLightCube.SetPointLightsCount(4);
+		for (u32 i = 0; i < 4; i++)
 		{
-			const auto viewSpaceLightPosition = glm::vec3(view * glm::vec4(PointLightPositions[i], 1.0f));
-			m_PipelineLightCube.SetVec3(fmt::format("pointLights[{}].position", i), viewSpaceLightPosition);
+			PointLight pointLight{
+				PointLightPositions[i],
+				1.0f,
+				0.09f,
+				0.032f,
+				{0.2f, 0.2f, 0.2f},
+				{0.5f, 0.5f, 0.5f},
+				{1.0f, 1.0f, 1.0f},
+			};
 
-			m_PipelineLightCube.SetVec3(fmt::format("pointLights[{}].ambient", i), {0.2f, 0.2f, 0.2f});
-			m_PipelineLightCube.SetVec3(fmt::format("pointLights[{}].diffuse", i), {0.5f, 0.5f, 0.5f});
-			m_PipelineLightCube.SetVec3(fmt::format("pointLights[{}].specular", i), {1.0f, 1.0f, 1.0f});
-
-			m_PipelineLightCube.SetFloat(fmt::format("pointLights[{}].constant", i), 1.0f);
-			m_PipelineLightCube.SetFloat(fmt::format("pointLights[{}].linear", i), 0.09f);
-			m_PipelineLightCube.SetFloat(fmt::format("pointLights[{}].quadratic", i), 0.032f);
+			m_PipelineLightCube.SetPointLight("pointLights", i, pointLight, view);
+			if (CHECK_GL_ERROR())
+			{
+				SDL_SetRelativeMouseMode(SDL_FALSE);
+			}
 		}
 
-		const auto viewSpaceCameraPosition = glm::vec3(view * glm::vec4(m_Camera.Position(), 1.0f));
-		m_PipelineLightCube.SetVec3("spotLight.position", viewSpaceCameraPosition);
-		const auto viewSpaceCameraDirection = glm::vec3(view * glm::vec4(m_Camera.Position() + m_Camera.Front(), 1.0f));
-		m_PipelineLightCube.SetVec3("spotLight.direction", viewSpaceCameraDirection);
-		m_PipelineLightCube.SetVec3("spotLight.ambient", {0.0f, 0.0f, 0.0f});
-		m_PipelineLightCube.SetVec3("spotLight.diffuse", {1.0f, 1.0f, 1.0f});
-		m_PipelineLightCube.SetVec3("spotLight.specular", {1.0f, 1.0f, 1.0f});
-		m_PipelineLightCube.SetFloat("spotLight.constant", 1.0f);
-		m_PipelineLightCube.SetFloat("spotLight.linear", 0.09f);
-		m_PipelineLightCube.SetFloat("spotLight.quadratic", 0.032f);
-		m_PipelineLightCube.SetFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-		m_PipelineLightCube.SetFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+		m_PipelineLightCube.SetSpotLightsCount(1);
+
+		SpotLight spotLight{
+			m_Camera.Position(),
+			m_Camera.Position() + m_Camera.Front(),
+			glm::cos(glm::radians(12.5f)),
+			glm::cos(glm::radians(15.0f)),
+			1.0f,
+			0.09f,
+			0.032f,
+			{0.0f, 0.0f, 0.0f},
+			{1.0f, 1.0f, 1.0f},
+			{1.0f, 1.0f, 1.0f},
+		};
+		m_PipelineLightCube.SetSpotLight("spotLights", 0, spotLight, view);
+
+		if (CHECK_GL_ERROR())
+		{
+			SDL_SetRelativeMouseMode(SDL_FALSE);
+		}
 
 		m_PipelineLightCube.SetMat4("projection", projection);
 		m_PipelineLightCube.SetMat4("view", view);
@@ -493,18 +516,18 @@ public:
 		switch (event.type)
 		{
 		case SDL_MOUSEMOTION:
-			{
-				const auto xOffset = static_cast<f32>(event.motion.xrel);
-				const auto yOffset = static_cast<f32>(-event.motion.yrel);
-				m_Camera.ProcessMouseMovement(xOffset, yOffset);
-				break;
-			}
+		{
+			const auto xOffset = static_cast<f32>(event.motion.xrel);
+			const auto yOffset = static_cast<f32>(-event.motion.yrel);
+			m_Camera.ProcessMouseMovement(xOffset, yOffset);
+			break;
+		}
 		case SDL_MOUSEWHEEL:
-			{
-				const f32 yOffset = event.wheel.preciseY;
-				m_Camera.ProcessMouseScroll(yOffset);
-				break;
-			}
+		{
+			const f32 yOffset = event.wheel.preciseY;
+			m_Camera.ProcessMouseScroll(yOffset);
+			break;
+		}
 		default:
 			break;
 		}

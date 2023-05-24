@@ -9,7 +9,7 @@
 
 #include "number_types.hpp"
 
-#define ASSERT_MESSAGE(expression, message) assert(((void)(message), expression));
+#define ASSERT_MESSAGE(expression, message) assert(((void)(message), expression))
 
 namespace stw
 {

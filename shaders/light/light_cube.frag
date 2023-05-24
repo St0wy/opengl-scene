@@ -1,7 +1,9 @@
 #version 310 es
 precision highp float;
 
-#define MAX_POINT_LIGHT 4
+#define MAX_POINT_LIGHTS 32
+#define MAX_DIRECTIONAL_LIGHTS 8
+#define MAX_SPOT_LIGHTS 32
 
 struct Material {
     sampler2D diffuse;
@@ -52,11 +54,16 @@ in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
 
-//uniform Light light;
 uniform vec3 viewPos;
-uniform DirectionalLight directionalLight;
-uniform PointLight pointLights[MAX_POINT_LIGHT];
-uniform SpotLight spotLight;
+
+uniform uint directionalLightsCount;
+uniform DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
+
+uniform uint pointLightsCount;
+uniform PointLight pointLights[MAX_POINT_LIGHTS];
+
+uniform uint spotLightsCount;
+uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 
 uniform Material material;
 
@@ -68,14 +75,23 @@ void main()
 {
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(-FragPos);
+    
+    vec3 result = vec3(0.0);
+    
+    for (uint i = 0u; i < directionalLightsCount; i++) 
+    {
+        result += ComputeDirectionalLight(directionalLights[i], norm, viewDir);
+    }
 
-    vec3 result = ComputeDirectionalLight(directionalLight, norm, viewDir);
-    for (int i = 0; i < MAX_POINT_LIGHT; i++)
+    for (uint i = 0u; i < pointLightsCount; i++)
     {
         result += ComputePointLight(pointLights[i], norm, FragPos, viewDir);
     }
 
-    result += ComputeSpotLight(spotLight, norm, FragPos, viewDir);
+    for (uint i = 0u; i < spotLightsCount; i++)
+    {
+        result += ComputeSpotLight(spotLights[i], norm, FragPos, viewDir);
+    }
 
     FragColor = vec4(result, 1.0);
 }
