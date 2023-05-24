@@ -10,16 +10,30 @@
 
 #include "utils.hpp"
 
-void stw::Texture::Bind() const
+void stw::SmartTexture::Bind(const Pipeline& pipeline) const
 {
+	ASSERT_MESSAGE(m_TextureId != 0, "The texture should be initialized before being boud.");
 	const GLenum activeTexture = GetTextureFromId(m_UniformId);
 
 	glActiveTexture(activeTexture);
-	m_Pipeline->SetInt(m_UniformName.c_str(), m_UniformId);
+	pipeline.SetInt(m_UniformName.c_str(), m_UniformId);
 	glBindTexture(GL_TEXTURE_2D, m_TextureId);
 }
 
-stw::Texture::~Texture()
+const char* stw::ToString(const TextureType type)
+{
+	switch (type)
+	{
+	case TextureType::Diffuse:
+		return "texture_diffuse";
+	case TextureType::Specular:
+		return "texture_specular";
+	}
+
+	return "";
+}
+
+stw::SmartTexture::~SmartTexture()
 {
 	if (m_TextureId == 0)
 		return;
@@ -27,13 +41,12 @@ stw::Texture::~Texture()
 	glDeleteTextures(1, &m_TextureId);
 }
 
-void stw::Texture::Init(const std::string_view path,
+void stw::SmartTexture::Init(const std::string_view path,
 	std::string uniformName,
 	const GLint uniformId,
-	Pipeline* pipeline,
+	const Pipeline& pipeline,
 	const GLint format)
 {
-	m_Pipeline = pipeline;
 	m_UniformId = uniformId;
 	m_UniformName = std::move(uniformName);
 
@@ -60,6 +73,6 @@ void stw::Texture::Init(const std::string_view path,
 	}
 	stbi_image_free(data);
 
-	m_Pipeline->Use();
-	m_Pipeline->SetInt(m_UniformName.c_str(), m_UniformId);
+	pipeline.Use();
+	pipeline.SetInt(m_UniformName.c_str(), m_UniformId);
 }

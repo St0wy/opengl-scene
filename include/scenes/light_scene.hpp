@@ -366,8 +366,8 @@ public:
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, nullptr);
 		glEnableVertexAttribArray(0);
 
-		m_DiffuseMap.Init("data/container2.png", "material.diffuse", 0, &m_PipelineLightCube, GL_RGBA);
-		m_SpecularMap.Init("data/container2_specular.png", "material.specular", 1, &m_PipelineLightCube, GL_RGBA);
+		m_DiffuseMap.Init("data/container2.png", "material.diffuse", 0, m_PipelineLightCube,GL_RGBA);
+		m_SpecularMap.Init("data/container2_specular.png", "material.specular", 1, m_PipelineLightCube,GL_RGBA);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
@@ -457,8 +457,8 @@ public:
 		m_PipelineLightCube.SetMat4("projection", projection);
 		m_PipelineLightCube.SetMat4("view", view);
 
-		m_DiffuseMap.Bind();
-		m_SpecularMap.Bind();
+		m_DiffuseMap.Bind(m_PipelineLightCube);
+		m_SpecularMap.Bind(m_PipelineLightCube);
 
 		glBindVertexArray(m_VaoCube);
 		for (u32 i = 0; i < 10; i++)
@@ -547,8 +547,7 @@ private:
 	GLuint m_Vbo{};
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
-	//glm::vec3 m_LightPosition{1.2f, 1.0f, 2.0f};
-	Texture m_DiffuseMap{};
-	Texture m_SpecularMap{};
+	SmartTexture m_DiffuseMap{};
+	SmartTexture m_SpecularMap{};
 };
 } // namespace stw

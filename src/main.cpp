@@ -2,6 +2,7 @@
 
 #include "window.hpp"
 #include "scenes/light_scene.hpp"
+#include "mesh.hpp"
 
 int main(int, char*[])
 {

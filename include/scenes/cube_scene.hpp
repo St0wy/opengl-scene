@@ -234,7 +234,7 @@ public:
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
 		glEnableVertexAttribArray(0);
 
-		// Texture Coordinates
+		// SmartTexture Coordinates
 		glVertexAttribPointer(1,
 			2,
 			GL_FLOAT,
@@ -331,8 +331,8 @@ private:
 	GLuint m_Vao{};
 	GLuint m_Vbo{};
 	GLuint m_Ebo{};
-	Texture m_BoxTexture;
-	Texture m_FaceTexture;
+	SmartTexture m_BoxTexture;
+	SmartTexture m_FaceTexture;
 	Pipeline m_Pipeline{};
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};

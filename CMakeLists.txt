@@ -12,13 +12,6 @@ cpmaddpackage("gh:fmtlib/fmt#10.0.0")
 cpmaddpackage("gh:gabime/spdlog@1.11.0")
 cpmaddpackage("gh:boostorg/math#boost-1.82.0")
 
-# cpmaddpackage(
-#     NAME spdlog
-#     VERSION 1.11.0
-#     GITHUB_REPOSITORY "gabime/spdlog"
-#     OPTIONS "SPDLOG_FMT_EXTERNAL ON"
-# )
-
 CPMAddPackage(
   NAME Assimp
   VERSION 5.2.5
@@ -45,16 +38,17 @@ add_executable(opengl_scene
     include/pipeline.hpp
     src/pipeline.cpp
     include/texture.hpp
-    src/texture.cpp
+    "src/texture.cpp"
     include/camera.hpp
     src/camera.cpp
     include/number_types.hpp
-)
+    include/mesh.hpp
+ "src/mesh.cpp")
 target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_system_libraries(opengl_scene PRIVATE
     fmt::fmt
     SDL2::SDL2-static SDL2::SDL2main
-    spdlog::spdlog
+    spdlog::spdlog_header_only
     libglew_static
     glm::glm
     Boost::math
