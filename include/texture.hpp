@@ -4,11 +4,14 @@
 
 #pragma once
 
+#include <expected>
+#include <filesystem>
 #include <string>
 #include <string_view>
 #include <GL/glew.h>
 
 #include "pipeline.hpp"
+#include <assimp/material.h>
 
 namespace stw
 {
@@ -19,6 +22,7 @@ enum class TextureType
 };
 
 const char* ToString(TextureType type);
+aiTextureType ToAssimpTextureType(TextureType type);
 
 // This is the texture that was used in the light scene
 // It is called smart because it handle the OpenGL logic to bind it to the shader
@@ -50,6 +54,10 @@ private:
 
 struct Texture
 {
+	//Texture(const GLuint textureId, const TextureType textureType)
+	//	: textureId(textureId), textureType(textureType) { }
+
+	static std::expected<Texture, std::string> LoadFromPath(std::filesystem::path path, TextureType type);
 	GLuint textureId;
 	TextureType textureType;
 };

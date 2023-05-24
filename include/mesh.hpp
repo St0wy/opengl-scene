@@ -22,7 +22,7 @@ class Mesh
 {
 public:
 	Mesh(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures);
-	void Draw(Pipeline& pipeline);
+	void Draw(const Pipeline& pipeline) const;
 
 private:
 	std::vector<Vertex> m_Vertices;

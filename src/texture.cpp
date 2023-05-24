@@ -20,6 +20,53 @@ void stw::SmartTexture::Bind(const Pipeline& pipeline) const
 	glBindTexture(GL_TEXTURE_2D, m_TextureId);
 }
 
+std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(std::filesystem::path path, TextureType type)
+{
+	GLuint textureId;
+	glGenTextures(1, &textureId);
+
+	int width;
+	int height;
+	int nbrComponents;
+	unsigned char* data = stbi_load(path.string().c_str(), &width, &height, &nbrComponents, 0);
+	if (!data)
+	{
+		stbi_image_free(data);
+		glDeleteTextures(1, &textureId);
+		return std::unexpected(fmt::format("Texture failed to load at path: {}", path));
+	}
+
+	GLenum format;
+	switch (nbrComponents)
+	{
+	case 1:
+		format = GL_RED;
+		break;
+	case 3:
+		format = GL_RGB;
+		break;
+	case 4:
+		format = GL_RGBA;
+		break;
+	default:
+		format = GL_INVALID_ENUM;
+		break;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(format), width, height, 0, format, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	stbi_image_free(data);
+
+	return {Texture{textureId, type}};
+}
+
 const char* stw::ToString(const TextureType type)
 {
 	switch (type)
@@ -31,6 +78,19 @@ const char* stw::ToString(const TextureType type)
 	}
 
 	return "";
+}
+
+aiTextureType stw::ToAssimpTextureType(const TextureType type)
+{
+	switch (type)
+	{
+	case TextureType::Diffuse:
+		return aiTextureType_DIFFUSE;
+	case TextureType::Specular:
+		return aiTextureType_SPECULAR;
+	}
+
+	return aiTextureType_NONE;
 }
 
 stw::SmartTexture::~SmartTexture()

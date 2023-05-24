@@ -1,7 +1,7 @@
 #include "mesh.hpp"
 
-#include <GL/glew.h>
 #include <fmt/format.h>
+#include <GL/glew.h>
 
 #include "utils.hpp"
 
@@ -10,7 +10,7 @@ stw::Mesh::Mesh(std::vector<Vertex> vertices, std::vector<u32> indices, std::vec
 {
 }
 
-void stw::Mesh::Draw(Pipeline& pipeline)
+void stw::Mesh::Draw(const Pipeline& pipeline) const
 {
 	u32 diffuseTextureCount = 0;
 	u32 specularTextureCount = 0;

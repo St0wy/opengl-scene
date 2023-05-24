@@ -43,7 +43,10 @@ add_executable(opengl_scene
     src/camera.cpp
     include/number_types.hpp
     include/mesh.hpp
- "src/mesh.cpp")
+    "src/mesh.cpp"
+    include/model.hpp
+    src/model.cpp
+)
 target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_system_libraries(opengl_scene PRIVATE
     fmt::fmt

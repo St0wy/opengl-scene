@@ -2,7 +2,7 @@
 
 #include "window.hpp"
 #include "scenes/light_scene.hpp"
-#include "mesh.hpp"
+#include "model.hpp"
 
 int main(int, char*[])
 {
