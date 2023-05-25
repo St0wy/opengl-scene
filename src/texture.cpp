@@ -10,6 +10,7 @@
 
 #include "utils.hpp"
 
+
 void stw::SmartTexture::Bind(const Pipeline& pipeline) const
 {
 	ASSERT_MESSAGE(m_TextureId != 0, "The texture should be initialized before being boud.");
@@ -20,20 +21,30 @@ void stw::SmartTexture::Bind(const Pipeline& pipeline) const
 	glBindTexture(GL_TEXTURE_2D, m_TextureId);
 }
 
-std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(std::filesystem::path path, TextureType type)
+std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::filesystem::path& path,
+	const TextureType type)
 {
-	GLuint textureId;
+	if (CHECK_GL_ERROR())
+	{
+		assert(false);
+	}
+	GLuint textureId = 0;
 	glGenTextures(1, &textureId);
+	if (CHECK_GL_ERROR())
+	{
+		assert(false);
+	}
 
 	int width;
 	int height;
 	int nbrComponents;
-	unsigned char* data = stbi_load(path.string().c_str(), &width, &height, &nbrComponents, 0);
+	const auto stringPath = path.string();
+	unsigned char* data = stbi_load(stringPath.c_str(), &width, &height, &nbrComponents, 0);
 	if (!data)
 	{
 		stbi_image_free(data);
 		glDeleteTextures(1, &textureId);
-		return std::unexpected(fmt::format("Texture failed to load at path: {}", path));
+		return std::unexpected(fmt::format("Texture failed to load at path: {}", stringPath));
 	}
 
 	GLenum format;
@@ -54,7 +65,15 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(std::filesys
 	}
 
 	glBindTexture(GL_TEXTURE_2D, textureId);
+	if (CHECK_GL_ERROR())
+	{
+		assert(false);
+	}
 	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(format), width, height, 0, format, GL_UNSIGNED_BYTE, data);
+	if (CHECK_GL_ERROR())
+	{
+		assert(false);
+	}
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

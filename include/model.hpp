@@ -1,8 +1,9 @@
 #pragma once
 
-#include <filesystem>
-#include <vector>
 #include <expected>
+#include <filesystem>
+#include <unordered_set>
+#include <vector>
 
 #include "mesh.hpp"
 #include "Pipeline.hpp"
@@ -16,16 +17,19 @@ class Model
 public:
 	void Draw(const Pipeline& pipeline) const;
 
-	static std::expected<Model, std::string> LoadFromPath(std::filesystem::path path);
+	static std::expected<Model, std::string> LoadFromPath(const std::filesystem::path& path);
 
 private:
 	Model() = default;
 
-	std::vector<Mesh> m_Meshes;
-	std::filesystem::path m_Directory;
+	// TODO: Convert to texture manager
+	inline static std::unordered_set<std::filesystem::path> s_LoadedTextures{};
+
+	std::vector<Mesh> m_Meshes{};
+	std::filesystem::path m_Directory{};
 
 	void ProcessNode(const aiNode* node, const aiScene* scene);
-	Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
-	std::vector<Texture> LoadMaterialTextures(const aiMaterial* material, TextureType textureType);
+	Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene) const;
+	std::vector<Texture> LoadMaterialTextures(const aiMaterial* material, TextureType textureType) const;
 };
 }

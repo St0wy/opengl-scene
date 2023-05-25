@@ -1,8 +1,7 @@
 #include <spdlog/spdlog.h>
 
 #include "window.hpp"
-#include "scenes/light_scene.hpp"
-#include "model.hpp"
+#include "scenes/backpack_scene.hpp"
 
 int main(int, char*[])
 {
@@ -10,7 +9,7 @@ int main(int, char*[])
 	spdlog::set_level(spdlog::level::debug);
 #endif
 
-	stw::Window window(std::make_unique<stw::LightScene>(), "OpenGL Scene");
+	stw::Window<stw::BackpackScene> window("OpenGL Scene");
 	window.Loop();
 	return 0;
 }

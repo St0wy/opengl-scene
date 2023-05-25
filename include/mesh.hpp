@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <vector>
 #include <glm/fwd.hpp>
 #include <glm/vec2.hpp>
@@ -22,6 +21,14 @@ class Mesh
 {
 public:
 	Mesh(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures);
+	Mesh(const Mesh&) = delete;
+	Mesh(Mesh&&) noexcept;
+
+	~Mesh();
+
+	Mesh& operator=(const Mesh&) = delete;
+	Mesh& operator=(Mesh&&) noexcept = delete;
+
 	void Draw(const Pipeline& pipeline) const;
 
 private:

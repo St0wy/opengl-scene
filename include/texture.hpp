@@ -54,10 +54,7 @@ private:
 
 struct Texture
 {
-	//Texture(const GLuint textureId, const TextureType textureType)
-	//	: textureId(textureId), textureType(textureType) { }
-
-	static std::expected<Texture, std::string> LoadFromPath(std::filesystem::path path, TextureType type);
+	static std::expected<Texture, std::string> LoadFromPath(const std::filesystem::path& path, TextureType type);
 	GLuint textureId;
 	TextureType textureType;
 };

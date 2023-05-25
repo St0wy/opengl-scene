@@ -66,6 +66,7 @@ bool CheckGlError(std::string_view file, u32 line)
 			spdlog::error("File: {} Line: {} OpenGL: GL_TABLE_TOO_LARGE", file, line);
 			break;
 		default:
+			spdlog::error("File: {} Line: {} Other OpenGL Error", file, line);
 			break;
 		}
 	}

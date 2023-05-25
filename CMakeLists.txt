@@ -57,17 +57,12 @@ CPMAddPackage(
 include(cmake/data.cmake)
 include(cmake/SystemLink.cmake)
 include(cmake/BCMProperties.cmake)
+add_subdirectory(external)
 
 add_executable(opengl_scene
-    external/stb_image.h
     src/main.cpp
     include/window.hpp
-    src/window.cpp
     include/scenes/scene.hpp
-    include/scenes/triangle_scene.hpp
-    include/scenes/square_scene.hpp
-    include/scenes/texture_scene.hpp
-    include/scenes/cube_scene.hpp
     include/scenes/light_scene.hpp
     include/utils.hpp
     src/utils.cpp
@@ -82,7 +77,11 @@ add_executable(opengl_scene
     "src/mesh.cpp"
     include/model.hpp
     src/model.cpp
+    include/timer.hpp
+    "src/timer.cpp"
+    include/scenes/backpack_scene.hpp
 )
+
 target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_system_libraries(opengl_scene PRIVATE
     fmt::fmt
@@ -92,8 +91,13 @@ target_link_system_libraries(opengl_scene PRIVATE
     glm::glm
     Boost::math
     assimp::assimp
+    stb_image
 )
+
 add_dependencies(opengl_scene shader_target data_target)
+
 set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION true)
 set_target_properties(opengl_scene PROPERTIES CXX_EXCEPTIONS Off)
-#set_target_properties(opengl_scene PROPERTIES CXX_RTTI Off)
+set_target_properties(opengl_scene PROPERTIES CXX_RTTI Off)
+set_target_properties(opengl_scene PROPERTIES CXX_WARNINGS All)
+#set_target_properties(opengl_scene PROPERTIES CXX_WARNINGS_AS_ERRORS On)

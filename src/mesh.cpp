@@ -1,6 +1,8 @@
 #include "mesh.hpp"
 
-#include <fmt/format.h>
+#include <array>
+//#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 #include <GL/glew.h>
 
 #include "utils.hpp"
@@ -8,16 +10,46 @@
 stw::Mesh::Mesh(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures)
 	: m_Vertices(std::move(vertices)), m_Indices(std::move(indices)), m_Textures(std::move(textures))
 {
+	SetupMesh();
+}
+
+stw::Mesh::Mesh(Mesh&& other) noexcept
+	: m_Vertices(std::move(other.m_Vertices)),
+	m_Indices(std::move(other.m_Indices)),
+	m_Textures(std::move(other.m_Textures)),
+	m_Vao(other.m_Vao),
+	m_Vbo(other.m_Vbo),
+	m_Ebo(other.m_Ebo)
+{
+	other.m_Vao = 0;
+	other.m_Vbo = 0;
+	other.m_Ebo = 0;
+}
+
+stw::Mesh::~Mesh()
+{
+	if (m_Vao == 0)
+	{
+		return;
+	}
+
+	glDeleteVertexArrays(1, &m_Vao);
+
+	const std::array buffers = {m_Vbo, m_Ebo};
+	glDeleteBuffers(static_cast<GLsizei>(buffers.size()), buffers.data());
 }
 
 void stw::Mesh::Draw(const Pipeline& pipeline) const
 {
 	u32 diffuseTextureCount = 0;
 	u32 specularTextureCount = 0;
-
 	for (std::size_t i = 0; i < m_Textures.size(); i++)
 	{
 		glActiveTexture(GetTextureFromId(static_cast<i32>(i)));
+		if (CHECK_GL_ERROR())
+		{
+			assert(false);
+		}
 
 		u32 number;
 		switch (m_Textures[i].textureType)
@@ -32,16 +64,39 @@ void stw::Mesh::Draw(const Pipeline& pipeline) const
 			break;
 		}
 
-		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
+		pipeline.SetInt(fmt::format("{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
+		if (CHECK_GL_ERROR())
+		{
+			assert(false);
+		}
 		glBindTexture(GL_TEXTURE_2D, m_Textures[i].textureId);
+		if (CHECK_GL_ERROR())
+		{
+			assert(false);
+		}
 	}
 	glActiveTexture(GL_TEXTURE0);
+	if (CHECK_GL_ERROR())
+	{
+		assert(false);
+	}
 
 	glBindVertexArray(m_Vao);
 
+	if (CHECK_GL_ERROR())
+	{
+		assert(false);
+	}
+
 	const auto size = static_cast<GLsizei>(m_Indices.size());
+	if (CHECK_GL_ERROR())
+	{
+		assert(false);
+	}
 	glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
+
+	glActiveTexture(GL_TEXTURE0);
 }
 
 void stw::Mesh::SetupMesh()
@@ -73,7 +128,10 @@ void stw::Mesh::SetupMesh()
 		GL_FLOAT,
 		GL_FALSE,
 		sizeof(Vertex),
-		reinterpret_cast<void*>(offsetof(Vertex, texCoords)));
-
+		reinterpret_cast<void*>(offsetof(Vertex, texCoords))); // NOLINT(performance-no-int-to-ptr)
+	if (CHECK_GL_ERROR())
+	{
+		assert(false);
+	}
 	glBindVertexArray(0);
 }

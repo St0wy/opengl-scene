@@ -1,3 +1,5 @@
+# Taken from : https://github.com/boost-cmake/bcm/blob/master/share/bcm/cmake/BCMProperties.cmake
+
 # Custom properties from Niall Douglas
 
 # On MSVC very annoyingly cmake puts /EHsc and /MD(d) into the global flags which means you
