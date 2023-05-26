@@ -1,9 +1,8 @@
 #include "mesh.hpp"
 
 #include <array>
-//#include <fmt/format.h>
-#include <spdlog/spdlog.h>
 #include <GL/glew.h>
+#include <spdlog/spdlog.h>
 
 #include "utils.hpp"
 

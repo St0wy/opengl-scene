@@ -20,15 +20,13 @@ public:
 	Scene& operator=(const Scene& other) = delete;
 	Scene& operator=(Scene&& other) = default;
 
-	//virtual void Begin() = 0;
-	//virtual void End() = 0;
 	virtual void Update(f32 deltaTime) = 0;
 
-	virtual void OnEvent(const SDL_Event& event)
+	virtual void OnEvent(const SDL_Event&)
 	{
 	}
 
-	virtual void OnResize(const i32 windowWidth, const i32 windowHeight)
+	virtual void OnResize(const i32, const i32)
 	{
 	}
 };

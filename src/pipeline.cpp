@@ -144,7 +144,10 @@ stw::Pipeline::~Pipeline()
 
 void stw::Pipeline::InitFromPath(const std::string_view vertexPath, const std::string_view fragmentPath)
 {
-	const std::string vertexSource = OpenFile(vertexPath);
+	const auto vertexResult = OpenFile(vertexPath);
+	assert(vertexResult.has_value());
+
+	const std::string& vertexSource = vertexResult.value();
 	const char* vertexSourcePtr = vertexSource.c_str();
 	m_VertexShaderId = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(m_VertexShaderId, 1, &vertexSourcePtr, nullptr);
@@ -159,7 +162,10 @@ void stw::Pipeline::InitFromPath(const std::string_view vertexPath, const std::s
 		spdlog::error("Error while loading vertex shader. {}", infoLog);
 	}
 
-	const std::string fragmentSource = OpenFile(fragmentPath);
+	const auto fragmentResult = OpenFile(fragmentPath);
+	assert(fragmentResult.has_value());
+
+	const std::string fragmentSource = fragmentResult.value();
 	const char* fragmentSourcePtr = fragmentSource.c_str();
 	m_FragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(m_FragmentShaderId, 1, &fragmentSourcePtr, nullptr);

@@ -39,6 +39,7 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::f
 	int height;
 	int nbrComponents;
 	const auto stringPath = path.string();
+	stbi_set_flip_vertically_on_load(true);
 	unsigned char* data = stbi_load(stringPath.c_str(), &width, &height, &nbrComponents, 0);
 	if (!data)
 	{

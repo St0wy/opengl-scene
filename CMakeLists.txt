@@ -3,9 +3,9 @@ project(opengl_scene)
 
 set(CMAKE_CXX_STANDARD 23)
 
-if ( NOT CMAKE_BUILD_TYPE )
-    message( "Build Type not set, defaulting to Debug..." )
-    set( CMAKE_BUILD_TYPE Debug )
+if (NOT CMAKE_BUILD_TYPE)
+    message("Build Type not set, defaulting to Debug...")
+    set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 include(cmake/download-cpm.cmake)

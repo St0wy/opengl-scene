@@ -96,7 +96,7 @@ stw::Mesh stw::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) const
 		textures.insert_range(textures.end(), specularMaps);
 	}
 	return {vertices, indices, textures};
-}
+} 
 
 std::vector<stw::Texture> stw::Model::LoadMaterialTextures(const aiMaterial* material,
 	const TextureType textureType) const

@@ -15,7 +15,7 @@ namespace stw
 {
 template <class T, class U>concept Derived = std::is_base_of_v<U, T>;
 
-std::string OpenFile(std::string_view filename);
+std::optional<std::string> OpenFile(std::string_view filename);
 
 GLenum GetTextureFromId(i32 id);
 

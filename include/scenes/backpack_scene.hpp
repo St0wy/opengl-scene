@@ -31,7 +31,7 @@ public:
 	{
 		glEnable(GL_DEPTH_TEST);
 
-		m_PipelineMesh.InitFromPath("shaders/mesh/mesh.vert", "shaders/light/mesh.frag");
+		m_PipelineMesh.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh.frag");
 
 		//const auto loadResult = ;
 		//if (!loadResult.has_value())

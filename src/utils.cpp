@@ -5,14 +5,20 @@
 #include "utils.hpp"
 
 #include <fstream>
+#include <optional>
 #include <GL/glew.h>
 #include <spdlog/spdlog.h>
 
 namespace stw
 {
-std::string OpenFile(const std::string_view filename)
+std::optional<std::string> OpenFile(const std::string_view filename)
 {
 	std::ifstream ifs(filename.data());
+	if (!ifs.is_open())
+	{
+		return {};
+	}
+
 	std::string content((std::istreambuf_iterator(ifs)), (std::istreambuf_iterator<char>()));
 
 	return content;
