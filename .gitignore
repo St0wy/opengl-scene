@@ -1,4 +1,4 @@
-./data/sponza/
+data/sponza/
 cmake-build-*/
 .idea/
 .vscode/
