@@ -53,6 +53,7 @@ file(GLOB_RECURSE DATA_FILES
     "data/*.hdr"
     "data/*.obj"
     "data/*.mtl"
+    "data/*.fbx"
     )
 
 # Copy every data filde

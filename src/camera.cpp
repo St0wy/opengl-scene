@@ -93,6 +93,11 @@ void stw::Camera::SetAspectRatio(const f32 aspectRatio)
 	m_AspectRatio = aspectRatio;
 }
 
+void stw::Camera::IncrementMovementSpeed(const f32 speedDelta)
+{
+	m_MovementSpeed += speedDelta;
+}
+
 void stw::Camera::UpdateCameraVectors()
 {
 	glm::vec3 front;

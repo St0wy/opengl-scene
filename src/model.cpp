@@ -82,9 +82,7 @@ stw::Mesh stw::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) const
 		}
 	}
 
-	// TODO: Check allocation
 	std::vector<Texture> textures{};
-	textures.reserve(scene->mNumMaterials);
 	if (scene->mNumMaterials > 0)
 	{
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
@@ -96,7 +94,7 @@ stw::Mesh stw::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) const
 		textures.insert_range(textures.end(), specularMaps);
 	}
 	return {vertices, indices, textures};
-} 
+}
 
 std::vector<stw::Texture> stw::Model::LoadMaterialTextures(const aiMaterial* material,
 	const TextureType textureType) const
@@ -104,7 +102,6 @@ std::vector<stw::Texture> stw::Model::LoadMaterialTextures(const aiMaterial* mat
 	const aiTextureType assimpType = ToAssimpTextureType(textureType);
 	const auto textureCount = material->GetTextureCount(assimpType);
 	std::vector<Texture> textures{};
-	textures.reserve(textureCount);
 
 	for (std::size_t i = 0; i < textureCount; i++)
 	{

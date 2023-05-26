@@ -24,16 +24,8 @@ void stw::SmartTexture::Bind(const Pipeline& pipeline) const
 std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::filesystem::path& path,
 	const TextureType type)
 {
-	if (CHECK_GL_ERROR())
-	{
-		assert(false);
-	}
 	GLuint textureId = 0;
 	glGenTextures(1, &textureId);
-	if (CHECK_GL_ERROR())
-	{
-		assert(false);
-	}
 
 	int width;
 	int height;
@@ -66,15 +58,7 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::f
 	}
 
 	glBindTexture(GL_TEXTURE_2D, textureId);
-	if (CHECK_GL_ERROR())
-	{
-		assert(false);
-	}
 	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(format), width, height, 0, format, GL_UNSIGNED_BYTE, data);
-	if (CHECK_GL_ERROR())
-	{
-		assert(false);
-	}
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

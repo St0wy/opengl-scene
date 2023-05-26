@@ -393,7 +393,6 @@ public:
 
 		// Cube 
 		m_PipelineLightCube.Use();
-		m_PipelineLightCube.SetVec3("viewPos", m_Camera.Position());
 		m_PipelineLightCube.SetFloat("material.shininess", 32.0f);
 
 		m_PipelineLightCube.SetDirectionalLightsCount(1);

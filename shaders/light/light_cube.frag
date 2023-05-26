@@ -54,8 +54,6 @@ in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
 
-uniform vec3 viewPos;
-
 uniform uint directionalLightsCount;
 uniform DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
 

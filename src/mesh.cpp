@@ -44,7 +44,8 @@ void stw::Mesh::Draw(const Pipeline& pipeline) const
 	u32 specularTextureCount = 0;
 	for (std::size_t i = 0; i < m_Textures.size(); i++)
 	{
-		glActiveTexture(GetTextureFromId(static_cast<i32>(i)));
+		const auto id = GetTextureFromId(static_cast<i32>(i));
+		glActiveTexture(id);
 		if (CHECK_GL_ERROR())
 		{
 			assert(false);
@@ -63,7 +64,7 @@ void stw::Mesh::Draw(const Pipeline& pipeline) const
 			break;
 		}
 
-		pipeline.SetInt(fmt::format("{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
+		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
 		if (CHECK_GL_ERROR())
 		{
 			assert(false);
@@ -75,23 +76,9 @@ void stw::Mesh::Draw(const Pipeline& pipeline) const
 		}
 	}
 	glActiveTexture(GL_TEXTURE0);
-	if (CHECK_GL_ERROR())
-	{
-		assert(false);
-	}
-
 	glBindVertexArray(m_Vao);
 
-	if (CHECK_GL_ERROR())
-	{
-		assert(false);
-	}
-
 	const auto size = static_cast<GLsizei>(m_Indices.size());
-	if (CHECK_GL_ERROR())
-	{
-		assert(false);
-	}
 	glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 

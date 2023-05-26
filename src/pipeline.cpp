@@ -18,37 +18,93 @@ void stw::Pipeline::Use() const
 
 void stw::Pipeline::SetBool(const std::string_view name, const bool value) const
 {
-	glUniform1i(glGetUniformLocation(m_ProgramId, name.data()), static_cast<int>(value));
+	const auto location = glGetUniformLocation(m_ProgramId, name.data());
+	if (location == -1)
+	{
+		spdlog::warn("Uniform \"{}\" does not exist.", name);
+	}
+	else
+	{
+		glUniform1i(location, static_cast<int>(value));
+	}
 }
 
 void stw::Pipeline::SetInt(const std::string_view name, const int value) const
 {
-	glUniform1i(glGetUniformLocation(m_ProgramId, name.data()), value);
+	const auto location = glGetUniformLocation(m_ProgramId, name.data());
+	if (location == -1)
+	{
+		spdlog::warn("Uniform \"{}\" does not exist.", name);
+	}
+	else
+	{
+		glUniform1i(location, value);
+	}
 }
 
 void stw::Pipeline::SetUnsignedInt(const std::string_view name, const u32 value) const
 {
-	glUniform1ui(glGetUniformLocation(m_ProgramId, name.data()), value);
+	const auto location = glGetUniformLocation(m_ProgramId, name.data());
+	if (location == -1)
+	{
+		spdlog::warn("Uniform \"{}\" does not exist.", name);
+	}
+	else
+	{
+		glUniform1ui(location, value);
+	}
 }
 
 void stw::Pipeline::SetFloat(const std::string_view name, const float value) const
 {
-	glUniform1f(glGetUniformLocation(m_ProgramId, name.data()), value);
+	const auto location = glGetUniformLocation(m_ProgramId, name.data());
+	if (location == -1)
+	{
+		spdlog::warn("Uniform \"{}\" does not exist.", name);
+	}
+	else
+	{
+		glUniform1f(location, value);
+	}
 }
 
 void stw::Pipeline::SetVec3(const std::string_view name, glm::vec3 value) const
 {
-	glUniform3fv(glGetUniformLocation(m_ProgramId, name.data()), 1, &value[0]);
+	const auto location = glGetUniformLocation(m_ProgramId, name.data());
+	if (location == -1)
+	{
+		spdlog::warn("Uniform \"{}\" does not exist.", name);
+	}
+	else
+	{
+		glUniform3fv(location, 1, &value[0]);
+	}
 }
 
 void stw::Pipeline::SetMat3(const std::string_view name, const glm::mat3& mat) const
 {
-	glUniformMatrix3fv(glGetUniformLocation(m_ProgramId, name.data()), 1, GL_FALSE, &mat[0][0]);
+	const auto location = glGetUniformLocation(m_ProgramId, name.data());
+	if (location == -1)
+	{
+		spdlog::warn("Uniform \"{}\" does not exist.", name);
+	}
+	else
+	{
+		glUniformMatrix3fv(location, 1, GL_FALSE, &mat[0][0]);
+	}
 }
 
 void stw::Pipeline::SetMat4(const std::string_view name, const glm::mat4& mat) const
 {
-	glUniformMatrix4fv(glGetUniformLocation(m_ProgramId, name.data()), 1, GL_FALSE, &mat[0][0]);
+	const auto location = glGetUniformLocation(m_ProgramId, name.data());
+	if (location == -1)
+	{
+		spdlog::warn("Uniform \"{}\" does not exist.", name);
+	}
+	else
+	{
+		glUniformMatrix4fv(location, 1, GL_FALSE, &mat[0][0]);
+	}
 }
 
 void stw::Pipeline::SetPointLightsCount(const u32 count)
@@ -147,7 +203,7 @@ void stw::Pipeline::InitFromPath(const std::string_view vertexPath, const std::s
 	const auto vertexResult = OpenFile(vertexPath);
 	assert(vertexResult.has_value());
 
-	const std::string& vertexSource = vertexResult.value();
+	const std::string& vertexSource = vertexResult.value(); // NOLINT(bugprone-unchecked-optional-access)
 	const char* vertexSourcePtr = vertexSource.c_str();
 	m_VertexShaderId = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(m_VertexShaderId, 1, &vertexSourcePtr, nullptr);
@@ -165,7 +221,7 @@ void stw::Pipeline::InitFromPath(const std::string_view vertexPath, const std::s
 	const auto fragmentResult = OpenFile(fragmentPath);
 	assert(fragmentResult.has_value());
 
-	const std::string fragmentSource = fragmentResult.value();
+	const std::string& fragmentSource = fragmentResult.value(); // NOLINT(bugprone-unchecked-optional-access)
 	const char* fragmentSourcePtr = fragmentSource.c_str();
 	m_FragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(m_FragmentShaderId, 1, &fragmentSourcePtr, nullptr);

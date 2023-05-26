@@ -32,15 +32,6 @@ public:
 		glEnable(GL_DEPTH_TEST);
 
 		m_PipelineMesh.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh.frag");
-
-		//const auto loadResult = ;
-		//if (!loadResult.has_value())
-		//{
-		//	spdlog::error("Could not load backpack");
-		//	assert(false);
-		//}
-
-		//m_BackpackModel = loadResult.value();
 	}
 
 	void Update(const f32 deltaTime) override
@@ -52,13 +43,39 @@ public:
 		//m_LightPosition.y = std::cos(m_Time * 6.0f) * 0.1f + 1.0f;
 		//m_LightPosition.z = std::sin(m_Time) * lightRadius;
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		m_PipelineMesh.Use();
+		m_PipelineMesh.SetFloat("material.shininess", 32.0f);
+
+		m_PipelineMesh.SetDirectionalLightsCount(1);
+		constexpr DirectionalLight directionalLight{
+			{-0.2f, -1.0f, -0.3f},
+			{0.2f, 0.2f, 0.2f},
+			{0.5f, 0.5f, 0.5f},
+			{1.0f, 1.0f, 1.0f}
+		};
+		m_PipelineMesh.SetDirectionalLight("directionalLights", 0, directionalLight);
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
 		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
+
+		m_PipelineMesh.SetSpotLightsCount(1);
+
+		SpotLight spotLight{
+			m_Camera.Position(),
+			m_Camera.Position() + m_Camera.Front(),
+			glm::cos(glm::radians(12.5f)),
+			glm::cos(glm::radians(15.0f)),
+			1.0f,
+			0.09f,
+			0.032f,
+			{0.0f, 0.0f, 0.0f},
+			{1.0f, 1.0f, 1.0f},
+			{1.0f, 1.0f, 1.0f},
+		};
+		m_PipelineMesh.SetSpotLight("spotLights", 0, spotLight, view);
 
 		m_PipelineMesh.SetMat4("projection", projection);
 		m_PipelineMesh.SetMat4("view", view);
@@ -68,6 +85,10 @@ public:
 		model = translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 		model = scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 		m_PipelineMesh.SetMat4("model", model);
+
+		const glm::mat3 normalMatrix = inverseTranspose(view * model);
+		m_PipelineMesh.SetMat3("normal", normalMatrix);
+
 		m_BackpackModel.Draw(m_PipelineMesh);
 
 		// Camera
@@ -105,6 +126,16 @@ public:
 			m_Camera.ProcessMouseScroll(yOffset);
 			break;
 		}
+		case SDL_KEYDOWN:
+			if (event.key.keysym.sym == SDLK_o)
+			{
+				m_Camera.IncrementMovementSpeed(-1.0f);
+			}
+			else if (event.key.keysym.sym == SDLK_p)
+			{
+				m_Camera.IncrementMovementSpeed(1.0f);
+			}
+			break;
 		default:
 			break;
 		}
