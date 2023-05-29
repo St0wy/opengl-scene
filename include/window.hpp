@@ -42,6 +42,8 @@ template <Derived<Scene> T>
 Window<T>::Window(const char* windowName, i32 windowWidth, i32 windowHeight)
 {
 	spdlog::debug("Creating window...");
+	SDL_SetHintWithPriority(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2", SDL_HINT_OVERRIDE);
+
 	SDL_SetMainReady();
 
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
@@ -52,12 +54,14 @@ Window<T>::Window(const char* windowName, i32 windowWidth, i32 windowHeight)
 
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
 	m_Window = SDL_CreateWindow(windowName,
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
 		windowWidth,
 		windowHeight,
-		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+
 	m_GlRenderContext = SDL_GL_CreateContext(m_Window);
 	SDL_GL_SetSwapInterval(1);
 	SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -143,6 +147,12 @@ void Window<T>::Loop()
 		}
 
 		m_Scene->Update(deltaTime);
+
+		if (CHECK_GL_ERROR())
+		{
+			assert(false);
+		}
+
 		SDL_GL_SwapWindow(m_Window);
 	}
 }

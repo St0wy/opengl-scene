@@ -65,15 +65,7 @@ void stw::Mesh::Draw(const Pipeline& pipeline) const
 		}
 
 		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
-		if (CHECK_GL_ERROR())
-		{
-			assert(false);
-		}
 		glBindTexture(GL_TEXTURE_2D, m_Textures[i].textureId);
-		if (CHECK_GL_ERROR())
-		{
-			assert(false);
-		}
 	}
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(m_Vao);
@@ -104,20 +96,15 @@ void stw::Mesh::SetupMesh()
 	// vertex positions
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+
 	// vertex normals
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+	auto offset = reinterpret_cast<void*>(offsetof(Vertex, normal)); // NOLINT(performance-no-int-to-ptr)
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offset);
+
 	// vertex texture coords
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		sizeof(Vertex),
-		reinterpret_cast<void*>(offsetof(Vertex, texCoords))); // NOLINT(performance-no-int-to-ptr)
-	if (CHECK_GL_ERROR())
-	{
-		assert(false);
-	}
+	offset = reinterpret_cast<void*>(offsetof(Vertex, texCoords)); // NOLINT(performance-no-int-to-ptr)
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), offset);
 	glBindVertexArray(0);
 }

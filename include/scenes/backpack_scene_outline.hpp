@@ -16,28 +16,33 @@
 
 namespace stw
 {
-class BackpackScene final : public Scene
+class BackpackSceneOutline final : public Scene
 {
 public:
-	BackpackScene()
+	BackpackSceneOutline()
 		: m_BackpackModel(Model::LoadFromPath("data/backpack/backpack.obj").value())
 	{
 		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 		m_PipelineMesh.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh.frag");
+		m_PipelineSingleColor.InitFromPath("shaders/mesh/mesh.vert", "shaders/singleColor.frag");
 	}
 
 	void Update(const f32 deltaTime) override
 	{
 		m_Time += deltaTime;
 
-		//constexpr f32 lightRadius = 2.0f;
-		//m_LightPosition.x = std::cos(m_Time) * lightRadius;
-		//m_LightPosition.y = std::cos(m_Time * 6.0f) * 0.1f + 1.0f;
-		//m_LightPosition.z = std::sin(m_Time) * lightRadius;
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
 
 		m_PipelineMesh.Use();
 		m_PipelineMesh.SetFloat("material.shininess", 32.0f);
@@ -83,6 +88,20 @@ public:
 		m_PipelineMesh.SetMat3("normal", normalMatrix);
 
 		m_BackpackModel.Draw(m_PipelineMesh);
+
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glDisable(GL_DEPTH_TEST);
+
+		m_PipelineSingleColor.Use();
+
+		model = scale(model, glm::vec3(1.5f, 1.5f, 1.5f));
+		m_PipelineSingleColor.SetMat4("model", model);
+		m_BackpackModel.Draw(m_PipelineSingleColor);
+
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 0, 0xFF);
+		glEnable(GL_DEPTH_TEST);
 
 		// Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
@@ -142,6 +161,7 @@ public:
 
 private:
 	Pipeline m_PipelineMesh{};
+	Pipeline m_PipelineSingleColor{};
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
 	Model m_BackpackModel;

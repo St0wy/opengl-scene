@@ -80,6 +80,7 @@ add_executable(opengl_scene
     include/timer.hpp
     "src/timer.cpp"
     include/scenes/backpack_scene.hpp
+    "include/scenes/backpack_scene_outline.hpp"
 )
 
 target_include_directories(opengl_scene PRIVATE include/ external/)
