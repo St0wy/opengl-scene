@@ -14,6 +14,14 @@ void stw::Model::Draw(const Pipeline& pipeline) const
 	}
 }
 
+void stw::Model::DrawMeshOnly(const Pipeline& pipeline) const
+{
+	for (const auto& mesh : m_Meshes)
+	{
+		mesh.DrawMeshOnly(pipeline);
+	}
+}
+
 std::expected<stw::Model, std::string> stw::Model::LoadFromPath(const std::filesystem::path& path)
 {
 	Assimp::Importer importer;

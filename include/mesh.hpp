@@ -30,6 +30,7 @@ public:
 	Mesh& operator=(Mesh&&) noexcept = delete;
 
 	void Draw(const Pipeline& pipeline) const;
+	void DrawMeshOnly(const Pipeline& pipeline) const;
 
 private:
 	std::vector<Vertex> m_Vertices;

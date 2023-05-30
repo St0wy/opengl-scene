@@ -95,9 +95,11 @@ public:
 
 		m_PipelineSingleColor.Use();
 
-		model = scale(model, glm::vec3(1.5f, 1.5f, 1.5f));
+		model = scale(model, glm::vec3(1.1f));
 		m_PipelineSingleColor.SetMat4("model", model);
-		m_BackpackModel.Draw(m_PipelineSingleColor);
+		m_PipelineSingleColor.SetMat4("projection", projection);
+		m_PipelineSingleColor.SetMat4("view", view);
+		m_BackpackModel.DrawMeshOnly(m_PipelineSingleColor);
 
 		glStencilMask(0xFF);
 		glStencilFunc(GL_ALWAYS, 0, 0xFF);
@@ -126,18 +128,18 @@ public:
 		switch (event.type)
 		{
 		case SDL_MOUSEMOTION:
-		{
-			const auto xOffset = static_cast<f32>(event.motion.xrel);
-			const auto yOffset = static_cast<f32>(-event.motion.yrel);
-			m_Camera.ProcessMouseMovement(xOffset, yOffset);
-			break;
-		}
+			{
+				const auto xOffset = static_cast<f32>(event.motion.xrel);
+				const auto yOffset = static_cast<f32>(-event.motion.yrel);
+				m_Camera.ProcessMouseMovement(xOffset, yOffset);
+				break;
+			}
 		case SDL_MOUSEWHEEL:
-		{
-			const f32 yOffset = event.wheel.preciseY;
-			m_Camera.ProcessMouseScroll(yOffset);
-			break;
-		}
+			{
+				const f32 yOffset = event.wheel.preciseY;
+				m_Camera.ProcessMouseScroll(yOffset);
+				break;
+			}
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_o)
 			{

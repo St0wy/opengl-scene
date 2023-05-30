@@ -46,10 +46,6 @@ void stw::Mesh::Draw(const Pipeline& pipeline) const
 	{
 		const auto id = GetTextureFromId(static_cast<i32>(i));
 		glActiveTexture(id);
-		if (CHECK_GL_ERROR())
-		{
-			assert(false);
-		}
 
 		u32 number;
 		switch (m_Textures[i].textureType)
@@ -68,13 +64,19 @@ void stw::Mesh::Draw(const Pipeline& pipeline) const
 		glBindTexture(GL_TEXTURE_2D, m_Textures[i].textureId);
 	}
 	glActiveTexture(GL_TEXTURE0);
+
+	DrawMeshOnly(pipeline);
+
+	glActiveTexture(GL_TEXTURE0);
+}
+
+void stw::Mesh::DrawMeshOnly(const Pipeline& pipeline) const
+{
 	glBindVertexArray(m_Vao);
 
 	const auto size = static_cast<GLsizei>(m_Indices.size());
 	glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
-
-	glActiveTexture(GL_TEXTURE0);
 }
 
 void stw::Mesh::SetupMesh()
