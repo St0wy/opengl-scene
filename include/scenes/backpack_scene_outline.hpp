@@ -20,7 +20,8 @@ class BackpackSceneOutline final : public Scene
 {
 public:
 	BackpackSceneOutline()
-		: m_BackpackModel(Model::LoadFromPath("data/backpack/backpack.obj").value())
+		: m_BackpackModel(Model::LoadFromPath("data/backpack/backpack.obj").value()),
+		m_GroundModel(Model::LoadFromPath("data/ground/ground.obj").value())
 	{
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
@@ -37,15 +38,31 @@ public:
 	{
 		m_Time += deltaTime;
 
-
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
-
 		m_PipelineMesh.Use();
 		m_PipelineMesh.SetFloat("material.shininess", 32.0f);
+
+		const glm::mat4 view = m_Camera.GetViewMatrix();
+		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
+
+		m_PipelineMesh.SetMat4("projection", projection);
+		m_PipelineMesh.SetMat4("view", view);
+
+		// Render ground model
+		auto groundModel = glm::mat4(1.0f);
+		groundModel = translate(groundModel, glm::vec3(0.0f, 0.0f, 0.0f));
+		groundModel = scale(groundModel, glm::vec3(1.0f, 1.0f, 1.0f));
+		m_PipelineMesh.SetMat4("model", groundModel);
+
+		auto groundNormalMatrix = inverseTranspose(view * groundModel);
+		m_PipelineMesh.SetMat3("normal", groundNormalMatrix);
+
+		m_GroundModel.Draw(m_PipelineMesh);
+
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
 
 		m_PipelineMesh.SetDirectionalLightsCount(1);
 		constexpr DirectionalLight directionalLight{
@@ -55,9 +72,6 @@ public:
 			{1.0f, 1.0f, 1.0f}
 		};
 		m_PipelineMesh.SetDirectionalLight("directionalLights", 0, directionalLight);
-
-		const glm::mat4 view = m_Camera.GetViewMatrix();
-		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
 
 		m_PipelineMesh.SetSpotLightsCount(1);
 
@@ -75,20 +89,18 @@ public:
 		};
 		m_PipelineMesh.SetSpotLight("spotLights", 0, spotLight, view);
 
-		m_PipelineMesh.SetMat4("projection", projection);
-		m_PipelineMesh.SetMat4("view", view);
-
-		// Render model
+		// Render backpack model
 		auto model = glm::mat4(1.0f);
 		model = translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 		model = scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 		m_PipelineMesh.SetMat4("model", model);
 
-		const glm::mat3 normalMatrix = inverseTranspose(view * model);
+		glm::mat3 normalMatrix = inverseTranspose(view * model);
 		m_PipelineMesh.SetMat3("normal", normalMatrix);
 
 		m_BackpackModel.Draw(m_PipelineMesh);
 
+		// Render backpack outline
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
 		glDisable(GL_DEPTH_TEST);
@@ -167,5 +179,6 @@ private:
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
 	Model m_BackpackModel;
+	Model m_GroundModel;
 };
 } // namespace stw

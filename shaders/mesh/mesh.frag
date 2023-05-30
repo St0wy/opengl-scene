@@ -5,7 +5,8 @@ precision highp float;
 #define MAX_DIRECTIONAL_LIGHTS 8
 #define MAX_SPOT_LIGHTS 32
 
-struct Material {
+struct Material 
+{
     sampler2D texture_diffuse1;
     sampler2D texture_specular1;
     float shininess;
@@ -33,7 +34,8 @@ struct PointLight
     vec3 specular;
 };
 
-struct SpotLight {
+struct SpotLight 
+{
     vec3 position;
     vec3 direction;
     float cutOff;
