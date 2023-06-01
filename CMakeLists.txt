@@ -23,6 +23,7 @@ add_executable(
 	"include/scenes/backpack_scene.hpp"
 	"include/scenes/backpack_scene_outline.hpp"
 	"include/scenes/light_scene.hpp"
+	"include/scenes/transparent_scene.hpp"
 	"include/scenes/scene.hpp"
 	"include/texture.hpp"
 	"include/timer.hpp"
