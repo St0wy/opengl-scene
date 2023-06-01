@@ -37,18 +37,38 @@ void stw::Camera::ProcessMovement(const CameraMovementState& cameraMovementState
 {
 	const float velocity = m_MovementSpeed * deltaTime;
 
+	glm::vec3 flatFront = m_Front;
+	flatFront.y = 0;
+	flatFront = normalize(flatFront);
+
+	glm::vec3 flatRight = m_Right;
+	flatRight.y = 0;
+	flatRight = normalize(flatRight);
+
 	if (cameraMovementState.forward)
-		m_Position += m_Front * velocity;
+	{
+		m_Position += flatFront * velocity;
+	}
 	if (cameraMovementState.backward)
-		m_Position -= m_Front * velocity;
+	{
+		m_Position -= flatFront * velocity;
+	}
 	if (cameraMovementState.left)
-		m_Position -= m_Right * velocity;
+	{
+		m_Position -= flatRight * velocity;
+	}
 	if (cameraMovementState.right)
-		m_Position += m_Right * velocity;
+	{
+		m_Position += flatRight * velocity;
+	}
 	if (cameraMovementState.up)
+	{
 		m_Position += m_WorldUp * velocity;
+	}
 	if (cameraMovementState.down)
+	{
 		m_Position -= m_WorldUp * velocity;
+	}
 }
 
 void stw::Camera::ProcessMouseMovement(f32 xOffset, f32 yOffset, const bool constrainPitch)
@@ -91,6 +111,11 @@ glm::vec3 stw::Camera::Front() const
 void stw::Camera::SetAspectRatio(const f32 aspectRatio)
 {
 	m_AspectRatio = aspectRatio;
+}
+
+void stw::Camera::SetMovementSpeed(const f32 speed)
+{
+	m_MovementSpeed = speed;
 }
 
 void stw::Camera::IncrementMovementSpeed(const f32 speedDelta)

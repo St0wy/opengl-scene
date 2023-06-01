@@ -23,6 +23,8 @@ public:
 		: m_BackpackModel(Model::LoadFromPath("data/backpack/backpack.obj").value()),
 		m_GroundModel(Model::LoadFromPath("data/ground/ground.obj").value())
 	{
+		m_Camera.SetMovementSpeed(4.0f);
+
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 
