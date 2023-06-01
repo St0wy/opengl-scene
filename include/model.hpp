@@ -16,6 +16,7 @@ class Model
 {
 public:
 	void Draw(const Pipeline& pipeline) const;
+	void DrawNoSpecular(const Pipeline& pipeline) const;
 	void DrawMeshOnly(const Pipeline& pipeline) const;
 
 	static std::expected<Model, std::string> LoadFromPath(const std::filesystem::path& path);

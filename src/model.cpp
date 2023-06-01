@@ -14,6 +14,14 @@ void stw::Model::Draw(const Pipeline& pipeline) const
 	}
 }
 
+void stw::Model::DrawNoSpecular(const Pipeline& pipeline) const
+{
+	for (const auto& mesh : m_Meshes)
+	{
+		mesh.DrawNoSpecular(pipeline);
+	}
+}
+
 void stw::Model::DrawMeshOnly(const Pipeline& pipeline) const
 {
 	for (const auto& mesh : m_Meshes)

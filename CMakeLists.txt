@@ -8,81 +8,10 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-include(cmake/download-cpm.cmake)
-
-cpmaddpackage("gh:libsdl-org/SDL#release-2.26.5")
-cpmaddpackage("gh:Perlmint/glew-cmake#glew-cmake-2.2.0")
-
-cpmaddpackage(
-	NAME
-	boost-math
-	GIT_TAG
-	boost-1.82.0
-	GITHUB_REPOSITORY
-	boostorg/math
-	OPTIONS
-	"BUILD_SHARED_LIBS OFF"
-	EXCLUDE_FROM_ALL
-	SYSTEM
-)
-
-cpmaddpackage(
-	NAME
-	glm
-	GIT_TAG
-	0.9.9.8
-	GITHUB_REPOSITORY
-	g-truc/glm
-	OPTIONS
-	"BUILD_SHARED_LIBS OFF"
-	EXCLUDE_FROM_ALL
-	SYSTEM
-)
-
-cpmaddpackage(
-	NAME
-	fmt
-	GIT_TAG
-	10.0.0
-	GITHUB_REPOSITORY
-	fmtlib/fmt
-	OPTIONS
-	"BUILD_SHARED_LIBS OFF"
-	EXCLUDE_FROM_ALL
-	SYSTEM
-)
-
-cpmaddpackage(
-	NAME
-	spdlog
-	VERSION
-	1.11.0
-	GITHUB_REPOSITORY
-	gabime/spdlog
-	OPTIONS
-	"BUILD_SHARED_LIBS OFF"
-	EXCLUDE_FROM_ALL
-	SYSTEM
-)
-
-cpmaddpackage(
-	NAME
-	Assimp
-	VERSION
-	5.2.5
-	GITHUB_REPOSITORY
-	assimp/assimp
-	OPTIONS
-	"ASSIMP_WARNINGS_AS_ERRORS OFF"
-	"BUILD_SHARED_LIBS OFF"
-	EXCLUDE_FROM_ALL
-	SYSTEM
-)
-
 include(cmake/data.cmake)
 include(cmake/SystemLink.cmake)
 include(cmake/BCMProperties.cmake)
-add_subdirectory(external)
+include(cmake/dependencies.cmake)
 
 add_executable(
 	opengl_scene
@@ -131,3 +60,8 @@ set_target_properties(opengl_scene PROPERTIES CXX_EXCEPTIONS Off)
 set_target_properties(opengl_scene PROPERTIES CXX_RTTI Off)
 set_target_properties(opengl_scene PROPERTIES CXX_WARNINGS All)
 # set_target_properties(opengl_scene PROPERTIES CXX_WARNINGS_AS_ERRORS On)
+
+if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
+	message("Setting flags to have no console")
+	set_target_properties(opengl_scene PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+endif()

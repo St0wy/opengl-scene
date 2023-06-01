@@ -2,7 +2,6 @@
 
 #include "window.hpp"
 #include "scenes/backpack_scene_outline.hpp"
-#include "scenes/backpack_scene.hpp"
 
 int main(int, char*[])
 {

@@ -70,6 +70,35 @@ void stw::Mesh::Draw(const Pipeline& pipeline) const
 	glActiveTexture(GL_TEXTURE0);
 }
 
+void stw::Mesh::DrawNoSpecular(const Pipeline& pipeline) const
+{
+	u32 diffuseTextureCount = 0;
+	for (std::size_t i = 0; i < m_Textures.size(); i++)
+	{
+		const auto id = GetTextureFromId(static_cast<i32>(i));
+		glActiveTexture(id);
+
+		u32 number;
+		switch (m_Textures[i].textureType)
+		{
+		case TextureType::Diffuse:
+			diffuseTextureCount++;
+			number = diffuseTextureCount;
+			break;
+		default:
+			break;
+		}
+
+		pipeline.SetInt(fmt::format("material.texture_diffuse{}", number), static_cast<i32>(i));
+		glBindTexture(GL_TEXTURE_2D, m_Textures[i].textureId);
+	}
+	glActiveTexture(GL_TEXTURE0);
+
+	DrawMeshOnly(pipeline);
+
+	glActiveTexture(GL_TEXTURE0);
+}
+
 void stw::Mesh::DrawMeshOnly(const Pipeline& pipeline) const
 {
 	glBindVertexArray(m_Vao);

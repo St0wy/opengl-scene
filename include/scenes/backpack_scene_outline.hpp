@@ -32,48 +32,31 @@ public:
 
 		m_PipelineMesh.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh.frag");
 		m_PipelineSingleColor.InitFromPath("shaders/mesh/mesh.vert", "shaders/singleColor.frag");
+		m_PipelineNoSpecular.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh_no_specular.frag");
 	}
 
-	void Update(const f32 deltaTime) override
+	void SetupPipeline(Pipeline& pipeline) const
 	{
-		m_Time += deltaTime;
-
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-		m_PipelineMesh.Use();
-		m_PipelineMesh.SetFloat("material.shininess", 32.0f);
+		pipeline.Use();
+		pipeline.SetFloat("material.shininess", 32.0f);
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
 		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
 
-		m_PipelineMesh.SetMat4("projection", projection);
-		m_PipelineMesh.SetMat4("view", view);
+		pipeline.SetMat4("projection", projection);
+		pipeline.SetMat4("view", view);
 
-		// Render ground model
-		auto groundModel = glm::mat4(1.0f);
-		groundModel = translate(groundModel, glm::vec3(0.0f, 0.0f, 0.0f));
-		groundModel = scale(groundModel, glm::vec3(1.0f, 1.0f, 1.0f));
-		m_PipelineMesh.SetMat4("model", groundModel);
-
-		auto groundNormalMatrix = inverseTranspose(view * groundModel);
-		m_PipelineMesh.SetMat3("normal", groundNormalMatrix);
-
-		m_GroundModel.Draw(m_PipelineMesh);
-
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
-
-		m_PipelineMesh.SetDirectionalLightsCount(1);
+		// Setup lights
+		pipeline.SetDirectionalLightsCount(1);
 		constexpr DirectionalLight directionalLight{
 			{-0.2f, -1.0f, -0.3f},
 			{0.2f, 0.2f, 0.2f},
 			{0.5f, 0.5f, 0.5f},
 			{1.0f, 1.0f, 1.0f}
 		};
-		m_PipelineMesh.SetDirectionalLight("directionalLights", 0, directionalLight);
+		pipeline.SetDirectionalLight("directionalLights", 0, directionalLight);
 
-		m_PipelineMesh.SetSpotLightsCount(1);
+		pipeline.SetSpotLightsCount(1);
 
 		SpotLight spotLight{
 			m_Camera.Position(),
@@ -87,15 +70,48 @@ public:
 			{1.0f, 1.0f, 1.0f},
 			{1.0f, 1.0f, 1.0f},
 		};
-		m_PipelineMesh.SetSpotLight("spotLights", 0, spotLight, view);
+		pipeline.SetSpotLight("spotLights", 0, spotLight, view);
+	}
+
+	void Update(const f32 deltaTime) override
+	{
+		m_Time += deltaTime;
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		SetupPipeline(m_PipelineMesh);
+		SetupPipeline(m_PipelineNoSpecular);
+
+		const glm::mat4 view = m_Camera.GetViewMatrix();
+		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
+		CHECK_GL_ERROR();
+
+		// Render ground model
+		m_PipelineNoSpecular.Use();
+		m_PipelineNoSpecular.SetFloat("material.specular", 0.1f);
+		auto groundModel = glm::mat4(1.0f);
+		groundModel = translate(groundModel, glm::vec3(0.0f, -2.0f, 0.0f));
+		groundModel = scale(groundModel, glm::vec3(1.0f, 1.0f, 1.0f));
+		m_PipelineNoSpecular.SetMat4("model", groundModel);
+
+		const auto groundNormalMatrix = inverseTranspose(view * groundModel);
+		m_PipelineNoSpecular.SetMat3("normal", groundNormalMatrix);
+
+		m_GroundModel.DrawNoSpecular(m_PipelineNoSpecular);
+		CHECK_GL_ERROR();
+
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
 
 		// Render backpack model
+		m_PipelineMesh.Use();
 		auto model = glm::mat4(1.0f);
 		model = translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 		model = scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 		m_PipelineMesh.SetMat4("model", model);
 
-		glm::mat3 normalMatrix = inverseTranspose(view * model);
+		const glm::mat3 normalMatrix = inverseTranspose(view * model);
 		m_PipelineMesh.SetMat3("normal", normalMatrix);
 
 		m_BackpackModel.Draw(m_PipelineMesh);
@@ -103,7 +119,6 @@ public:
 		// Render backpack outline
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
-		glDisable(GL_DEPTH_TEST);
 
 		m_PipelineSingleColor.Use();
 
@@ -140,18 +155,18 @@ public:
 		switch (event.type)
 		{
 		case SDL_MOUSEMOTION:
-			{
-				const auto xOffset = static_cast<f32>(event.motion.xrel);
-				const auto yOffset = static_cast<f32>(-event.motion.yrel);
-				m_Camera.ProcessMouseMovement(xOffset, yOffset);
-				break;
-			}
+		{
+			const auto xOffset = static_cast<f32>(event.motion.xrel);
+			const auto yOffset = static_cast<f32>(-event.motion.yrel);
+			m_Camera.ProcessMouseMovement(xOffset, yOffset);
+			break;
+		}
 		case SDL_MOUSEWHEEL:
-			{
-				const f32 yOffset = event.wheel.preciseY;
-				m_Camera.ProcessMouseScroll(yOffset);
-				break;
-			}
+		{
+			const f32 yOffset = event.wheel.preciseY;
+			m_Camera.ProcessMouseScroll(yOffset);
+			break;
+		}
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_o)
 			{
@@ -175,6 +190,7 @@ public:
 
 private:
 	Pipeline m_PipelineMesh{};
+	Pipeline m_PipelineNoSpecular{};
 	Pipeline m_PipelineSingleColor{};
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};

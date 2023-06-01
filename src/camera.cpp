@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <glm/geometric.hpp>
 #include <glm/trigonometric.hpp>
-#include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 stw::Camera::Camera(glm::vec3 position, glm::vec3 up, f32 yaw, f32 pitch, f32 aspectRatio)
 	: m_Position(position),

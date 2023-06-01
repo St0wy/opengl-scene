@@ -157,13 +157,9 @@ void stw::Pipeline::SetDirectionalLight(std::string_view name,
 
 	const auto indexedName = fmt::format("{}[{}]", name, index);
 	SetVec3(fmt::format("{}.direction", indexedName), directionalLight.direction);
-	CHECK_GL_ERROR();
 	SetVec3(fmt::format("{}.ambient", indexedName), directionalLight.ambient);
-	CHECK_GL_ERROR();
 	SetVec3(fmt::format("{}.diffuse", indexedName), directionalLight.diffuse);
-	CHECK_GL_ERROR();
 	SetVec3(fmt::format("{}.specular", indexedName), directionalLight.specular);
-	CHECK_GL_ERROR();
 }
 
 void stw::Pipeline::SetSpotLight(std::string_view name,
