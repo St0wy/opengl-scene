@@ -6,6 +6,7 @@
 #include <array>
 #include <GL/glew.h>
 #include <glm/ext.hpp>
+#include <glm/gtx/norm.hpp>
 
 #include "camera.hpp"
 #include "model.hpp"
@@ -19,45 +20,12 @@ namespace stw
 class TransparentScene final : public Scene
 {
 public:
-	static constexpr std::array VegetationPositions{
+	static constexpr std::array TransparentPositions{
 		glm::vec3{-1.5f, 0.0f, -0.48f},
 		glm::vec3{1.5f, 0.0f, 0.51f},
 		glm::vec3{0.0f, 0.0f, 0.7f},
 		glm::vec3{-0.3f, 0.0f, -2.3f},
 		glm::vec3{0.5f, 0.0f, -0.6f},
-	};
-
-	static constexpr std::array TransparentVertices{
-		0.0f,
-		0.5f,
-		0.0f,
-		0.0f,
-		0.0f,
-		0.0f,
-		-0.5f,
-		0.0f,
-		0.0f,
-		1.0f,
-		1.0f,
-		-0.5f,
-		0.0f,
-		1.0f,
-		1.0f,
-		0.0f,
-		0.5f,
-		0.0f,
-		0.0f,
-		0.0f,
-		1.0f,
-		-0.5f,
-		0.0f,
-		1.0f,
-		1.0f,
-		1.0f,
-		0.5f,
-		0.0f,
-		1.0f,
-		0.0f
 	};
 
 	TransparentScene()
@@ -67,6 +35,9 @@ public:
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		std::vector<Vertex> transparentVertices{
 			{glm::vec3{0.0f, 0.5f, 0.0f}, glm::vec3{0.0f}, glm::vec2{0.0f}},
@@ -79,12 +50,32 @@ public:
 
 		std::vector<u32> transparentIndices{0, 1, 2, 3, 4, 5};
 
-		auto transparentTexture = Texture::LoadFromPath("data/grass.png", TextureType::Diffuse).value();
+		auto transparentTexture = Texture::LoadFromPath("data/blending_transparent_window.png", TextureType::Diffuse).
+		value();
+		//auto transparentTexture = Texture::LoadFromPath("data/grass.png", TextureType::Diffuse).value();
 
 		Mesh transparentMesh{std::move(transparentVertices), std::move(transparentIndices), {transparentTexture}};
 		m_GrassModel.AddMesh(std::move(transparentMesh));
 
 		m_Pipeline.InitFromPath("shaders/transparent/transparent.vert", "shaders/transparent/transparent.frag");
+
+		UpdateDistanceArray();
+	}
+
+	void UpdateDistanceArray()
+	{
+		for (std::size_t i = 0; i < TransparentPositions.size(); i++)
+		{
+			f32 distance = length2(m_Camera.Position() - TransparentPositions[i]);
+			m_SortedPositionsIndices[i] = std::make_pair(distance, i);
+		}
+
+		constexpr auto sortFirst = [](auto& left, auto& right)
+		{
+			return left.first > right.first;
+		};
+
+		std::ranges::sort(m_SortedPositionsIndices, sortFirst);
 	}
 
 	void SetupPipeline(Pipeline& pipeline) const
@@ -134,7 +125,7 @@ public:
 		SetupPipeline(m_Pipeline);
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
-		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
+		//const glm::mat4 projection = m_Camera.GetProjectionMatrix();
 
 		// Render ground model
 		m_Pipeline.Use();
@@ -150,10 +141,11 @@ public:
 		m_GroundModel.DrawNoSpecular(m_Pipeline);
 		CHECK_GL_ERROR();
 
-		for (const auto& pos : VegetationPositions)
+
+		for (const auto& [_, index] : m_SortedPositionsIndices)
 		{
 			auto model = glm::mat4(1.0f);
-			model = translate(model, pos);
+			model = translate(model, TransparentPositions[index]);
 			m_Pipeline.SetMat4("model", model);
 			m_GrassModel.DrawNoSpecular(m_Pipeline);
 		}
@@ -168,7 +160,12 @@ public:
 			.up = static_cast<bool>(keyboardState[SDL_SCANCODE_SPACE]),
 			.down = static_cast<bool>(keyboardState[SDL_SCANCODE_LSHIFT])
 		};
-		m_Camera.ProcessMovement(cameraMovementState, deltaTime);
+
+		if (cameraMovementState.HasMovement())
+		{
+			UpdateDistanceArray();
+			m_Camera.ProcessMovement(cameraMovementState, deltaTime);
+		}
 #pragma endregion Camera
 
 		if (CHECK_GL_ERROR())
@@ -222,5 +219,6 @@ private:
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
 	Model m_GroundModel;
 	Model m_GrassModel{};
+	std::array<std::pair<f32, std::size_t>, TransparentPositions.size()> m_SortedPositionsIndices{};
 };
 } // namespace stw

@@ -15,6 +15,8 @@ struct CameraMovementState
 	bool right{};
 	bool up{};
 	bool down{};
+
+	[[nodiscard]] bool HasMovement() const;
 };
 
 class Camera

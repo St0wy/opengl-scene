@@ -6,6 +6,11 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
+bool stw::CameraMovementState::HasMovement() const
+{
+	return forward || backward || left || right || up || down;
+}
+
 stw::Camera::Camera(glm::vec3 position, glm::vec3 up, f32 yaw, f32 pitch, f32 aspectRatio)
 	: m_Position(position),
 	m_Front(glm::vec3(0.0f, 0.0f, -1.0f)),

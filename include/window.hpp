@@ -3,10 +3,9 @@
 //
 
 #pragma once
-#include <memory>
-
 #define SDL_MAIN_HANDLED
 #include <cassert>
+#include <memory>
 #include <SDL.h>
 #include <GL/glew.h>
 #include <spdlog/spdlog.h>
@@ -60,7 +59,7 @@ Window<T>::Window(const char* windowName, i32 windowWidth, i32 windowHeight)
 		SDL_WINDOWPOS_UNDEFINED,
 		windowWidth,
 		windowHeight,
-		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
 
 	m_GlRenderContext = SDL_GL_CreateContext(m_Window);
 	SDL_GL_SetSwapInterval(1);
