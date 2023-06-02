@@ -50,9 +50,9 @@ public:
 
 		std::vector<u32> transparentIndices{0, 1, 2, 3, 4, 5};
 
-		auto transparentTexture = Texture::LoadFromPath("data/blending_transparent_window.png", TextureType::Diffuse).
-		value();
-		//auto transparentTexture = Texture::LoadFromPath("data/grass.png", TextureType::Diffuse).value();
+		constexpr auto texture = "data/blending_transparent_window.png";
+		//constexpr auto texture = "data/grass.png";
+		auto transparentTexture = Texture::LoadFromPath(texture, TextureType::Diffuse).value();
 
 		Mesh transparentMesh{std::move(transparentVertices), std::move(transparentIndices), {transparentTexture}};
 		m_GrassModel.AddMesh(std::move(transparentMesh));
