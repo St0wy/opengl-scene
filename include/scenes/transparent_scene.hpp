@@ -39,6 +39,8 @@ public:
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		glEnable(GL_CULL_FACE);
+
 		std::vector<Vertex> transparentVertices{
 			{glm::vec3{0.0f, 0.5f, 0.0f}, glm::vec3{0.0f}, glm::vec2{0.0f}},
 			{glm::vec3{0.0f, -0.5f, 0.0f}, glm::vec3{0.0f}, glm::vec2{0.0f, -1.0f}},
@@ -55,7 +57,7 @@ public:
 		auto transparentTexture = Texture::LoadFromPath(texture, TextureType::Diffuse).value();
 
 		Mesh transparentMesh{std::move(transparentVertices), std::move(transparentIndices), {transparentTexture}};
-		m_GrassModel.AddMesh(std::move(transparentMesh));
+		m_TransparentModel.AddMesh(std::move(transparentMesh));
 
 		m_Pipeline.InitFromPath("shaders/transparent/transparent.vert", "shaders/transparent/transparent.frag");
 
@@ -141,14 +143,15 @@ public:
 		m_GroundModel.DrawNoSpecular(m_Pipeline);
 		CHECK_GL_ERROR();
 
-
+		glDisable(GL_CULL_FACE);
 		for (const auto& [_, index] : m_SortedPositionsIndices)
 		{
 			auto model = glm::mat4(1.0f);
 			model = translate(model, TransparentPositions[index]);
 			m_Pipeline.SetMat4("model", model);
-			m_GrassModel.DrawNoSpecular(m_Pipeline);
+			m_TransparentModel.DrawNoSpecular(m_Pipeline);
 		}
+		glEnable(GL_CULL_FACE);
 
 #pragma region Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
@@ -218,7 +221,7 @@ private:
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
 	Model m_GroundModel;
-	Model m_GrassModel{};
+	Model m_TransparentModel{};
 	std::array<std::pair<f32, std::size_t>, TransparentPositions.size()> m_SortedPositionsIndices{};
 };
 } // namespace stw
