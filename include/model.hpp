@@ -15,6 +15,10 @@ namespace stw
 class Model
 {
 public:
+	Model() = default;
+
+	void AddMesh(Mesh mesh);
+
 	void Draw(const Pipeline& pipeline) const;
 	void DrawNoSpecular(const Pipeline& pipeline) const;
 	void DrawMeshOnly(const Pipeline& pipeline) const;
@@ -22,7 +26,6 @@ public:
 	static std::expected<Model, std::string> LoadFromPath(const std::filesystem::path& path);
 
 private:
-	Model() = default;
 
 	// TODO: Convert to texture manager
 	inline static std::unordered_set<std::filesystem::path> s_LoadedTextures{};

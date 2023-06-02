@@ -6,6 +6,11 @@
 
 #include "utils.hpp"
 
+void stw::Model::AddMesh(Mesh mesh)
+{
+	m_Meshes.push_back(std::move(mesh));
+}
+
 void stw::Model::Draw(const Pipeline& pipeline) const
 {
 	for (const auto& mesh : m_Meshes)

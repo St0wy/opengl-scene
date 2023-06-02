@@ -19,6 +19,47 @@ namespace stw
 class TransparentScene final : public Scene
 {
 public:
+	static constexpr std::array VegetationPositions{
+		glm::vec3{-1.5f, 0.0f, -0.48f},
+		glm::vec3{1.5f, 0.0f, 0.51f},
+		glm::vec3{0.0f, 0.0f, 0.7f},
+		glm::vec3{-0.3f, 0.0f, -2.3f},
+		glm::vec3{0.5f, 0.0f, -0.6f},
+	};
+
+	static constexpr std::array TransparentVertices{
+		0.0f,
+		0.5f,
+		0.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		-0.5f,
+		0.0f,
+		0.0f,
+		1.0f,
+		1.0f,
+		-0.5f,
+		0.0f,
+		1.0f,
+		1.0f,
+		0.0f,
+		0.5f,
+		0.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		-0.5f,
+		0.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		0.5f,
+		0.0f,
+		1.0f,
+		0.0f
+	};
+
 	TransparentScene()
 		: m_GroundModel(Model::LoadFromPath("data/ground/ground.obj").value())
 	{
@@ -27,8 +68,23 @@ public:
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 
-		m_PipelineSpecular.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh.frag");
-		m_PipelineNoSpecular.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh_no_specular.frag");
+		std::vector<Vertex> transparentVertices{
+			{glm::vec3{0.0f, 0.5f, 0.0f}, glm::vec3{0.0f}, glm::vec2{0.0f}},
+			{glm::vec3{0.0f, -0.5f, 0.0f}, glm::vec3{0.0f}, glm::vec2{0.0f, -1.0f}},
+			{glm::vec3{1.0f, -0.5f, 0.0f}, glm::vec3{0.0f}, glm::vec2{1.0f, -1.0f}},
+			{glm::vec3{0.0f, 0.5f, 0.0f}, glm::vec3{0.0f}, glm::vec2{0.0f, 0.0f}},
+			{glm::vec3{1.0f, -0.5f, 0.0f}, glm::vec3{0.0f}, glm::vec2{1.0f, -1.0f}},
+			{glm::vec3{1.0f, 0.5f, 0.0f}, glm::vec3{0.0f}, glm::vec2{1.0f, 0.0f}},
+		};
+
+		std::vector<u32> transparentIndices{0, 1, 2, 3, 4, 5};
+
+		auto transparentTexture = Texture::LoadFromPath("data/grass.png", TextureType::Diffuse).value();
+
+		Mesh transparentMesh{std::move(transparentVertices), std::move(transparentIndices), {transparentTexture}};
+		m_GrassModel.AddMesh(std::move(transparentMesh));
+
+		m_Pipeline.InitFromPath("shaders/transparent/transparent.vert", "shaders/transparent/transparent.frag");
 	}
 
 	void SetupPipeline(Pipeline& pipeline) const
@@ -42,11 +98,10 @@ public:
 		pipeline.SetMat4("projection", projection);
 		pipeline.SetMat4("view", view);
 
-		// Setup lights
 		pipeline.SetDirectionalLightsCount(1);
 		constexpr DirectionalLight directionalLight{
 			{-0.2f, -1.0f, -0.3f},
-			{0.2f, 0.2f, 0.2f},
+			{0.5f, 0.5f, 0.5f},
 			{0.5f, 0.5f, 0.5f},
 			{1.0f, 1.0f, 1.0f}
 		};
@@ -76,31 +131,34 @@ public:
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		SetupPipeline(m_PipelineSpecular);
-		SetupPipeline(m_PipelineNoSpecular);
+		SetupPipeline(m_Pipeline);
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
 		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
 
 		// Render ground model
-		m_PipelineNoSpecular.Use();
-		m_PipelineNoSpecular.SetFloat("material.specular", 0.1f);
+		m_Pipeline.Use();
+		m_Pipeline.SetFloat("material.specular", 0.1f);
 		auto groundModel = glm::mat4(1.0f);
-		groundModel = translate(groundModel, glm::vec3(0.0f, -2.0f, 0.0f));
+		groundModel = translate(groundModel, glm::vec3(0.0f, -0.5f, 0.0f));
 		groundModel = scale(groundModel, glm::vec3(1.0f, 1.0f, 1.0f));
-		m_PipelineNoSpecular.SetMat4("model", groundModel);
+		m_Pipeline.SetMat4("model", groundModel);
 
 		const auto groundNormalMatrix = inverseTranspose(view * groundModel);
-		m_PipelineNoSpecular.SetMat3("normal", groundNormalMatrix);
+		m_Pipeline.SetMat3("normal", groundNormalMatrix);
 
-		m_GroundModel.DrawNoSpecular(m_PipelineNoSpecular);
+		m_GroundModel.DrawNoSpecular(m_Pipeline);
 		CHECK_GL_ERROR();
 
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
+		for (const auto& pos : VegetationPositions)
+		{
+			auto model = glm::mat4(1.0f);
+			model = translate(model, pos);
+			m_Pipeline.SetMat4("model", model);
+			m_GrassModel.DrawNoSpecular(m_Pipeline);
+		}
 
-
-		// Camera
+#pragma region Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
 		const CameraMovementState cameraMovementState{
 			.forward = static_cast<bool>(keyboardState[SDL_SCANCODE_W]),
@@ -111,6 +169,7 @@ public:
 			.down = static_cast<bool>(keyboardState[SDL_SCANCODE_LSHIFT])
 		};
 		m_Camera.ProcessMovement(cameraMovementState, deltaTime);
+#pragma endregion Camera
 
 		if (CHECK_GL_ERROR())
 		{
@@ -157,10 +216,11 @@ public:
 	}
 
 private:
-	Pipeline m_PipelineSpecular{};
-	Pipeline m_PipelineNoSpecular{};
+	//Pipeline m_PipelineSpecular{};
+	Pipeline m_Pipeline{};
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
 	Model m_GroundModel;
+	Model m_GrassModel{};
 };
 } // namespace stw
