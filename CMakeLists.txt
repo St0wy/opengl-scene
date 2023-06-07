@@ -24,6 +24,7 @@ add_executable(
 	"include/scenes/backpack_scene_outline.hpp"
 	"include/scenes/light_scene.hpp"
 	"include/scenes/transparent_scene.hpp"
+	"include/scenes/cubemap_scene.hpp"
 	"include/scenes/scene.hpp"
 	"include/texture.hpp"
 	"include/timer.hpp"
@@ -62,7 +63,7 @@ set_target_properties(opengl_scene PROPERTIES CXX_RTTI Off)
 set_target_properties(opengl_scene PROPERTIES CXX_WARNINGS All)
 # set_target_properties(opengl_scene PROPERTIES CXX_WARNINGS_AS_ERRORS On)
 
-if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
-	message("Setting flags to have no console")
-	set_target_properties(opengl_scene PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
-endif()
+#if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
+#	message("Setting flags to have no console")
+#	set_target_properties(opengl_scene PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+#endif()
