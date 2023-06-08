@@ -53,7 +53,8 @@ public:
 		m_Pipeline.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh.frag");
 		m_PipelineNoSpecular.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh_no_specular.frag");
 		m_PipelineCubeMap.InitFromPath("shaders/cubemap/cubemap.vert", "shaders/cubemap/cubemap.frag");
-		m_PipelineReflexion.InitFromPath("shaders/mesh/mesh.vert", "shaders/cubemap/reflexion.frag");
+		m_PipelineReflection.InitFromPath("shaders/mesh/mesh.vert", "shaders/cubemap/reflection.frag");
+		m_PipelineRefraction.InitFromPath("shaders/mesh/mesh.vert", "shaders/cubemap/refraction.frag");
 
 		glGenVertexArrays(1, &m_CubeMapVao);
 		glGenBuffers(1, &m_CubeMapVbo);
@@ -172,12 +173,12 @@ public:
 
 		RenderGround(m_PipelineNoSpecular);
 
-		m_PipelineReflexion.Use();
+		m_PipelineRefraction.Use();
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeMap.textureId);
 		CHECK_GL_ERROR();
-		m_PipelineReflexion.SetMat4("projection", projection);
-		m_PipelineReflexion.SetMat4("view", view);
-		RenderBackpack(m_PipelineReflexion);
+		m_PipelineRefraction.SetMat4("projection", projection);
+		m_PipelineRefraction.SetMat4("view", view);
+		RenderBackpack(m_PipelineRefraction);
 
 		RenderCubeMap();
 
@@ -248,7 +249,8 @@ private:
 	Pipeline m_Pipeline{};
 	Pipeline m_PipelineNoSpecular{};
 	Pipeline m_PipelineCubeMap{};
-	Pipeline m_PipelineReflexion{};
+	Pipeline m_PipelineReflection{};
+	Pipeline m_PipelineRefraction{};
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
 	Model m_GroundModel;
