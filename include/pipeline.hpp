@@ -80,6 +80,8 @@ public:
 	void SetSpotLight(std::string_view name, u32 index, const SpotLight& spotLight, const glm::mat4& view) const;
 
 private:
+	bool m_IsInitialized = false;
+
 	GLuint m_ProgramId;
 	GLuint m_VertexShaderId;
 	GLuint m_FragmentShaderId;

@@ -58,6 +58,8 @@ void stw::Mesh::Draw(const Pipeline& pipeline) const
 			specularTextureCount++;
 			number = specularTextureCount;
 			break;
+		default: 
+			break;
 		}
 
 		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));

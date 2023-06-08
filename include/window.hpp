@@ -47,6 +47,7 @@ Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 window
 {
 	spdlog::debug("Creating window...");
 	SDL_SetHintWithPriority(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2", SDL_HINT_OVERRIDE);
+	SDL_SetHintWithPriority(SDL_HINT_RENDER_VSYNC, "0", SDL_HINT_OVERRIDE);
 
 	SDL_SetMainReady();
 

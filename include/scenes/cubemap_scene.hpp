@@ -48,9 +48,20 @@ public:
 			"data/skybox/back.jpg"
 		}).value();
 
-		// TODO: Display skybox
 		m_Pipeline.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh.frag");
 		m_PipelineNoSpecular.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh_no_specular.frag");
+		m_PipelineCubeMap.InitFromPath("shaders/cubemap/cubemap.vert", "shaders/cubemap/cubemap.frag");
+
+		glGenVertexArrays(1, &m_CubeMapVao);
+		glGenBuffers(1, &m_CubeMapVbo);
+
+		glBindVertexArray(m_CubeMapVao);
+		glBindBuffer(GL_ARRAY_BUFFER, m_CubeMapVbo);
+
+		constexpr auto size = static_cast<GLsizeiptr>(CubeMapVertices.size() * sizeof(f32));
+		glBufferData(GL_ARRAY_BUFFER, size, CubeMapVertices.data(), GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), nullptr);
 	}
 
 	void SetupPipeline(Pipeline& pipeline) const
@@ -90,6 +101,24 @@ public:
 		pipeline.SetSpotLight("spotLights", 0, spotLight, view);
 	}
 
+	void RenderCubeMap() const
+	{
+		const glm::mat4 view = m_Camera.GetViewMatrix();
+		const auto viewNoTranslation = glm::mat4(glm::mat3(view));
+		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
+
+		glDepthMask(GL_FALSE);
+		m_PipelineCubeMap.Use();
+
+		m_PipelineCubeMap.SetMat4("projection", projection);
+		m_PipelineCubeMap.SetMat4("view", viewNoTranslation);
+
+		glBindVertexArray(m_CubeMapVao);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeMap.textureId);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDepthMask(GL_TRUE);
+	}
+
 	void Update(const f32 deltaTime) override
 	{
 		m_Time += deltaTime;
@@ -103,7 +132,8 @@ public:
 		CHECK_GL_ERROR();
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
-		//const glm::mat4 projection = m_Camera.GetProjectionMatrix();
+
+		RenderCubeMap();
 
 		// Render ground model
 		m_PipelineNoSpecular.Use();
@@ -159,18 +189,18 @@ public:
 		switch (event.type)
 		{
 		case SDL_MOUSEMOTION:
-			{
-				const auto xOffset = static_cast<f32>(event.motion.xrel);
-				const auto yOffset = static_cast<f32>(-event.motion.yrel);
-				m_Camera.ProcessMouseMovement(xOffset, yOffset);
-				break;
-			}
+		{
+			const auto xOffset = static_cast<f32>(event.motion.xrel);
+			const auto yOffset = static_cast<f32>(-event.motion.yrel);
+			m_Camera.ProcessMouseMovement(xOffset, yOffset);
+			break;
+		}
 		case SDL_MOUSEWHEEL:
-			{
-				const f32 yOffset = event.wheel.preciseY;
-				m_Camera.ProcessMouseScroll(yOffset);
-				break;
-			}
+		{
+			const f32 yOffset = event.wheel.preciseY;
+			m_Camera.ProcessMouseScroll(yOffset);
+			break;
+		}
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_o)
 			{
@@ -193,12 +223,126 @@ public:
 	}
 
 private:
+	GLuint m_CubeMapVao{};
+	GLuint m_CubeMapVbo{};
 	Pipeline m_Pipeline{};
 	Pipeline m_PipelineNoSpecular{};
+	Pipeline m_PipelineCubeMap{};
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
 	Model m_GroundModel;
 	Model m_BackpackModel;
-	Texture m_CubeMap;
+	Texture m_CubeMap{};
+
+	static constexpr std::array CubeMapVertices{
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		1.0f
+	};
 };
 } // namespace stw

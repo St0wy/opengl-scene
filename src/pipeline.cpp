@@ -13,6 +13,7 @@ constexpr std::size_t LogSize = 512;
 
 void stw::Pipeline::Use() const
 {
+	ASSERT_MESSAGE(m_IsInitialized, "Pipeline should be initialized before using it.");
 	glUseProgram(m_ProgramId);
 }
 
@@ -246,4 +247,6 @@ void stw::Pipeline::InitFromPath(const std::string_view vertexPath, const std::s
 
 	glDeleteShader(m_FragmentShaderId);
 	glDeleteShader(m_VertexShaderId);
+
+	m_IsInitialized = true;
 }
