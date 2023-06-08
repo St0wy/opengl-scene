@@ -31,9 +31,10 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::f
 	int height;
 	int nbrComponents;
 	const auto stringPath = path.string();
-	stbi_set_flip_vertically_on_load(true);
+	const bool oldFlip = stbi__vertically_flip_on_load;
+	stbi_set_flip_vertically_on_load_thread(true);
 	unsigned char* data = stbi_load(stringPath.c_str(), &width, &height, &nbrComponents, 0);
-	stbi_set_flip_vertically_on_load(false);
+	stbi_set_flip_vertically_on_load_thread(oldFlip);
 	if (!data)
 	{
 		stbi_image_free(data);
