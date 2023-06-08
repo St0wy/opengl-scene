@@ -35,7 +35,7 @@ public:
 		m_Camera.SetMovementSpeed(4.0f);
 
 		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
+		glDepthFunc(GL_LEQUAL);
 
 		glEnable(GL_CULL_FACE);
 
@@ -107,7 +107,6 @@ public:
 		const auto viewNoTranslation = glm::mat4(glm::mat3(view));
 		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
 
-		glDepthMask(GL_FALSE);
 		m_PipelineCubeMap.Use();
 
 		m_PipelineCubeMap.SetMat4("projection", projection);
@@ -116,7 +115,6 @@ public:
 		glBindVertexArray(m_CubeMapVao);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeMap.textureId);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glDepthMask(GL_TRUE);
 	}
 
 	void Update(const f32 deltaTime) override
@@ -132,8 +130,6 @@ public:
 		CHECK_GL_ERROR();
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
-
-		RenderCubeMap();
 
 		// Render ground model
 		m_PipelineNoSpecular.Use();
@@ -160,6 +156,8 @@ public:
 
 		m_BackpackModel.Draw(m_Pipeline);
 		CHECK_GL_ERROR();
+
+		RenderCubeMap();
 
 #pragma region Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
