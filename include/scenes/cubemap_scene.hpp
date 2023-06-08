@@ -38,6 +38,8 @@ public:
 		glDepthFunc(GL_LEQUAL);
 
 		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
 
 		m_CubeMap = Texture::LoadCubeMap({
 			"data/skybox/right.jpg",
@@ -51,6 +53,7 @@ public:
 		m_Pipeline.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh.frag");
 		m_PipelineNoSpecular.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh_no_specular.frag");
 		m_PipelineCubeMap.InitFromPath("shaders/cubemap/cubemap.vert", "shaders/cubemap/cubemap.frag");
+		m_PipelineReflexion.InitFromPath("shaders/mesh/mesh.vert", "shaders/cubemap/reflexion.frag");
 
 		glGenVertexArrays(1, &m_CubeMapVao);
 		glGenBuffers(1, &m_CubeMapVbo);
@@ -117,6 +120,41 @@ public:
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
 
+	void RenderGround(const Pipeline& pipeline) const
+	{
+		const glm::mat4 view = m_Camera.GetViewMatrix();
+
+		pipeline.Use();
+		pipeline.SetFloat("material.specular", 0.1f);
+		auto groundModel = glm::mat4(1.0f);
+		groundModel = translate(groundModel, glm::vec3(0.0f, -2.0f, 0.0f));
+		groundModel = scale(groundModel, glm::vec3(1.0f, 1.0f, 1.0f));
+		pipeline.SetMat4("model", groundModel);
+
+		const auto groundNormalMatrix = inverseTranspose(view * groundModel);
+		pipeline.SetMat3("normal", groundNormalMatrix);
+
+		m_GroundModel.DrawNoSpecular(pipeline);
+		CHECK_GL_ERROR();
+	}
+
+	void RenderBackpack(const Pipeline& pipeline) const
+	{
+		const glm::mat4 view = m_Camera.GetViewMatrix();
+
+		pipeline.Use();
+		auto model = glm::mat4(1.0f);
+		model = translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+		model = scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+		pipeline.SetMat4("model", model);
+
+		const glm::mat3 normalMatrix = inverseTranspose(view * model);
+		pipeline.SetMat3("normal", normalMatrix);
+
+		m_BackpackModel.Draw(pipeline);
+		CHECK_GL_ERROR();
+	}
+
 	void Update(const f32 deltaTime) override
 	{
 		m_Time += deltaTime;
@@ -130,32 +168,16 @@ public:
 		CHECK_GL_ERROR();
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
+		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
 
-		// Render ground model
-		m_PipelineNoSpecular.Use();
-		m_PipelineNoSpecular.SetFloat("material.specular", 0.1f);
-		auto groundModel = glm::mat4(1.0f);
-		groundModel = translate(groundModel, glm::vec3(0.0f, -2.0f, 0.0f));
-		groundModel = scale(groundModel, glm::vec3(1.0f, 1.0f, 1.0f));
-		m_PipelineNoSpecular.SetMat4("model", groundModel);
+		RenderGround(m_PipelineNoSpecular);
 
-		const auto groundNormalMatrix = inverseTranspose(view * groundModel);
-		m_PipelineNoSpecular.SetMat3("normal", groundNormalMatrix);
-
-		m_GroundModel.DrawNoSpecular(m_PipelineNoSpecular);
+		m_PipelineReflexion.Use();
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeMap.textureId);
 		CHECK_GL_ERROR();
-
-		m_Pipeline.Use();
-		auto model = glm::mat4(1.0f);
-		model = translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-		model = scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-		m_Pipeline.SetMat4("model", model);
-
-		const glm::mat3 normalMatrix = inverseTranspose(view * model);
-		m_Pipeline.SetMat3("normal", normalMatrix);
-
-		m_BackpackModel.Draw(m_Pipeline);
-		CHECK_GL_ERROR();
+		m_PipelineReflexion.SetMat4("projection", projection);
+		m_PipelineReflexion.SetMat4("view", view);
+		RenderBackpack(m_PipelineReflexion);
 
 		RenderCubeMap();
 
@@ -226,6 +248,7 @@ private:
 	Pipeline m_Pipeline{};
 	Pipeline m_PipelineNoSpecular{};
 	Pipeline m_PipelineCubeMap{};
+	Pipeline m_PipelineReflexion{};
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
 	Model m_GroundModel;

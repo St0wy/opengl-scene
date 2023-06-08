@@ -68,7 +68,7 @@ Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 window
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
 
 	m_GlRenderContext = SDL_GL_CreateContext(m_Window);
-	SDL_GL_SetSwapInterval(1);
+	SDL_GL_SetSwapInterval(-1);
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	if (glewInit() != GLEW_OK)
@@ -144,24 +144,24 @@ bool Window<T>::HandleEvents()
 		case SDL_QUIT:
 			return false;
 		case SDL_WINDOWEVENT:
+		{
+			switch (event.window.event)
 			{
-				switch (event.window.event)
-				{
-				case SDL_WINDOWEVENT_CLOSE:
-					return false;
-				case SDL_WINDOWEVENT_RESIZED:
-					{
-						const GLsizei windowWidth = event.window.data1;
-						const GLsizei windowHeight = event.window.data2;
-						m_Scene->OnResize(windowWidth, windowHeight);
+			case SDL_WINDOWEVENT_CLOSE:
+				return false;
+			case SDL_WINDOWEVENT_RESIZED:
+			{
+				const GLsizei windowWidth = event.window.data1;
+				const GLsizei windowHeight = event.window.data2;
+				m_Scene->OnResize(windowWidth, windowHeight);
 
-						break;
-					}
-				default:
-					break;
-				}
 				break;
 			}
+			default:
+				break;
+			}
+			break;
+		}
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_ESCAPE && m_IsActive)
 			{
