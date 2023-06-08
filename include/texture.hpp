@@ -19,6 +19,7 @@ enum class TextureType
 {
 	Diffuse,
 	Specular,
+	CubeMap,
 };
 
 const char* ToString(TextureType type);
@@ -54,7 +55,10 @@ private:
 
 struct Texture
 {
+	static constexpr std::size_t CubeMapTextureCount = 6;
 	static std::expected<Texture, std::string> LoadFromPath(const std::filesystem::path& path, TextureType type);
+	static std::expected<Texture, std::string> LoadCubeMap(const std::array<std::filesystem::path, CubeMapTextureCount>& paths);
+
 	GLuint textureId;
 	TextureType textureType;
 };

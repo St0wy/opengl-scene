@@ -46,6 +46,7 @@ struct SpotLight
 	glm::vec3 specular;
 };
 
+// TODO : Rework uniform setters
 class Pipeline
 {
 public:

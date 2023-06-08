@@ -6,6 +6,7 @@
 #include <array>
 #include <GL/glew.h>
 #include <glm/ext.hpp>
+#include <glm/gtx/norm.hpp>
 
 #include "camera.hpp"
 #include "model.hpp"
@@ -16,24 +17,39 @@
 
 namespace stw
 {
-class BackpackSceneOutline final : public Scene
+class CubeMapScene final : public Scene
 {
 public:
-	BackpackSceneOutline()
-		: m_BackpackModel(Model::LoadFromPath("data/backpack/backpack.obj").value()),
-		m_GroundModel(Model::LoadFromPath("data/ground/ground.obj").value())
+	static constexpr std::array TransparentPositions{
+		glm::vec3{-1.5f, 0.0f, -0.48f},
+		glm::vec3{1.5f, 0.0f, 0.51f},
+		glm::vec3{0.0f, 0.0f, 0.7f},
+		glm::vec3{-0.3f, 0.0f, -2.3f},
+		glm::vec3{0.5f, 0.0f, -0.6f},
+	};
+
+	CubeMapScene()
+		: m_GroundModel(Model::LoadFromPath("data/ground/ground.obj").value()),
+		m_BackpackModel(Model::LoadFromPath("data/backpack/backpack.obj").value())
 	{
 		m_Camera.SetMovementSpeed(4.0f);
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 
-		glEnable(GL_STENCIL_TEST);
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glEnable(GL_CULL_FACE);
 
-		m_PipelineMesh.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh.frag");
-		m_PipelineSingleColor.InitFromPath("shaders/mesh/mesh.vert", "shaders/singleColor.frag");
+		m_CubeMap = Texture::LoadCubeMap({
+			"data/skybox/right.jpg",
+			"data/skybox/left.jpg",
+			"data/skybox/top.jpg",
+			"data/skybox/bottom.jpg",
+			"data/skybox/front.jpg",
+			"data/skybox/back.jpg"
+		}).value();
+
+		// TODO: Display skybox
+		m_Pipeline.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh.frag");
 		m_PipelineNoSpecular.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh_no_specular.frag");
 	}
 
@@ -41,25 +57,21 @@ public:
 	{
 		pipeline.Use();
 		pipeline.SetFloat("material.shininess", 32.0f);
-		CHECK_GL_ERROR();
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
 		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
 
 		pipeline.SetMat4("projection", projection);
 		pipeline.SetMat4("view", view);
-		CHECK_GL_ERROR();
 
-		// Setup lights
 		pipeline.SetDirectionalLightsCount(1);
 		constexpr DirectionalLight directionalLight{
 			{-0.2f, -1.0f, -0.3f},
-			{0.2f, 0.2f, 0.2f},
+			{0.5f, 0.5f, 0.5f},
 			{0.5f, 0.5f, 0.5f},
 			{1.0f, 1.0f, 1.0f}
 		};
 		pipeline.SetDirectionalLight("directionalLights", 0, directionalLight);
-		CHECK_GL_ERROR();
 
 		pipeline.SetSpotLightsCount(1);
 
@@ -76,7 +88,6 @@ public:
 			{1.0f, 1.0f, 1.0f},
 		};
 		pipeline.SetSpotLight("spotLights", 0, spotLight, view);
-		CHECK_GL_ERROR();
 	}
 
 	void Update(const f32 deltaTime) override
@@ -84,15 +95,15 @@ public:
 		m_Time += deltaTime;
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		CHECK_GL_ERROR();
-		SetupPipeline(m_PipelineMesh);
+
+		SetupPipeline(m_Pipeline);
 		SetupPipeline(m_PipelineNoSpecular);
+		CHECK_GL_ERROR();
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
-		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
-		CHECK_GL_ERROR();
+		//const glm::mat4 projection = m_Camera.GetProjectionMatrix();
 
 		// Render ground model
 		m_PipelineNoSpecular.Use();
@@ -108,38 +119,19 @@ public:
 		m_GroundModel.DrawNoSpecular(m_PipelineNoSpecular);
 		CHECK_GL_ERROR();
 
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
-
-		// Render backpack model
-		m_PipelineMesh.Use();
+		m_Pipeline.Use();
 		auto model = glm::mat4(1.0f);
 		model = translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 		model = scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-		m_PipelineMesh.SetMat4("model", model);
+		m_Pipeline.SetMat4("model", model);
 
 		const glm::mat3 normalMatrix = inverseTranspose(view * model);
-		m_PipelineMesh.SetMat3("normal", normalMatrix);
+		m_Pipeline.SetMat3("normal", normalMatrix);
 
-		m_BackpackModel.Draw(m_PipelineMesh);
+		m_BackpackModel.Draw(m_Pipeline);
+		CHECK_GL_ERROR();
 
-		// Render backpack outline
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilMask(0x00);
-
-		m_PipelineSingleColor.Use();
-
-		model = scale(model, glm::vec3(1.1f));
-		m_PipelineSingleColor.SetMat4("model", model);
-		m_PipelineSingleColor.SetMat4("projection", projection);
-		m_PipelineSingleColor.SetMat4("view", view);
-		m_BackpackModel.DrawMeshOnly(m_PipelineSingleColor);
-
-		glStencilMask(0xFF);
-		glStencilFunc(GL_ALWAYS, 0, 0xFF);
-		glEnable(GL_DEPTH_TEST);
-
-		// Camera
+#pragma region Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
 		const CameraMovementState cameraMovementState{
 			.forward = static_cast<bool>(keyboardState[SDL_SCANCODE_W]),
@@ -149,7 +141,12 @@ public:
 			.up = static_cast<bool>(keyboardState[SDL_SCANCODE_SPACE]),
 			.down = static_cast<bool>(keyboardState[SDL_SCANCODE_LSHIFT])
 		};
-		m_Camera.ProcessMovement(cameraMovementState, deltaTime);
+
+		if (cameraMovementState.HasMovement())
+		{
+			m_Camera.ProcessMovement(cameraMovementState, deltaTime);
+		}
+#pragma endregion Camera
 
 		if (CHECK_GL_ERROR())
 		{
@@ -162,18 +159,18 @@ public:
 		switch (event.type)
 		{
 		case SDL_MOUSEMOTION:
-		{
-			const auto xOffset = static_cast<f32>(event.motion.xrel);
-			const auto yOffset = static_cast<f32>(-event.motion.yrel);
-			m_Camera.ProcessMouseMovement(xOffset, yOffset);
-			break;
-		}
+			{
+				const auto xOffset = static_cast<f32>(event.motion.xrel);
+				const auto yOffset = static_cast<f32>(-event.motion.yrel);
+				m_Camera.ProcessMouseMovement(xOffset, yOffset);
+				break;
+			}
 		case SDL_MOUSEWHEEL:
-		{
-			const f32 yOffset = event.wheel.preciseY;
-			m_Camera.ProcessMouseScroll(yOffset);
-			break;
-		}
+			{
+				const f32 yOffset = event.wheel.preciseY;
+				m_Camera.ProcessMouseScroll(yOffset);
+				break;
+			}
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_o)
 			{
@@ -196,12 +193,12 @@ public:
 	}
 
 private:
-	Pipeline m_PipelineMesh{};
+	Pipeline m_Pipeline{};
 	Pipeline m_PipelineNoSpecular{};
-	Pipeline m_PipelineSingleColor{};
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 0.0f, 3.0f}};
-	Model m_BackpackModel;
 	Model m_GroundModel;
+	Model m_BackpackModel;
+	Texture m_CubeMap;
 };
 } // namespace stw

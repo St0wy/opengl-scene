@@ -115,7 +115,8 @@ void Window<T>::Loop()
 		if (frameCounter == frameCounterMax)
 		{
 			const f64 averageTime = frameDurationAccumulator / frameCounterMax;
-			const auto title = fmt::format("{} | Avg Frame Time : {} ms", m_WindowName, static_cast<i32>(averageTime));
+			const f64 fps = frameCounter / frameDurationAccumulator * 1000.0;
+			const auto title = fmt::format("{} | {:.2f} ms | {} fps", m_WindowName, averageTime, static_cast<i64>(fps));
 			SDL_SetWindowTitle(m_Window, title.c_str());
 
 			frameDurationAccumulator = 0.0;
@@ -142,24 +143,24 @@ bool Window<T>::HandleEvents()
 		case SDL_QUIT:
 			return false;
 		case SDL_WINDOWEVENT:
-		{
-			switch (event.window.event)
 			{
-			case SDL_WINDOWEVENT_CLOSE:
-				return false;
-			case SDL_WINDOWEVENT_RESIZED:
-			{
-				const GLsizei windowWidth = event.window.data1;
-				const GLsizei windowHeight = event.window.data2;
-				m_Scene->OnResize(windowWidth, windowHeight);
+				switch (event.window.event)
+				{
+				case SDL_WINDOWEVENT_CLOSE:
+					return false;
+				case SDL_WINDOWEVENT_RESIZED:
+					{
+						const GLsizei windowWidth = event.window.data1;
+						const GLsizei windowHeight = event.window.data2;
+						m_Scene->OnResize(windowWidth, windowHeight);
 
+						break;
+					}
+				default:
+					break;
+				}
 				break;
 			}
-			default:
-				break;
-			}
-			break;
-		}
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_ESCAPE && m_IsActive)
 			{

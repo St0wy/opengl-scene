@@ -74,10 +74,6 @@ vec3 ComputeSpotLight(SpotLight light, vec3 normal, vec3 fragmentPosition, vec3 
 void main()
 {
     float alpha = texture(material.texture_diffuse1, TexCoords).a;
-//    if (alpha < 0.1)
-//    {
-//        discard;
-//    }
 
 	vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(-FragPos);
