@@ -66,18 +66,57 @@ public:
 		glBufferData(GL_ARRAY_BUFFER, size, CubeMapVertices.data(), GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), nullptr);
+
+		const GLuint cubeMapMatricesUniformBlockIndex = glGetUniformBlockIndex(m_PipelineCubeMap.Id(), "Matrices");
+		const GLuint pipelineMatricesUniformBlockIndex = glGetUniformBlockIndex(m_Pipeline.Id(), "Matrices");
+		const GLuint noSpecularMatricesUniformBlockIndex =
+		glGetUniformBlockIndex(m_PipelineNoSpecular.Id(), "Matrices");
+		const GLuint reflectionMatricesUniformBlockIndex =
+		glGetUniformBlockIndex(m_PipelineReflection.Id(), "Matrices");
+		const GLuint refractionMatricesUniformBlockIndex =
+		glGetUniformBlockIndex(m_PipelineRefraction.Id(), "Matrices");
+
+		glUniformBlockBinding(m_PipelineCubeMap.Id(), cubeMapMatricesUniformBlockIndex, 0);
+		glUniformBlockBinding(m_PipelineCubeMap.Id(), pipelineMatricesUniformBlockIndex, 0);
+		glUniformBlockBinding(m_PipelineCubeMap.Id(), noSpecularMatricesUniformBlockIndex, 0);
+		glUniformBlockBinding(m_PipelineCubeMap.Id(), reflectionMatricesUniformBlockIndex, 0);
+		glUniformBlockBinding(m_PipelineCubeMap.Id(), refractionMatricesUniformBlockIndex, 0);
+
+		glGenBuffers(1, &m_UboMatrices);
+		glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices);
+
+		// Allocate buffer memory on the gpu
+		constexpr GLsizeiptr matricesSize = 2 * sizeof(glm::mat4);
+		glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_STATIC_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+		// Bind buffer to binding point 0
+		glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_UboMatrices, 0, matricesSize);
+		UpdateProjection();
 	}
 
-	void SetupPipeline(Pipeline& pipeline) const
+	void UpdateProjection() const
+	{
+		const auto projection = m_Camera.GetProjectionMatrix();
+		glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	}
+
+	void UpdateView() const
+	{
+		glm::mat4 view = m_Camera.GetViewMatrix();
+		glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices);
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	}
+
+	void SetupLight(Pipeline& pipeline) const
 	{
 		pipeline.Use();
 		pipeline.SetFloat("material.shininess", 32.0f);
 
 		const glm::mat4 view = m_Camera.GetViewMatrix();
-		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
-
-		pipeline.SetMat4("projection", projection);
-		pipeline.SetMat4("view", view);
 
 		pipeline.SetDirectionalLightsCount(1);
 		constexpr DirectionalLight directionalLight{
@@ -109,12 +148,10 @@ public:
 	{
 		const glm::mat4 view = m_Camera.GetViewMatrix();
 		const auto viewNoTranslation = glm::mat4(glm::mat3(view));
-		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
 
 		m_PipelineCubeMap.Use();
 
-		m_PipelineCubeMap.SetMat4("projection", projection);
-		m_PipelineCubeMap.SetMat4("view", viewNoTranslation);
+		m_PipelineCubeMap.SetMat4("viewNoTranslation", viewNoTranslation);
 
 		glBindVertexArray(m_CubeMapVao);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeMap.textureId);
@@ -164,21 +201,18 @@ public:
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		CHECK_GL_ERROR();
 
-		SetupPipeline(m_Pipeline);
-		SetupPipeline(m_PipelineNoSpecular);
-		CHECK_GL_ERROR();
+		UpdateView();
 
-		const glm::mat4 view = m_Camera.GetViewMatrix();
-		const glm::mat4 projection = m_Camera.GetProjectionMatrix();
+		SetupLight(m_Pipeline);
+		SetupLight(m_PipelineNoSpecular);
+		CHECK_GL_ERROR();
 
 		RenderGround(m_PipelineNoSpecular);
 
-		m_PipelineRefraction.Use();
+		m_PipelineReflection.Use();
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeMap.textureId);
 		CHECK_GL_ERROR();
-		m_PipelineRefraction.SetMat4("projection", projection);
-		m_PipelineRefraction.SetMat4("view", view);
-		RenderBackpack(m_PipelineRefraction);
+		RenderBackpack(m_PipelineReflection);
 
 		RenderCubeMap();
 
@@ -220,6 +254,7 @@ public:
 		{
 			const f32 yOffset = event.wheel.preciseY;
 			m_Camera.ProcessMouseScroll(yOffset);
+			UpdateProjection();
 			break;
 		}
 		case SDL_KEYDOWN:
@@ -256,6 +291,7 @@ private:
 	Model m_GroundModel;
 	Model m_BackpackModel;
 	Texture m_CubeMap{};
+	GLuint m_UboMatrices{};
 
 	static constexpr std::array CubeMapVertices{
 		-1.0f,

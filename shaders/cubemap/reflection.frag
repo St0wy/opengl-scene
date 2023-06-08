@@ -6,8 +6,13 @@ out vec4 FragColor;
 in vec3 Normal;
 in vec3 FragPos;
 
+layout (std140) uniform Matrices
+{
+	mat4 projection;
+	mat4 view;
+};
+
 uniform samplerCube skybox;
-uniform mat4 view;
 
 void main()
 {

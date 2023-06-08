@@ -62,6 +62,9 @@ public:
 	~Pipeline();
 
 	void InitFromPath(std::string_view vertexPath, std::string_view fragmentPath);
+
+	GLuint Id() const;
+
 	void Use() const;
 	void SetBool(std::string_view name, bool value) const;
 	void SetInt(std::string_view name, i32 value) const;

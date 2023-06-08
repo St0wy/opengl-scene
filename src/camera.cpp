@@ -22,20 +22,24 @@ stw::Camera::Camera(glm::vec3 position, glm::vec3 up, f32 yaw, f32 pitch, f32 as
 	m_MovementSpeed(DefaultSpeed),
 	m_MouseSensitivity(DefaultSensitivity),
 	m_FovY(DefaultFovY),
-	m_AspectRatio(aspectRatio)
+	m_AspectRatio(aspectRatio),
+	m_ViewMatrix(),
+	m_ProjectionMatrix()
 
 {
 	UpdateCameraVectors();
+	UpdateViewMatrix();
+	UpdateProjectionMatrix();
 }
 
 glm::mat4 stw::Camera::GetViewMatrix() const
 {
-	return lookAt(m_Position, m_Position + m_Front, m_Up);
+	return m_ViewMatrix;
 }
 
 glm::mat4 stw::Camera::GetProjectionMatrix() const
 {
-	return glm::perspective(glm::radians(m_FovY), m_AspectRatio, NearPlane, FarPlane);
+	return m_ProjectionMatrix;
 }
 
 void stw::Camera::ProcessMovement(const CameraMovementState& cameraMovementState, const f32 deltaTime)
@@ -74,6 +78,8 @@ void stw::Camera::ProcessMovement(const CameraMovementState& cameraMovementState
 	{
 		m_Position -= m_WorldUp * velocity;
 	}
+
+	UpdateViewMatrix();
 }
 
 void stw::Camera::ProcessMouseMovement(f32 xOffset, f32 yOffset, const bool constrainPitch)
@@ -90,12 +96,14 @@ void stw::Camera::ProcessMouseMovement(f32 xOffset, f32 yOffset, const bool cons
 	}
 
 	UpdateCameraVectors();
+	UpdateViewMatrix();
 }
 
 void stw::Camera::ProcessMouseScroll(const f32 yOffset)
 {
 	m_FovY -= yOffset;
 	m_FovY = std::clamp(m_FovY, MinFovY, MaxFovY);
+	UpdateProjectionMatrix();
 }
 
 float stw::Camera::FovY() const
@@ -138,4 +146,14 @@ void stw::Camera::UpdateCameraVectors()
 	m_Front = normalize(front);
 	m_Right = normalize(cross(m_Front, m_WorldUp));
 	m_Up = normalize(cross(m_Right, m_Front));
+}
+
+void stw::Camera::UpdateViewMatrix()
+{
+	m_ViewMatrix = lookAt(m_Position, m_Position + m_Front, m_Up);
+}
+
+void stw::Camera::UpdateProjectionMatrix()
+{
+	m_ProjectionMatrix = glm::perspective(glm::radians(m_FovY), m_AspectRatio, NearPlane, FarPlane);
 }

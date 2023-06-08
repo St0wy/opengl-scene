@@ -250,3 +250,8 @@ void stw::Pipeline::InitFromPath(const std::string_view vertexPath, const std::s
 
 	m_IsInitialized = true;
 }
+
+GLuint stw::Pipeline::Id() const
+{
+	return m_ProgramId;
+}

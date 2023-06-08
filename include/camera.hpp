@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/fwd.hpp>
+#include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
 #include "number_types.hpp"
@@ -66,7 +67,11 @@ private:
 	f32 m_MouseSensitivity;
 	f32 m_FovY;
 	f32 m_AspectRatio;
+	glm::mat4 m_ViewMatrix;
+	glm::mat4 m_ProjectionMatrix;
 
 	void UpdateCameraVectors();
+	void UpdateViewMatrix();
+	void UpdateProjectionMatrix();
 };
 }
