@@ -20,14 +20,6 @@ namespace stw
 class CubeMapScene final : public Scene
 {
 public:
-	static constexpr std::array TransparentPositions{
-		glm::vec3{-1.5f, 0.0f, -0.48f},
-		glm::vec3{1.5f, 0.0f, 0.51f},
-		glm::vec3{0.0f, 0.0f, 0.7f},
-		glm::vec3{-0.3f, 0.0f, -2.3f},
-		glm::vec3{0.5f, 0.0f, -0.6f},
-	};
-
 	CubeMapScene()
 		: m_GroundModel(Model::LoadFromPath("data/ground/ground.obj").value()),
 		m_BackpackModel(Model::LoadFromPath("data/backpack/backpack.obj").value())
@@ -77,17 +69,17 @@ public:
 		glGetUniformBlockIndex(m_PipelineRefraction.Id(), "Matrices");
 
 		glUniformBlockBinding(m_PipelineCubeMap.Id(), cubeMapMatricesUniformBlockIndex, 0);
-		glUniformBlockBinding(m_PipelineCubeMap.Id(), pipelineMatricesUniformBlockIndex, 0);
-		glUniformBlockBinding(m_PipelineCubeMap.Id(), noSpecularMatricesUniformBlockIndex, 0);
-		glUniformBlockBinding(m_PipelineCubeMap.Id(), reflectionMatricesUniformBlockIndex, 0);
-		glUniformBlockBinding(m_PipelineCubeMap.Id(), refractionMatricesUniformBlockIndex, 0);
+		glUniformBlockBinding(m_Pipeline.Id(), pipelineMatricesUniformBlockIndex, 0);
+		glUniformBlockBinding(m_PipelineNoSpecular.Id(), noSpecularMatricesUniformBlockIndex, 0);
+		glUniformBlockBinding(m_PipelineReflection.Id(), reflectionMatricesUniformBlockIndex, 0);
+		glUniformBlockBinding(m_PipelineRefraction.Id(), refractionMatricesUniformBlockIndex, 0);
 
 		glGenBuffers(1, &m_UboMatrices);
 		glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices);
 
 		// Allocate buffer memory on the gpu
 		constexpr GLsizeiptr matricesSize = 2 * sizeof(glm::mat4);
-		glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_STATIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, matricesSize, nullptr, GL_STATIC_DRAW);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 		// Bind buffer to binding point 0
@@ -209,10 +201,10 @@ public:
 
 		RenderGround(m_PipelineNoSpecular);
 
-		m_PipelineReflection.Use();
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeMap.textureId);
-		CHECK_GL_ERROR();
-		RenderBackpack(m_PipelineReflection);
+		//m_PipelineReflection.Use();
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeMap.textureId);
+		//CHECK_GL_ERROR();
+		RenderBackpack(m_Pipeline);
 
 		RenderCubeMap();
 
@@ -244,19 +236,19 @@ public:
 		switch (event.type)
 		{
 		case SDL_MOUSEMOTION:
-		{
-			const auto xOffset = static_cast<f32>(event.motion.xrel);
-			const auto yOffset = static_cast<f32>(-event.motion.yrel);
-			m_Camera.ProcessMouseMovement(xOffset, yOffset);
-			break;
-		}
+			{
+				const auto xOffset = static_cast<f32>(event.motion.xrel);
+				const auto yOffset = static_cast<f32>(-event.motion.yrel);
+				m_Camera.ProcessMouseMovement(xOffset, yOffset);
+				break;
+			}
 		case SDL_MOUSEWHEEL:
-		{
-			const f32 yOffset = event.wheel.preciseY;
-			m_Camera.ProcessMouseScroll(yOffset);
-			UpdateProjection();
-			break;
-		}
+			{
+				const f32 yOffset = event.wheel.preciseY;
+				m_Camera.ProcessMouseScroll(yOffset);
+				UpdateProjection();
+				break;
+			}
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_o)
 			{

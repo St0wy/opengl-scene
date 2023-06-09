@@ -4,6 +4,7 @@
 #include <assimp/postprocess.h>
 #include <spdlog/spdlog.h>
 
+#include "timer.hpp"
 #include "utils.hpp"
 
 void stw::Model::AddMesh(Mesh mesh)
@@ -38,17 +39,28 @@ void stw::Model::DrawMeshOnly(const Pipeline& pipeline) const
 std::expected<stw::Model, std::string> stw::Model::LoadFromPath(const std::filesystem::path& path)
 {
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(path.string().c_str(), aiProcess_Triangulate | aiProcess_FlipUVs);
+	constexpr u32 assimpImportFlags = aiProcessPreset_TargetRealtime_Fast;
+
+	const auto pathString = path.string();
+
+	Timer timer;
+	timer.Start();
+	
+	const aiScene* scene = importer.ReadFile(pathString.c_str(), assimpImportFlags);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
 		return std::unexpected(importer.GetErrorString());
 	}
 
+	spdlog::info("Imported model {} in {:0.0f} ms", pathString, timer.GetElapsedTime().GetInMilliseconds());
+
 	Model model{};
 	model.m_Directory = path.parent_path();
 	model.m_Meshes.reserve(scene->mNumMeshes);
 	model.ProcessNode(scene->mRootNode, scene);
+
+	spdlog::info("Converted model {} in {:0.0f} ms", pathString, timer.GetElapsedTime().GetInMilliseconds());
 
 	return {std::move(model)};
 }
@@ -126,6 +138,9 @@ std::vector<stw::Texture> stw::Model::LoadMaterialTextures(const aiMaterial* mat
 
 	for (std::size_t i = 0; i < textureCount; i++)
 	{
+		Timer timer;
+		timer.Start();
+
 		aiString str;
 		material->GetTexture(assimpType, static_cast<u32>(i), &str);
 
@@ -135,17 +150,17 @@ std::vector<stw::Texture> stw::Model::LoadMaterialTextures(const aiMaterial* mat
 			continue;
 		}
 
-		spdlog::debug("Loading texture : {}", texturePath.string());
-
 		auto loadResult = Texture::LoadFromPath(texturePath, textureType);
 		if (!loadResult.has_value())
 		{
 			spdlog::error(loadResult.error());
-			assert(false);
+			continue;
 		}
 
 		s_LoadedTextures.insert(texturePath);
 		textures.push_back(loadResult.value());
+
+		spdlog::debug("Loaded texture {} in {:0.0f} ms", texturePath.string(), timer.GetElapsedTime().GetInMilliseconds());
 	}
 
 	return textures;
