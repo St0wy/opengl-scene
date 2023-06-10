@@ -4,6 +4,7 @@
 
 #include "utils.hpp"
 
+#include <filesystem>
 #include <fstream>
 #include <optional>
 #include <GL/glew.h>
@@ -11,9 +12,9 @@
 
 namespace stw
 {
-std::optional<std::string> OpenFile(const std::string_view filename)
+std::optional<std::string> OpenFile(const std::filesystem::path& filename)
 {
-	std::ifstream ifs(filename.data());
+	std::ifstream ifs(filename);
 	if (!ifs.is_open())
 	{
 		return {};

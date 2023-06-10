@@ -33,11 +33,12 @@ public:
 		glCullFace(GL_BACK);
 		glFrontFace(GL_CCW);
 
-		m_InstancePipeline.InitFromPath("shaders/instancing/instancing.vert", "shaders/instancing/instancing.frag");
-		m_NoInstancePipeline.InitFromPath("shaders/instancing/no_instancing.vert", "shaders/instancing/instancing.frag");
+		m_InstancePipeline.InitFromPathSingleFile("shaders/instancing/instancing.glsl");
+		m_NoInstancePipeline.InitFromPathSingleFile("shaders/instancing/no_instancing.glsl");
 
 		const GLuint pipelineMatricesUniformBlockIndex = glGetUniformBlockIndex(m_InstancePipeline.Id(), "Matrices");
-		const GLuint noInstancePipelineMatricesUniformBlockIndex = glGetUniformBlockIndex(m_NoInstancePipeline.Id(), "Matrices");
+		const GLuint noInstancePipelineMatricesUniformBlockIndex = glGetUniformBlockIndex(m_NoInstancePipeline.Id(),
+			"Matrices");
 		glUniformBlockBinding(m_InstancePipeline.Id(), pipelineMatricesUniformBlockIndex, 0);
 		glUniformBlockBinding(m_NoInstancePipeline.Id(), noInstancePipelineMatricesUniformBlockIndex, 0);
 
@@ -122,19 +123,19 @@ public:
 		switch (event.type)
 		{
 		case SDL_MOUSEMOTION:
-			{
-				const auto xOffset = static_cast<f32>(event.motion.xrel);
-				const auto yOffset = static_cast<f32>(-event.motion.yrel);
-				m_Camera.ProcessMouseMovement(xOffset, yOffset);
-				break;
-			}
+		{
+			const auto xOffset = static_cast<f32>(event.motion.xrel);
+			const auto yOffset = static_cast<f32>(-event.motion.yrel);
+			m_Camera.ProcessMouseMovement(xOffset, yOffset);
+			break;
+		}
 		case SDL_MOUSEWHEEL:
-			{
-				const f32 yOffset = event.wheel.preciseY;
-				m_Camera.ProcessMouseScroll(yOffset);
-				UpdateProjection();
-				break;
-			}
+		{
+			const f32 yOffset = event.wheel.preciseY;
+			m_Camera.ProcessMouseScroll(yOffset);
+			UpdateProjection();
+			break;
+		}
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_o)
 			{

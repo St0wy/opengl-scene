@@ -27,6 +27,7 @@ add_executable(
 	"include/timer.hpp"
 	"include/utils.hpp"
 	"include/window.hpp"
+	"include/shader.hpp"
 	"src/camera.cpp"
 	"src/main.cpp"
 	"src/mesh.cpp"
@@ -35,6 +36,7 @@ add_executable(
 	"src/texture.cpp"
 	"src/timer.cpp"
 	"src/utils.cpp"
+	"src/shader.cpp"
 )
 
 target_include_directories(opengl_scene PRIVATE include/ external/)

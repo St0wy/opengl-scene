@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <string_view>
 #include <GL/glew.h>
 #include <glm/fwd.hpp>
@@ -46,7 +47,6 @@ struct SpotLight
 	glm::vec3 specular;
 };
 
-// TODO : Rework uniform setters
 class Pipeline
 {
 public:
@@ -61,9 +61,11 @@ public:
 	Pipeline& operator=(Pipeline&& other) = default;
 	~Pipeline();
 
-	void InitFromPath(std::string_view vertexPath, std::string_view fragmentPath);
+	void InitFromPath(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath);
+	void InitFromPathSingleFile(const std::filesystem::path& shaderFile);
+	void InitFromSource(std::string_view vertexSource, std::string_view fragmentSource);
 
-	GLuint Id() const;
+	[[nodiscard]] GLuint Id() const;
 
 	void Use() const;
 	void SetBool(std::string_view name, bool value) const;
@@ -85,12 +87,12 @@ public:
 private:
 	bool m_IsInitialized = false;
 
-	GLuint m_ProgramId;
-	GLuint m_VertexShaderId;
-	GLuint m_FragmentShaderId;
+	GLuint m_ProgramId{};
+	GLuint m_VertexShaderId{};
+	GLuint m_FragmentShaderId{};
 
-	u32 m_DirectionalLightsCount;
-	u32 m_PointLightsCount;
-	u32 m_SpotLightsCount;
+	u32 m_DirectionalLightsCount = 0;
+	u32 m_PointLightsCount = 0;
+	u32 m_SpotLightsCount = 0;
 };
 }

@@ -7,6 +7,7 @@
 #include <glm/matrix.hpp>
 #include <spdlog/spdlog.h>
 
+#include "shader.hpp"
 #include "utils.hpp"
 
 constexpr std::size_t LogSize = 512;
@@ -195,13 +196,52 @@ stw::Pipeline::~Pipeline()
 	glDeleteProgram(m_ProgramId);
 }
 
-void stw::Pipeline::InitFromPath(const std::string_view vertexPath, const std::string_view fragmentPath)
+void stw::Pipeline::InitFromPath(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath)
 {
 	const auto vertexResult = OpenFile(vertexPath);
-	assert(vertexResult.has_value());
 
-	const std::string& vertexSource = vertexResult.value(); // NOLINT(bugprone-unchecked-optional-access)
-	const char* vertexSourcePtr = vertexSource.c_str();
+	if (!vertexResult.has_value())
+	{
+		spdlog::error("Could not load vertex shader file {}", vertexPath.string());
+		return;
+	}
+
+	const auto fragmentResult = OpenFile(fragmentPath);
+
+	if (!fragmentResult.has_value())
+	{
+		spdlog::error("Could not load fragment shader file {}", fragmentPath.string());
+		return;
+	}
+
+	InitFromSource(vertexResult.value(), fragmentResult.value());
+}
+
+void stw::Pipeline::InitFromPathSingleFile(const std::filesystem::path& shaderFile)
+{
+	const auto [vertex, fragment] = ShaderProgramSource::LoadFromFile(shaderFile);
+	if (!vertex.has_value())
+	{
+		spdlog::error("Could not load vertex from shader file {}", shaderFile.string());
+		return;
+	}
+
+
+	if (!fragment.has_value())
+	{
+		spdlog::error("Could not load fragment from shader file {}", shaderFile.string());
+		return;
+	}
+
+	fmt::print("VERTEX----------------------\n{}", vertex.value());
+	fmt::print("FRAGMENT--------------------\n{}", fragment.value());
+
+	InitFromSource(vertex.value(), fragment.value());
+}
+
+void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const std::string_view fragmentSource)
+{
+	const char* vertexSourcePtr = vertexSource.data();
 	m_VertexShaderId = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(m_VertexShaderId, 1, &vertexSourcePtr, nullptr);
 	glCompileShader(m_VertexShaderId);
@@ -213,13 +253,10 @@ void stw::Pipeline::InitFromPath(const std::string_view vertexPath, const std::s
 		char infoLog[LogSize];
 		glGetShaderInfoLog(m_VertexShaderId, LogSize, nullptr, infoLog);
 		spdlog::error("Error while loading vertex shader. {}", infoLog);
+		return;
 	}
 
-	const auto fragmentResult = OpenFile(fragmentPath);
-	assert(fragmentResult.has_value());
-
-	const std::string& fragmentSource = fragmentResult.value(); // NOLINT(bugprone-unchecked-optional-access)
-	const char* fragmentSourcePtr = fragmentSource.c_str();
+	const char* fragmentSourcePtr = fragmentSource.data();
 	m_FragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(m_FragmentShaderId, 1, &fragmentSourcePtr, nullptr);
 	glCompileShader(m_FragmentShaderId);
@@ -230,6 +267,7 @@ void stw::Pipeline::InitFromPath(const std::string_view vertexPath, const std::s
 		char infoLog[LogSize];
 		glGetShaderInfoLog(m_FragmentShaderId, LogSize, nullptr, infoLog);
 		spdlog::error("Error while loading fragment shader. {}", infoLog);
+		return;
 	}
 
 	m_ProgramId = glCreateProgram();
@@ -243,6 +281,7 @@ void stw::Pipeline::InitFromPath(const std::string_view vertexPath, const std::s
 		char infoLog[LogSize];
 		glGetProgramInfoLog(m_ProgramId, LogSize, nullptr, infoLog);
 		spdlog::error("Error while linking shader program. {}", infoLog);
+		return;
 	}
 
 	glDeleteShader(m_FragmentShaderId);

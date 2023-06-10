@@ -4,6 +4,7 @@
 
 #pragma once
 #include <cassert>
+#include <filesystem>
 #include <string_view>
 #include <GL/glew.h>
 
@@ -15,7 +16,7 @@ namespace stw
 {
 template <class T, class U>concept Derived = std::is_base_of_v<U, T>;
 
-std::optional<std::string> OpenFile(std::string_view filename);
+std::optional<std::string> OpenFile(const std::filesystem::path& filename);
 
 GLenum GetTextureFromId(i32 id);
 

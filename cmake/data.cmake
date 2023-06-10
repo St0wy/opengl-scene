@@ -1,5 +1,6 @@
 # Get every shader file
-file(GLOB_RECURSE SHADER_FILES "shaders/*.vert" "shaders/*.frag" "shaders/*.comp" "shaders/*.geom")
+file(GLOB_RECURSE SHADER_FILES_VALIDATE "shaders/*.vert" "shaders/*.frag" "shaders/*.comp" "shaders/*.geom")
+file(GLOB_RECURSE SHADER_FILES_NO_VALIDATE "shaders/*.glsl")
 
 # Find shader validator program
 if(WIN32)
@@ -33,6 +34,21 @@ foreach(SHADER ${SHADER_FILES})
 			DEPENDS ${SHADER}
 		)
 	endif()
+	list(APPEND SCRIPT_OUTPUT_FILES ${SHADER_OUTPUT})
+endforeach(SHADER)
+
+# Copy non-validate shaders
+foreach(SHADER ${SHADER_FILES_NO_VALIDATE})
+	get_filename_component(FILE_NAME ${SHADER} NAME)
+	get_filename_component(PATH_NAME ${SHADER} DIRECTORY)
+	get_filename_component(EXTENSION ${SHADER} EXT)
+	file(RELATIVE_PATH PATH_NAME "${CMAKE_CURRENT_SOURCE_DIR}" ${PATH_NAME})
+	set(SHADER_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${PATH_NAME}/${FILE_NAME}")
+	add_custom_command(
+		OUTPUT ${SHADER_OUTPUT}
+		COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} ${SHADER_OUTPUT}
+		DEPENDS ${SHADER}
+	)
 	list(APPEND SCRIPT_OUTPUT_FILES ${SHADER_OUTPUT})
 endforeach(SHADER)
 
