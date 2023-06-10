@@ -29,9 +29,14 @@ public:
 	Mesh& operator=(const Mesh&) = delete;
 	Mesh& operator=(Mesh&&) noexcept = delete;
 
+	[[nodiscard]] GLuint Vao() const;
+
 	void Draw(const Pipeline& pipeline) const;
 	void DrawNoSpecular(const Pipeline& pipeline) const;
+	void DrawInstanced(const Pipeline& pipeline, GLsizei count) const;
+	void DrawNoSpecularInstanced(const Pipeline& pipeline, GLsizei count) const;
 	void DrawMeshOnly(const Pipeline& pipeline) const;
+	void DrawMeshOnlyInstanced(const Pipeline& pipeline, GLsizei count) const;
 
 private:
 	std::vector<Vertex> m_Vertices;

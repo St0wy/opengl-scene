@@ -233,9 +233,6 @@ void stw::Pipeline::InitFromPathSingleFile(const std::filesystem::path& shaderFi
 		return;
 	}
 
-	fmt::print("VERTEX----------------------\n{}", vertex.value());
-	fmt::print("FRAGMENT--------------------\n{}", fragment.value());
-
 	InitFromSource(vertex.value(), fragment.value());
 }
 

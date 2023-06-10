@@ -7,6 +7,11 @@
 #include "timer.hpp"
 #include "utils.hpp"
 
+std::span<stw::Mesh> stw::Model::Meshes()
+{
+	return std::span{m_Meshes};
+}
+
 void stw::Model::AddMesh(Mesh mesh)
 {
 	m_Meshes.push_back(std::move(mesh));
@@ -36,6 +41,22 @@ void stw::Model::DrawMeshOnly(const Pipeline& pipeline) const
 	}
 }
 
+void stw::Model::DrawInstanced(const Pipeline& pipeline, const GLsizei count) const
+{
+	for (const auto& mesh : m_Meshes)
+	{
+		mesh.DrawInstanced(pipeline, count);
+	}
+}
+
+void stw::Model::DrawNoSpecularInstanced(const Pipeline& pipeline, const GLsizei count) const
+{
+	for (const auto& mesh : m_Meshes)
+	{
+		mesh.DrawNoSpecularInstanced(pipeline, count);
+	}
+}
+
 std::expected<stw::Model, std::string> stw::Model::LoadFromPath(const std::filesystem::path& path)
 {
 	Assimp::Importer importer;
@@ -45,7 +66,7 @@ std::expected<stw::Model, std::string> stw::Model::LoadFromPath(const std::files
 
 	Timer timer;
 	timer.Start();
-	
+
 	const aiScene* scene = importer.ReadFile(pathString.c_str(), assimpImportFlags);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -160,7 +181,9 @@ std::vector<stw::Texture> stw::Model::LoadMaterialTextures(const aiMaterial* mat
 		s_LoadedTextures.insert(texturePath);
 		textures.push_back(loadResult.value());
 
-		spdlog::debug("Loaded texture {} in {:0.0f} ms", texturePath.string(), timer.GetElapsedTime().GetInMilliseconds());
+		spdlog::debug("Loaded texture {} in {:0.0f} ms",
+			texturePath.string(),
+			timer.GetElapsedTime().GetInMilliseconds());
 	}
 
 	return textures;

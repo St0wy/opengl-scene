@@ -2,6 +2,7 @@
 
 #include <expected>
 #include <filesystem>
+#include <span>
 #include <unordered_set>
 #include <vector>
 
@@ -17,16 +18,19 @@ class Model
 public:
 	Model() = default;
 
+	[[nodiscard]] std::span<stw::Mesh> Meshes();
+
 	void AddMesh(Mesh mesh);
 
 	void Draw(const Pipeline& pipeline) const;
 	void DrawNoSpecular(const Pipeline& pipeline) const;
 	void DrawMeshOnly(const Pipeline& pipeline) const;
+	void DrawInstanced(const Pipeline& pipeline, GLsizei count) const;
+	void DrawNoSpecularInstanced(const Pipeline& pipeline, GLsizei count) const;
 
 	static std::expected<Model, std::string> LoadFromPath(const std::filesystem::path& path);
 
 private:
-
 	// TODO: Convert to texture manager
 	inline static std::unordered_set<std::filesystem::path> s_LoadedTextures{};
 

@@ -38,6 +38,11 @@ stw::Mesh::~Mesh()
 	glDeleteBuffers(static_cast<GLsizei>(buffers.size()), buffers.data());
 }
 
+GLuint stw::Mesh::Vao() const
+{
+	return m_Vao;
+}
+
 void stw::Mesh::Draw(const Pipeline& pipeline) const
 {
 	u32 diffuseTextureCount = 0;
@@ -58,7 +63,7 @@ void stw::Mesh::Draw(const Pipeline& pipeline) const
 			specularTextureCount++;
 			number = specularTextureCount;
 			break;
-		default: 
+		default:
 			break;
 		}
 
@@ -101,12 +106,84 @@ void stw::Mesh::DrawNoSpecular(const Pipeline& pipeline) const
 	glActiveTexture(GL_TEXTURE0);
 }
 
+void stw::Mesh::DrawInstanced(const Pipeline& pipeline, const GLsizei count) const
+{
+	u32 diffuseTextureCount = 0;
+	u32 specularTextureCount = 0;
+	for (std::size_t i = 0; i < m_Textures.size(); i++)
+	{
+		const auto id = GetTextureFromId(static_cast<i32>(i));
+		glActiveTexture(id);
+
+		u32 number;
+		switch (m_Textures[i].textureType)
+		{
+		case TextureType::Diffuse:
+			diffuseTextureCount++;
+			number = diffuseTextureCount;
+			break;
+		case TextureType::Specular:
+			specularTextureCount++;
+			number = specularTextureCount;
+			break;
+		default:
+			break;
+		}
+
+		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
+		glBindTexture(GL_TEXTURE_2D, m_Textures[i].textureId);
+	}
+	glActiveTexture(GL_TEXTURE0);
+
+	DrawMeshOnlyInstanced(pipeline, count);
+
+	glActiveTexture(GL_TEXTURE0);
+}
+
+void stw::Mesh::DrawNoSpecularInstanced(const Pipeline& pipeline, const GLsizei count) const
+{
+	u32 diffuseTextureCount = 0;
+	for (std::size_t i = 0; i < m_Textures.size(); i++)
+	{
+		const auto id = GetTextureFromId(static_cast<i32>(i));
+		glActiveTexture(id);
+
+		u32 number;
+		switch (m_Textures[i].textureType)
+		{
+		case TextureType::Diffuse:
+			diffuseTextureCount++;
+			number = diffuseTextureCount;
+			break;
+		default:
+			break;
+		}
+
+		pipeline.SetInt(fmt::format("material.texture_diffuse{}", number), static_cast<i32>(i));
+		glBindTexture(GL_TEXTURE_2D, m_Textures[i].textureId);
+	}
+	glActiveTexture(GL_TEXTURE0);
+
+	DrawMeshOnlyInstanced(pipeline, count);
+
+	glActiveTexture(GL_TEXTURE0);
+}
+
 void stw::Mesh::DrawMeshOnly(const Pipeline& pipeline) const
 {
 	glBindVertexArray(m_Vao);
 
 	const auto size = static_cast<GLsizei>(m_Indices.size());
 	glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr);
+	glBindVertexArray(0);
+}
+
+void stw::Mesh::DrawMeshOnlyInstanced(const Pipeline& pipeline, const GLsizei count) const
+{
+	glBindVertexArray(m_Vao);
+
+	const auto size = static_cast<GLsizei>(m_Indices.size());
+	glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, count);
 	glBindVertexArray(0);
 }
 
