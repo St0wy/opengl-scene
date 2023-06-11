@@ -7,7 +7,6 @@
 #include <random>
 #include <GL/glew.h>
 #include <glm/ext.hpp>
-#include <glm/gtx/norm.hpp>
 
 #include "camera.hpp"
 #include "model.hpp"
@@ -29,14 +28,34 @@ public:
 		: m_PlanetModel(Model::LoadFromPath("data/planet/planet.obj").value()),
 		m_RockModel(Model::LoadFromPath("data/rock/rock.obj").value())
 	{
+		if constexpr (GL_VERSION_4_3)
+		{
+			glDebugMessageCallback([](GLenum source,
+					GLenum type,
+					GLuint id,
+					GLenum severity,
+					const GLsizei length,
+					const GLchar* message,
+					const void*)
+				{
+					spdlog::error("[OpenGL Error type {}, id {}, severity {}] {}",
+						type,
+						id,
+						severity,
+						std::string_view(message, length));
+				},
+				nullptr);
+		}
+
 		m_Camera.SetMovementSpeed(20.0f);
 
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
+		ClearGlErrors();
+		GLCALL(glEnable(GL_DEPTH_TEST));
+		GLCALL(glDepthFunc(GL_LEQUAL));
 
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glFrontFace(GL_CCW);
+		GLCALL(glEnable(GL_CULL_FACE));
+		GLCALL(glCullFace(GL_BACK));
+		GLCALL(glFrontFace(GL_CCW));
 
 		m_InstancePipeline.InitFromPathSingleFile("shaders/instancing/instancing.glsl");
 		m_NoInstancePipeline.InitFromPathSingleFile("shaders/instancing/no_instancing.glsl");
@@ -44,63 +63,52 @@ public:
 		const GLuint pipelineMatricesUniformBlockIndex = glGetUniformBlockIndex(m_InstancePipeline.Id(), "Matrices");
 		const GLuint noInstancePipelineMatricesUniformBlockIndex = glGetUniformBlockIndex(m_NoInstancePipeline.Id(),
 			"Matrices");
-		glUniformBlockBinding(m_InstancePipeline.Id(), pipelineMatricesUniformBlockIndex, 0);
-		glUniformBlockBinding(m_NoInstancePipeline.Id(), noInstancePipelineMatricesUniformBlockIndex, 0);
+		GLCALL(glUniformBlockBinding(m_InstancePipeline.Id(), pipelineMatricesUniformBlockIndex, 0));
+		GLCALL(glUniformBlockBinding(m_NoInstancePipeline.Id(), noInstancePipelineMatricesUniformBlockIndex, 0));
 
-		glGenBuffers(1, &m_UboMatrices);
-		glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices);
+		GLCALL(glGenBuffers(1, &m_UboMatrices));
+		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices));
 
 		// Allocate buffer memory on the gpu
 		constexpr GLsizeiptr matricesSize = 2 * sizeof(glm::mat4);
-		glBufferData(GL_UNIFORM_BUFFER, matricesSize, nullptr, GL_STATIC_DRAW);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		GLCALL(glBufferData(GL_UNIFORM_BUFFER, matricesSize, nullptr, GL_STATIC_DRAW));
+		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, 0));
 
 		// Bind buffer to binding point 0
-		glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_UboMatrices, 0, matricesSize);
+		GLCALL(glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_UboMatrices, 0, matricesSize));
 		UpdateProjection();
 
 		SetupRockMatrices();
 
 		const auto modelMatricesBufferSize = static_cast<GLsizeiptr>(rockModelMatrices.size() * sizeof(glm::mat4));
-		glGenBuffers(1, &modelMatricesBuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, modelMatricesBuffer);
-		glBufferData(GL_ARRAY_BUFFER, modelMatricesBufferSize, rockModelMatrices.data(), GL_STATIC_DRAW);
+		GLCALL(glGenBuffers(1, &modelMatricesBuffer));
+		GLCALL(glBindBuffer(GL_ARRAY_BUFFER, modelMatricesBuffer));
+		GLCALL(glBufferData(GL_ARRAY_BUFFER, modelMatricesBufferSize, rockModelMatrices.data(), GL_STATIC_DRAW));
 
 		for (const auto& rockModel : m_RockModel.Meshes())
 		{
 			const auto vao = rockModel.Vao();
-			glBindVertexArray(vao);
+			GLCALL(glBindVertexArray(vao));
 			// set attribute pointers for matrix (4 times vec4)
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), nullptr);
-			glEnableVertexAttribArray(4);
-			glVertexAttribPointer(4,
-				4,
-				GL_FLOAT,
-				GL_FALSE,
-				sizeof(glm::mat4),
-				reinterpret_cast<void*>(sizeof(glm::vec4))); // NOLINT(performance-no-int-to-ptr)
-			glEnableVertexAttribArray(5);
-			glVertexAttribPointer(5,
-				4,
-				GL_FLOAT,
-				GL_FALSE,
-				sizeof(glm::mat4),
-				reinterpret_cast<void*>(2 * sizeof(glm::vec4))); // NOLINT(performance-no-int-to-ptr)
-			glEnableVertexAttribArray(6);
-			glVertexAttribPointer(6,
-				4,
-				GL_FLOAT,
-				GL_FALSE,
-				sizeof(glm::mat4),
-				reinterpret_cast<void*>(3 * sizeof(glm::vec4))); // NOLINT(performance-no-int-to-ptr)
+			GLCALL(glEnableVertexAttribArray(3));
+			GLCALL(glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), nullptr));
+			GLCALL(glEnableVertexAttribArray(4));
+			GLCALL(glVertexAttribPointer(4,
+				4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), reinterpret_cast<void*>(sizeof(glm::vec4))));
 
-			glVertexAttribDivisor(3, 1);
-			glVertexAttribDivisor(4, 1);
-			glVertexAttribDivisor(5, 1);
-			glVertexAttribDivisor(6, 1);
+			GLCALL(glEnableVertexAttribArray(5));
+			GLCALL(glVertexAttribPointer(5,
+				4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), reinterpret_cast<void*>(2 * sizeof(glm::vec4))));
+			GLCALL(glEnableVertexAttribArray(6));
+			GLCALL(glVertexAttribPointer(6,
+				4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), reinterpret_cast<void*>(3 * sizeof(glm::vec4))));
 
-			glBindVertexArray(0);
+			GLCALL(glVertexAttribDivisor(3, 1));
+			GLCALL(glVertexAttribDivisor(4, 1));
+			GLCALL(glVertexAttribDivisor(5, 1));
+			GLCALL(glVertexAttribDivisor(6, 1));
+
+			GLCALL(glBindVertexArray(0));
 		}
 	}
 
@@ -138,17 +146,17 @@ public:
 	void UpdateProjection() const
 	{
 		const auto projection = m_Camera.GetProjectionMatrix();
-		glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices));
+		GLCALL(glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection)));
+		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, 0));
 	}
 
 	void UpdateView() const
 	{
 		glm::mat4 view = m_Camera.GetViewMatrix();
-		glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices);
-		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices));
+		GLCALL(glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view)));
+		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, 0));
 	}
 
 	void RenderPlanet(const Pipeline& pipeline) const
@@ -160,16 +168,14 @@ public:
 		pipeline.SetMat4("model", planetModelMat);
 
 		m_PlanetModel.DrawNoSpecular(pipeline);
-		CHECK_GL_ERROR();
 	}
 
 	void Update(const f32 deltaTime) override
 	{
 		m_Time += deltaTime;
 
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		CHECK_GL_ERROR();
+		GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+		GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 		UpdateView();
 
@@ -194,11 +200,6 @@ public:
 			m_Camera.ProcessMovement(cameraMovementState, deltaTime);
 		}
 #pragma endregion Camera
-
-		if (CHECK_GL_ERROR())
-		{
-			SDL_SetRelativeMouseMode(SDL_FALSE);
-		}
 	}
 
 	void OnEvent(const SDL_Event& event) override

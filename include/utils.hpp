@@ -5,10 +5,21 @@
 #pragma once
 #include <cassert>
 #include <filesystem>
-#include <string_view>
 #include <GL/glew.h>
 
 #include "number_types.hpp"
+
+#define CHECK_GL_ERROR() stw::CheckGlError(__FILE__, __LINE__)
+
+#if defined(_MSC_VER) && !defined(NDEBUG)
+#define ASSERTD(x) if(!(x)) __debugbreak()
+#define GLCALL(x) ClearGlErrors();\
+	x;\
+	ASSERTD(!CHECK_GL_ERROR())
+#else
+#define ASSERTD(x)
+#define GLCALL(x)
+#endif
 
 #define ASSERT_MESSAGE(expression, message) assert(((void)(message), expression))
 
@@ -29,6 +40,7 @@ T MapRange(T value, T a, T b, T c, T d)
 	return c + value * (d - c);
 }
 
+void ClearGlErrors();
+
 bool CheckGlError(std::string_view file, u32 line);
-#define CHECK_GL_ERROR() stw::CheckGlError(__FILE__, __LINE__)
 } // namespace stw

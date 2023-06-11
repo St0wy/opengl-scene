@@ -35,6 +35,11 @@ GLenum GetTextureFromId(const i32 id)
 	return static_cast<GLenum>(GL_TEXTURE0 + id);
 }
 
+void ClearGlErrors()
+{
+	while (glGetError() != GL_NO_ERROR);
+}
+
 bool CheckGlError(std::string_view file, u32 line)
 {
 	bool hadErrors = false;
