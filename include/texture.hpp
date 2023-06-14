@@ -8,10 +8,10 @@
 #include <filesystem>
 #include <string>
 #include <string_view>
+#include <assimp/material.h>
 #include <GL/glew.h>
 
-#include "pipeline.hpp"
-#include <assimp/material.h>
+#include "ogl/pipeline.hpp"
 
 namespace stw
 {

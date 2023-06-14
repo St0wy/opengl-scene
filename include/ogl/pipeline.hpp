@@ -5,7 +5,6 @@
 #pragma once
 
 #include <filesystem>
-#include <string_view>
 #include <GL/glew.h>
 #include <glm/fwd.hpp>
 #include <glm/vec3.hpp>

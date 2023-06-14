@@ -1,4 +1,4 @@
-#include "index_buffer.hpp"
+#include "ogl/index_buffer.hpp"
 
 #include <spdlog/spdlog.h>
 

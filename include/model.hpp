@@ -7,9 +7,9 @@
 #include <vector>
 
 #include "mesh.hpp"
-#include "pipeline.hpp"
 #include "texture.hpp"
 #include "assimp/scene.h"
+#include "ogl/pipeline.hpp"
 
 namespace stw
 {
@@ -24,7 +24,7 @@ public:
 
 	void Draw(const Pipeline& pipeline) const;
 	void DrawNoSpecular(const Pipeline& pipeline) const;
-	void DrawMeshOnly(const Pipeline& pipeline) const;
+	void DrawMeshOnly() const;
 	void DrawInstanced(const Pipeline& pipeline, GLsizei count) const;
 	void DrawNoSpecularInstanced(const Pipeline& pipeline, GLsizei count) const;
 

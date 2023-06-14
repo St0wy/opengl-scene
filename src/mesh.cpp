@@ -1,6 +1,5 @@
 #include "mesh.hpp"
 
-#include <array>
 #include <GL/glew.h>
 #include <spdlog/spdlog.h>
 
@@ -10,20 +9,9 @@ stw::Mesh::Mesh(Mesh&& other) noexcept
 	: m_Vertices(std::move(other.m_Vertices)),
 	m_Indices(std::move(other.m_Indices)),
 	m_Textures(std::move(other.m_Textures)),
-	m_Vao(other.m_Vao),
+	m_VertexArray(std::move(other.m_VertexArray)),
 	m_VertexBuffer(std::move(other.m_VertexBuffer)),
-	m_IndexBuffer(std::move(other.m_IndexBuffer))
-{
-	other.m_Vao = 0;
-}
-
-stw::Mesh::~Mesh()
-{
-	if (m_Vao != 0)
-	{
-		spdlog::warn("Destructor called on mesh with Vao not equal to 0");
-	}
-}
+	m_IndexBuffer(std::move(other.m_IndexBuffer)) {}
 
 void stw::Mesh::Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures)
 {
@@ -35,23 +23,15 @@ void stw::Mesh::Init(std::vector<Vertex> vertices, std::vector<u32> indices, std
 
 void stw::Mesh::Delete()
 {
-	if (m_Vao == 0)
-	{
-		spdlog::warn("Deleting mesh with no Vao");
-		return;
-	}
-
-	GLCALL(glDeleteVertexArrays(1, &m_Vao));
-
 	m_VertexBuffer.Delete();
 	m_IndexBuffer.Delete();
-	m_Vao = 0;
+	m_VertexArray.Delete();
 }
 
-GLuint stw::Mesh::Vao() const
-{
-	return m_Vao;
-}
+//GLuint stw::Mesh::Vao() const
+//{
+//	return m_Vao;
+//}
 
 void stw::Mesh::Draw(const Pipeline& pipeline) const
 {
@@ -181,42 +161,36 @@ void stw::Mesh::DrawNoSpecularInstanced(const Pipeline& pipeline, const GLsizei 
 
 void stw::Mesh::DrawMeshOnly() const
 {
-	glBindVertexArray(m_Vao);
+	m_VertexArray.Bind();
 
 	const auto size = static_cast<GLsizei>(m_Indices.size());
 	glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr);
-	glBindVertexArray(0);
+
+	m_VertexArray.UnBind();
 }
 
 void stw::Mesh::DrawMeshOnlyInstanced(const GLsizei count) const
 {
-	glBindVertexArray(m_Vao);
+	m_VertexArray.Bind();
 
 	const auto size = static_cast<GLsizei>(m_Indices.size());
 	glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, count);
-	glBindVertexArray(0);
+
+	m_VertexArray.UnBind();
 }
 
 void stw::Mesh::SetupMesh()
 {
-	glGenVertexArrays(1, &m_Vao);
-	glBindVertexArray(m_Vao);
+	m_VertexArray.Init();
 
 	m_VertexBuffer.Init(m_Vertices);
 	m_IndexBuffer.Init(m_Indices);
 
-	// Vertex positions
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+	VertexBufferLayout layout;
 
-	// Vertex normals
-	glEnableVertexAttribArray(1);
-	auto offset = reinterpret_cast<void*>(offsetof(Vertex, normal)); // NOLINT(performance-no-int-to-ptr)
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offset);
+	layout.Push<float>(3);
+	layout.Push<float>(3);
+	layout.Push<float>(2);
 
-	// Vertex texture coords
-	glEnableVertexAttribArray(2);
-	offset = reinterpret_cast<void*>(offsetof(Vertex, texCoords)); // NOLINT(performance-no-int-to-ptr)
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), offset);
-	glBindVertexArray(0);
+	m_VertexArray.AddBuffer(m_VertexBuffer, layout);
 }

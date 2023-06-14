@@ -11,9 +11,9 @@
 #include "camera.hpp"
 #include "model.hpp"
 #include "number_types.hpp"
-#include "pipeline.hpp"
 #include "scene.hpp"
 #include "utils.hpp"
+#include "ogl/pipeline.hpp"
 
 namespace stw
 {
@@ -92,7 +92,7 @@ public:
 			const auto vao = rockModel.Vao();
 			GLCALL(glBindVertexArray(vao));
 
-			// set attribute pointers for matrix (4 times vec4)
+			// set attribute pointers for model matrix (4 times vec4)
 			GLCALL(glEnableVertexAttribArray(3));
 			GLCALL(glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), nullptr));
 

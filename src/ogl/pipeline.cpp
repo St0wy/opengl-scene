@@ -2,7 +2,7 @@
 // Created by stowy on 04/05/2023.
 //
 
-#include "pipeline.hpp"
+#include "ogl/pipeline.hpp"
 
 #include <glm/matrix.hpp>
 #include <spdlog/spdlog.h>
