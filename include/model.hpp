@@ -18,7 +18,7 @@ class Model
 public:
 	Model() = default;
 
-	[[nodiscard]] std::span<stw::Mesh> Meshes();
+	[[nodiscard]] std::span<Mesh> Meshes();
 
 	void AddMesh(Mesh mesh);
 

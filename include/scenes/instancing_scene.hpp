@@ -24,11 +24,12 @@ public:
 	std::vector<glm::mat4> rockModelMatrices{RockCount};
 	GLuint modelMatricesBuffer = 0;
 
-	InstancingScene()
-		: m_PlanetModel(Model::LoadFromPath("data/planet/planet.obj").value()),
-		m_RockModel(Model::LoadFromPath("data/rock/rock.obj").value())
+	void Init() override
 	{
-		if constexpr (GL_VERSION_4_3)
+		m_PlanetModel = Model::LoadFromPath("data/planet/planet.obj").value();
+		m_RockModel = Model::LoadFromPath("data/rock/rock.obj").value();
+
+		if (GLEW_VERSION_4_3)
 		{
 			glDebugMessageCallback([](GLenum source,
 					GLenum type,
@@ -38,7 +39,8 @@ public:
 					const GLchar* message,
 					const void*)
 				{
-					spdlog::error("[OpenGL Error type {}, id {}, severity {}] {}",
+					spdlog::error("[OpenGL Error source {}, type {}, id {}, severity {}] {}",
+						source,
 						type,
 						id,
 						severity,
@@ -89,19 +91,22 @@ public:
 		{
 			const auto vao = rockModel.Vao();
 			GLCALL(glBindVertexArray(vao));
+
 			// set attribute pointers for matrix (4 times vec4)
 			GLCALL(glEnableVertexAttribArray(3));
 			GLCALL(glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), nullptr));
+
 			GLCALL(glEnableVertexAttribArray(4));
-			GLCALL(glVertexAttribPointer(4,
-				4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), reinterpret_cast<void*>(sizeof(glm::vec4))));
+			auto size = reinterpret_cast<void*>(sizeof(glm::vec4)); // NOLINT(performance-no-int-to-ptr)
+			GLCALL(glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), size));
 
 			GLCALL(glEnableVertexAttribArray(5));
-			GLCALL(glVertexAttribPointer(5,
-				4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), reinterpret_cast<void*>(2 * sizeof(glm::vec4))));
+			size = reinterpret_cast<void*>(2 * sizeof(glm::vec4)); // NOLINT(performance-no-int-to-ptr)
+			GLCALL(glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), size));
+
 			GLCALL(glEnableVertexAttribArray(6));
-			GLCALL(glVertexAttribPointer(6,
-				4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), reinterpret_cast<void*>(3 * sizeof(glm::vec4))));
+			size = reinterpret_cast<void*>(3 * sizeof(glm::vec4)); // NOLINT(performance-no-int-to-ptr)
+			GLCALL(glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), size));
 
 			GLCALL(glVertexAttribDivisor(3, 1));
 			GLCALL(glVertexAttribDivisor(4, 1));
@@ -239,6 +244,10 @@ public:
 	{
 		glViewport(0, 0, windowWidth, windowHeight);
 		m_Camera.SetAspectRatio(static_cast<f32>(windowWidth) / static_cast<f32>(windowHeight));
+	}
+
+	void Delete() override
+	{
 	}
 
 private:

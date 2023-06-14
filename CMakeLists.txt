@@ -37,6 +37,9 @@ add_executable(
 	"src/timer.cpp"
 	"src/utils.cpp"
 	"src/shader.cpp"
+	"include/vertex_buffer.hpp"
+	"include/index_buffer.hpp"
+	"src/index_buffer.cpp"
 )
 
 target_include_directories(opengl_scene PRIVATE include/ external/)

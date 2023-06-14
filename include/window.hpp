@@ -25,6 +25,7 @@ public:
 	Window(Window&& other) = default;
 	Window(const Window& other) = delete;
 	~Window();
+
 	Window& operator=(Window&& other) = default;
 	Window& operator=(const Window& other) = delete;
 

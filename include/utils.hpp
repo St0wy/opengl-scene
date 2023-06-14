@@ -13,12 +13,16 @@
 
 #if defined(_MSC_VER) && !defined(NDEBUG)
 #define ASSERTD(x) if(!(x)) __debugbreak()
+#else
+#define ASSERTD(x) x
+#endif
+
+#ifndef NDEBUG
 #define GLCALL(x) ClearGlErrors();\
 	x;\
 	ASSERTD(!CHECK_GL_ERROR())
 #else
-#define ASSERTD(x)
-#define GLCALL(x)
+#define GLCALL(x) x
 #endif
 
 #define ASSERT_MESSAGE(expression, message) assert(((void)(message), expression))

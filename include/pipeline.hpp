@@ -65,6 +65,8 @@ public:
 	void InitFromPathSingleFile(const std::filesystem::path& shaderFile);
 	void InitFromSource(std::string_view vertexSource, std::string_view fragmentSource);
 
+	void Delete();
+
 	[[nodiscard]] GLuint Id() const;
 
 	void Use() const;

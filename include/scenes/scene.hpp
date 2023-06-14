@@ -20,7 +20,9 @@ public:
 	Scene& operator=(const Scene& other) = delete;
 	Scene& operator=(Scene&& other) = default;
 
+	virtual void Init() = 0;
 	virtual void Update(f32 deltaTime) = 0;
+	virtual void Delete() = 0;
 
 	virtual void OnEvent(const SDL_Event&)
 	{

@@ -189,11 +189,10 @@ void stw::Pipeline::SetSpotLight(std::string_view name,
 
 stw::Pipeline::~Pipeline()
 {
-	// Check if the pipeline was initialized
-	if (m_ProgramId == 0)
-		return;
-
-	glDeleteProgram(m_ProgramId);
+	if (m_ProgramId != 0)
+	{
+		spdlog::warn("Destructor called on a pipeline that still has an ID.");
+	}
 }
 
 void stw::Pipeline::InitFromPath(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath)
@@ -285,6 +284,19 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 	glDeleteShader(m_VertexShaderId);
 
 	m_IsInitialized = true;
+}
+
+void stw::Pipeline::Delete()
+{
+	// Check if the pipeline was initialized
+	if (m_ProgramId == 0)
+	{
+		spdlog::warn("Deleting program that has not a valid id.");
+		return;
+	}
+
+	glDeleteProgram(m_ProgramId);
+	m_ProgramId = 0;
 }
 
 GLuint stw::Pipeline::Id() const

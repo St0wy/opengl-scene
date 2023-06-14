@@ -17,25 +17,24 @@ stw::Mesh::Mesh(Mesh&& other) noexcept
 	m_Indices(std::move(other.m_Indices)),
 	m_Textures(std::move(other.m_Textures)),
 	m_Vao(other.m_Vao),
-	m_Vbo(other.m_Vbo),
-	m_Ebo(other.m_Ebo)
+	m_VertexBuffer(std::move(other.m_VertexBuffer)),
+	m_IndexBuffer(std::move(other.m_IndexBuffer))
 {
 	other.m_Vao = 0;
-	other.m_Vbo = 0;
-	other.m_Ebo = 0;
 }
 
 stw::Mesh::~Mesh()
 {
 	if (m_Vao == 0)
 	{
+		spdlog::warn("Deleting mesh with no Vao");
 		return;
 	}
 
-	glDeleteVertexArrays(1, &m_Vao);
+	GLCALL(glDeleteVertexArrays(1, &m_Vao));
 
-	const std::array buffers = {m_Vbo, m_Ebo};
-	glDeleteBuffers(static_cast<GLsizei>(buffers.size()), buffers.data());
+	m_VertexBuffer.Delete();
+	m_IndexBuffer.Delete();
 }
 
 GLuint stw::Mesh::Vao() const
@@ -190,29 +189,21 @@ void stw::Mesh::DrawMeshOnlyInstanced(const Pipeline& pipeline, const GLsizei co
 void stw::Mesh::SetupMesh()
 {
 	glGenVertexArrays(1, &m_Vao);
-	glGenBuffers(1, &m_Vbo);
-	glGenBuffers(1, &m_Ebo);
-
 	glBindVertexArray(m_Vao);
-	glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
 
-	auto size = static_cast<GLsizeiptr>(m_Vertices.size() * sizeof(Vertex));
-	glBufferData(GL_ARRAY_BUFFER, size, m_Vertices.data(), GL_STATIC_DRAW);
+	m_VertexBuffer.Init(m_Vertices);
+	m_IndexBuffer.Init(m_Indices);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ebo);
-	size = static_cast<GLsizeiptr>(m_Indices.size() * sizeof(u32));
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, m_Indices.data(), GL_STATIC_DRAW);
-
-	// vertex positions
+	// Vertex positions
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
 
-	// vertex normals
+	// Vertex normals
 	glEnableVertexAttribArray(1);
 	auto offset = reinterpret_cast<void*>(offsetof(Vertex, normal)); // NOLINT(performance-no-int-to-ptr)
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offset);
 
-	// vertex texture coords
+	// Vertex texture coords
 	glEnableVertexAttribArray(2);
 	offset = reinterpret_cast<void*>(offsetof(Vertex, texCoords)); // NOLINT(performance-no-int-to-ptr)
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), offset);
