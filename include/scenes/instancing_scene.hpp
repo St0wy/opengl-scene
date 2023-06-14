@@ -49,7 +49,7 @@ public:
 
 		m_Camera.SetMovementSpeed(20.0f);
 
-		ClearGlErrors();
+		GLCALL(glEnable(GL_MULTISAMPLE));
 		GLCALL(glEnable(GL_DEPTH_TEST));
 		GLCALL(glDepthFunc(GL_LEQUAL));
 
