@@ -22,7 +22,7 @@ struct Vertex
 class Mesh
 {
 public:
-	Mesh(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures);
+	Mesh() = default;
 	Mesh(const Mesh&) = delete;
 	Mesh(Mesh&&) noexcept;
 
@@ -31,14 +31,17 @@ public:
 	Mesh& operator=(const Mesh&) = delete;
 	Mesh& operator=(Mesh&&) noexcept = delete;
 
+	void Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures);
+	void Delete();
+
 	[[nodiscard]] GLuint Vao() const;
 
 	void Draw(const Pipeline& pipeline) const;
 	void DrawNoSpecular(const Pipeline& pipeline) const;
 	void DrawInstanced(const Pipeline& pipeline, GLsizei count) const;
 	void DrawNoSpecularInstanced(const Pipeline& pipeline, GLsizei count) const;
-	void DrawMeshOnly(const Pipeline& pipeline) const;
-	void DrawMeshOnlyInstanced(const Pipeline& pipeline, GLsizei count) const;
+	void DrawMeshOnly() const;
+	void DrawMeshOnlyInstanced(GLsizei count) const;
 
 private:
 	std::vector<Vertex> m_Vertices;

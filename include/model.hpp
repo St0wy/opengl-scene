@@ -28,6 +28,8 @@ public:
 	void DrawInstanced(const Pipeline& pipeline, GLsizei count) const;
 	void DrawNoSpecularInstanced(const Pipeline& pipeline, GLsizei count) const;
 
+	void Delete();
+
 	static std::expected<Model, std::string> LoadFromPath(const std::filesystem::path& path);
 
 private:
@@ -38,7 +40,7 @@ private:
 	std::filesystem::path m_Directory{};
 
 	void ProcessNode(const aiNode* node, const aiScene* scene);
-	Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene) const;
+	Mesh ProcessMesh(aiMesh* assimpMesh, const aiScene* assimpScene) const;
 	std::vector<Texture> LoadMaterialTextures(const aiMaterial* material, TextureType textureType) const;
 };
 }

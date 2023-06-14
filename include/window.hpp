@@ -44,9 +44,9 @@ private:
 
 template <Derived<Scene> T>
 Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 windowHeight)
-	: m_WindowName(windowName)
+	: m_Scene(std::make_unique<T>()), m_WindowName(windowName)
 {
-	spdlog::debug("Creating window...");
+	spdlog::info("Creating window...");
 	SDL_SetHintWithPriority(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2", SDL_HINT_OVERRIDE);
 	SDL_SetHintWithPriority(SDL_HINT_RENDER_VSYNC, "0", SDL_HINT_OVERRIDE);
 
@@ -81,7 +81,7 @@ Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 window
 		assert(false);
 	}
 
-	m_Scene = std::make_unique<T>();
+	m_Scene->Init();
 	m_Scene->OnResize(windowWidth, windowHeight);
 }
 
@@ -89,6 +89,8 @@ template <Derived<Scene> T>
 Window<T>::~Window()
 {
 	spdlog::info("Closing window");
+
+	m_Scene->Delete();
 
 	SDL_GL_DeleteContext(m_GlRenderContext);
 	SDL_DestroyWindow(m_Window);
@@ -99,7 +101,6 @@ template <Derived<Scene> T>
 void Window<T>::Loop()
 {
 	Timer timer;
-
 
 	constexpr i8 frameCounterMax = 32;
 	i8 frameCounter = 0;

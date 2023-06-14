@@ -37,7 +37,7 @@ void stw::Model::DrawMeshOnly(const Pipeline& pipeline) const
 {
 	for (const auto& mesh : m_Meshes)
 	{
-		mesh.DrawMeshOnly(pipeline);
+		mesh.DrawMeshOnly();
 	}
 }
 
@@ -54,6 +54,14 @@ void stw::Model::DrawNoSpecularInstanced(const Pipeline& pipeline, const GLsizei
 	for (const auto& mesh : m_Meshes)
 	{
 		mesh.DrawNoSpecularInstanced(pipeline, count);
+	}
+}
+
+void stw::Model::Delete()
+{
+	for (auto& mesh : m_Meshes)
+	{
+		mesh.Delete();
 	}
 }
 
@@ -100,19 +108,19 @@ void stw::Model::ProcessNode(const aiNode* node, const aiScene* scene)
 	}
 }
 
-stw::Mesh stw::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) const
+stw::Mesh stw::Model::ProcessMesh(aiMesh* assimpMesh, const aiScene* assimpScene) const
 {
 	std::vector<Vertex> vertices{};
-	vertices.reserve(mesh->mNumVertices);
-	for (std::size_t i = 0; i < mesh->mNumVertices; ++i)
+	vertices.reserve(assimpMesh->mNumVertices);
+	for (std::size_t i = 0; i < assimpMesh->mNumVertices; ++i)
 	{
-		const auto meshVertex = mesh->mVertices[i];
-		const auto meshNormal = mesh->mNormals[i];
+		const auto meshVertex = assimpMesh->mVertices[i];
+		const auto meshNormal = assimpMesh->mNormals[i];
 
 		glm::vec2 textureCoords(0.0);
-		if (mesh->mTextureCoords[0])
+		if (assimpMesh->mTextureCoords[0])
 		{
-			const auto meshTextureCoords = mesh->mTextureCoords[0][i];
+			const auto meshTextureCoords = assimpMesh->mTextureCoords[0][i];
 			textureCoords.x = meshTextureCoords.x;
 			textureCoords.y = meshTextureCoords.y;
 		}
@@ -126,10 +134,10 @@ stw::Mesh stw::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) const
 	}
 
 	std::vector<u32> indices{};
-	indices.reserve(static_cast<std::size_t>(mesh->mNumFaces) * 3);
-	for (std::size_t i = 0; i < mesh->mNumFaces; ++i)
+	indices.reserve(static_cast<std::size_t>(assimpMesh->mNumFaces) * 3);
+	for (std::size_t i = 0; i < assimpMesh->mNumFaces; ++i)
 	{
-		const aiFace& face = mesh->mFaces[i];
+		const aiFace& face = assimpMesh->mFaces[i];
 		for (std::size_t j = 0; j < face.mNumIndices; ++j)
 		{
 			indices.push_back(face.mIndices[j]);
@@ -137,9 +145,9 @@ stw::Mesh stw::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) const
 	}
 
 	std::vector<Texture> textures{};
-	if (scene->mNumMaterials > 0)
+	if (assimpScene->mNumMaterials > 0)
 	{
-		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+		aiMaterial* material = assimpScene->mMaterials[assimpMesh->mMaterialIndex];
 		std::vector<Texture> diffuseMaps = LoadMaterialTextures(material, TextureType::Diffuse);
 
 		textures.insert_range(textures.end(), diffuseMaps);
@@ -147,7 +155,11 @@ stw::Mesh stw::Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) const
 		std::vector<Texture> specularMaps = LoadMaterialTextures(material, TextureType::Specular);
 		textures.insert_range(textures.end(), specularMaps);
 	}
-	return {vertices, indices, textures};
+
+	Mesh mesh;
+	mesh.Init(std::move(vertices), std::move(indices), std::move(textures));
+
+	return mesh;
 }
 
 std::vector<stw::Texture> stw::Model::LoadMaterialTextures(const aiMaterial* material,
@@ -181,7 +193,7 @@ std::vector<stw::Texture> stw::Model::LoadMaterialTextures(const aiMaterial* mat
 		s_LoadedTextures.insert(texturePath);
 		textures.push_back(loadResult.value());
 
-		spdlog::debug("Loaded texture {} in {:0.0f} ms",
+		spdlog::info("Loaded texture {} in {:0.0f} ms",
 			texturePath.string(),
 			timer.GetElapsedTime().GetInMilliseconds());
 	}

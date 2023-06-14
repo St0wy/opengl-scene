@@ -212,19 +212,19 @@ public:
 		switch (event.type)
 		{
 		case SDL_MOUSEMOTION:
-		{
-			const auto xOffset = static_cast<f32>(event.motion.xrel);
-			const auto yOffset = static_cast<f32>(-event.motion.yrel);
-			m_Camera.ProcessMouseMovement(xOffset, yOffset);
-			break;
-		}
+			{
+				const auto xOffset = static_cast<f32>(event.motion.xrel);
+				const auto yOffset = static_cast<f32>(-event.motion.yrel);
+				m_Camera.ProcessMouseMovement(xOffset, yOffset);
+				break;
+			}
 		case SDL_MOUSEWHEEL:
-		{
-			const f32 yOffset = event.wheel.preciseY;
-			m_Camera.ProcessMouseScroll(yOffset);
-			UpdateProjection();
-			break;
-		}
+			{
+				const f32 yOffset = event.wheel.preciseY;
+				m_Camera.ProcessMouseScroll(yOffset);
+				UpdateProjection();
+				break;
+			}
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_o)
 			{
@@ -248,6 +248,10 @@ public:
 
 	void Delete() override
 	{
+		m_InstancePipeline.Delete();
+		m_NoInstancePipeline.Delete();
+		m_PlanetModel.Delete();
+		m_RockModel.Delete();
 	}
 
 private:

@@ -6,12 +6,6 @@
 
 #include "utils.hpp"
 
-stw::Mesh::Mesh(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures)
-	: m_Vertices(std::move(vertices)), m_Indices(std::move(indices)), m_Textures(std::move(textures))
-{
-	SetupMesh();
-}
-
 stw::Mesh::Mesh(Mesh&& other) noexcept
 	: m_Vertices(std::move(other.m_Vertices)),
 	m_Indices(std::move(other.m_Indices)),
@@ -25,6 +19,22 @@ stw::Mesh::Mesh(Mesh&& other) noexcept
 
 stw::Mesh::~Mesh()
 {
+	if (m_Vao != 0)
+	{
+		spdlog::warn("Destructor called on mesh with Vao not equal to 0");
+	}
+}
+
+void stw::Mesh::Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures)
+{
+	m_Vertices = std::move(vertices);
+	m_Indices = std::move(indices);
+	m_Textures = std::move(textures);
+	SetupMesh();
+}
+
+void stw::Mesh::Delete()
+{
 	if (m_Vao == 0)
 	{
 		spdlog::warn("Deleting mesh with no Vao");
@@ -35,6 +45,7 @@ stw::Mesh::~Mesh()
 
 	m_VertexBuffer.Delete();
 	m_IndexBuffer.Delete();
+	m_Vao = 0;
 }
 
 GLuint stw::Mesh::Vao() const
@@ -71,7 +82,7 @@ void stw::Mesh::Draw(const Pipeline& pipeline) const
 	}
 	glActiveTexture(GL_TEXTURE0);
 
-	DrawMeshOnly(pipeline);
+	DrawMeshOnly();
 
 	glActiveTexture(GL_TEXTURE0);
 }
@@ -100,7 +111,7 @@ void stw::Mesh::DrawNoSpecular(const Pipeline& pipeline) const
 	}
 	glActiveTexture(GL_TEXTURE0);
 
-	DrawMeshOnly(pipeline);
+	DrawMeshOnly();
 
 	glActiveTexture(GL_TEXTURE0);
 }
@@ -134,7 +145,7 @@ void stw::Mesh::DrawInstanced(const Pipeline& pipeline, const GLsizei count) con
 	}
 	glActiveTexture(GL_TEXTURE0);
 
-	DrawMeshOnlyInstanced(pipeline, count);
+	DrawMeshOnlyInstanced(count);
 
 	glActiveTexture(GL_TEXTURE0);
 }
@@ -163,12 +174,12 @@ void stw::Mesh::DrawNoSpecularInstanced(const Pipeline& pipeline, const GLsizei 
 	}
 	glActiveTexture(GL_TEXTURE0);
 
-	DrawMeshOnlyInstanced(pipeline, count);
+	DrawMeshOnlyInstanced(count);
 
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void stw::Mesh::DrawMeshOnly(const Pipeline& pipeline) const
+void stw::Mesh::DrawMeshOnly() const
 {
 	glBindVertexArray(m_Vao);
 
@@ -177,7 +188,7 @@ void stw::Mesh::DrawMeshOnly(const Pipeline& pipeline) const
 	glBindVertexArray(0);
 }
 
-void stw::Mesh::DrawMeshOnlyInstanced(const Pipeline& pipeline, const GLsizei count) const
+void stw::Mesh::DrawMeshOnlyInstanced(const GLsizei count) const
 {
 	glBindVertexArray(m_Vao);
 
