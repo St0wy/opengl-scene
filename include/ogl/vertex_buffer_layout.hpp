@@ -36,6 +36,8 @@ class VertexBufferLayout
 public:
 	VertexBufferLayout() = default;
 
+	VertexBufferLayout(GLuint startIndex);
+
 	[[nodiscard]] GLsizei GetStride() const;
 	[[nodiscard]] const std::vector<VertexBufferElement>& GetElements() const;
 	[[nodiscard]] std::vector<VertexBufferElement>& GetElements();
@@ -43,7 +45,7 @@ public:
 	template <typename T>
 	void Push(GLint count);
 
-	template<typename T>
+	template <typename T>
 	void Push(GLint count, GLuint divisor);
 
 private:
@@ -52,13 +54,13 @@ private:
 };
 
 template <typename T>
-void VertexBufferLayout::Push(GLint count)
+void VertexBufferLayout::Push(GLint)
 {
 	spdlog::error("Push of an unknown type in vertex buffer layout");
 }
 
 template <typename T>
-void VertexBufferLayout::Push(GLint count, GLuint divisor)
+void VertexBufferLayout::Push(GLint, GLuint)
 {
 	spdlog::error("Push of an unknown type in vertex buffer layout with divisor");
 }

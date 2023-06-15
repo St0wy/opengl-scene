@@ -10,12 +10,13 @@ class VertexArray
 public:
 	VertexArray() = default;
 	VertexArray(const VertexArray&) = delete;
-	VertexArray(VertexArray&&) = default;
+	VertexArray(VertexArray&& other) noexcept;
 	~VertexArray();
 	VertexArray& operator=(const VertexArray&) = delete;
 	VertexArray& operator=(VertexArray&&) = default;
 
 	void Init();
+
 	template <typename T>
 	void AddBuffer(const VertexBuffer<T>& vertexBuffer, const VertexBufferLayout& layout);
 	void Bind() const;
@@ -24,6 +25,7 @@ public:
 
 private:
 	GLuint m_Vao{};
+	GLuint m_CurrentIndex{};
 };
 
 template <typename T>
@@ -33,22 +35,25 @@ void VertexArray::AddBuffer(const VertexBuffer<T>& vertexBuffer, const VertexBuf
 	vertexBuffer.Bind();
 	const auto& elements = layout.GetElements();
 
-	u64 offset = 0;
+	std::size_t offset = 0;
+	GLuint glIndex = 0;
 	for (std::size_t i = 0; i < elements.size(); i++)
 	{
-		const auto glI = static_cast<GLuint>(i);
+		glIndex = static_cast<GLuint>(i) + m_CurrentIndex;
 		const auto& element = elements[i];
-		GLCALL(glEnableVertexAttribArray(glI));
+		GLCALL(glEnableVertexAttribArray(glIndex));
 		const auto offsetVoid = reinterpret_cast<void*>(offset); // NOLINT(performance-no-int-to-ptr)
 		GLCALL(
-			glVertexAttribPointer(glI, element.count, element.type, element.normalized, layout.GetStride(), offsetVoid
-			));
+			glVertexAttribPointer(glIndex, element.count, element.type, element.normalized, layout.GetStride(),
+				offsetVoid ));
 		offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
 
 		if (element.divisor.has_value())
 		{
-			GLCALL(glVertexAttribDivisor(glI, element.divisor.value()));
+			GLCALL(glVertexAttribDivisor(glIndex, element.divisor.value()));
 		}
 	}
+
+	m_CurrentIndex = glIndex + 1;
 }
 }

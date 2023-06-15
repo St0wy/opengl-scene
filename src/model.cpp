@@ -5,55 +5,41 @@
 #include <spdlog/spdlog.h>
 
 #include "timer.hpp"
-#include "utils.hpp"
-
-std::span<stw::Mesh> stw::Model::Meshes()
-{
-	return std::span{m_Meshes};
-}
 
 void stw::Model::AddMesh(Mesh mesh)
 {
 	m_Meshes.push_back(std::move(mesh));
 }
 
-void stw::Model::Draw(const Pipeline& pipeline) const
+void stw::Model::Draw(const Pipeline& pipeline, const glm::mat4& modelMatrix) const
 {
 	for (const auto& mesh : m_Meshes)
 	{
-		mesh.Draw(pipeline);
+		mesh.Draw(pipeline, modelMatrix);
 	}
 }
 
-void stw::Model::DrawNoSpecular(const Pipeline& pipeline) const
+void stw::Model::DrawNoSpecular(const Pipeline& pipeline, const glm::mat4& modelMatrix) const
 {
 	for (const auto& mesh : m_Meshes)
 	{
-		mesh.DrawNoSpecular(pipeline);
+		mesh.DrawNoSpecular(pipeline, modelMatrix);
 	}
 }
 
-void stw::Model::DrawMeshOnly() const
+void stw::Model::DrawInstanced(const Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
 {
 	for (const auto& mesh : m_Meshes)
 	{
-		mesh.DrawMeshOnly();
+		mesh.DrawInstanced(pipeline, modelMatrices);
 	}
 }
 
-void stw::Model::DrawInstanced(const Pipeline& pipeline, const GLsizei count) const
+void stw::Model::DrawNoSpecularInstanced(const Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
 {
 	for (const auto& mesh : m_Meshes)
 	{
-		mesh.DrawInstanced(pipeline, count);
-	}
-}
-
-void stw::Model::DrawNoSpecularInstanced(const Pipeline& pipeline, const GLsizei count) const
-{
-	for (const auto& mesh : m_Meshes)
-	{
-		mesh.DrawNoSpecularInstanced(pipeline, count);
+		mesh.DrawNoSpecularInstanced(pipeline, modelMatrices);
 	}
 }
 

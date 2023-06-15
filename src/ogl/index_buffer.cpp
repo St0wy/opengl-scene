@@ -38,8 +38,7 @@ void stw::IndexBuffer::Init(const std::span<u32> data)
 	m_Count = static_cast<u32>(data.size());
 	GLCALL(glGenBuffers(1, &m_BufferId));
 	GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BufferId));
-	const auto size = static_cast<GLsizeiptr>(m_Count * sizeof(u32));
-	GLCALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data.data(), GL_STATIC_DRAW));
+	GLCALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.size_bytes(), data.data(), GL_STATIC_DRAW));
 
 	m_IsInitialized = true;
 }

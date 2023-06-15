@@ -3,6 +3,7 @@
 #include <vector>
 #include <glm/fwd.hpp>
 #include <glm/vec2.hpp>
+#include <glm/mat4x4.hpp>
 
 #include "number_types.hpp"
 #include "texture.hpp"
@@ -26,28 +27,31 @@ public:
 	Mesh() = default;
 	Mesh(const Mesh&) = delete;
 	Mesh(Mesh&&) noexcept;
-
+	~Mesh();
 	Mesh& operator=(const Mesh&) = delete;
-	Mesh& operator=(Mesh&&) noexcept = delete;
+	Mesh& operator=(Mesh&& other) noexcept;
 
 	void Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures);
 	void Delete();
 
-	void Draw(const Pipeline& pipeline) const;
-	void DrawNoSpecular(const Pipeline& pipeline) const;
-	void DrawInstanced(const Pipeline& pipeline, GLsizei count) const;
-	void DrawNoSpecularInstanced(const Pipeline& pipeline, GLsizei count) const;
-	void DrawMeshOnly() const;
-	void DrawMeshOnlyInstanced(GLsizei count) const;
+	void Draw(const Pipeline& pipeline, const glm::mat4&) const;
+	void DrawNoSpecular(const Pipeline& pipeline, const glm::mat4& modelMatrix) const;
+
+	void DrawInstanced(const Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const;
+	void DrawNoSpecularInstanced(const Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
+	void DrawMeshOnlyInstanced(std::span<const glm::mat4> modelMatrices) const;
 
 private:
-	std::vector<Vertex> m_Vertices;
-	std::vector<u32> m_Indices;
-	std::vector<Texture> m_Textures;
+	std::vector<Vertex> m_Vertices{};
+	std::vector<u32> m_Indices{};
+	std::vector<Texture> m_Textures{};
 
-	VertexArray m_VertexArray;
+	VertexArray m_VertexArray{};
 	VertexBuffer<Vertex> m_VertexBuffer{};
+	VertexBuffer<glm::mat4> m_ModelMatrixBuffer{};
 	IndexBuffer m_IndexBuffer{};
+
+	bool m_IsInitialized = false;
 
 	void SetupMesh();
 };

@@ -20,7 +20,7 @@ namespace stw
 class InstancingScene final : public Scene
 {
 public:
-	static constexpr std::size_t RockCount = 250'000;
+	static constexpr std::size_t RockCount = 10'000;
 	std::vector<glm::mat4> rockModelMatrices{RockCount};
 	GLuint modelMatricesBuffer = 0;
 
@@ -60,14 +60,9 @@ public:
 		GLCALL(glFrontFace(GL_CCW));
 
 		m_InstancePipeline.InitFromPathSingleFile("shaders/instancing/instancing.glsl");
-		m_NoInstancePipeline.InitFromPathSingleFile("shaders/instancing/no_instancing.glsl");
 
 		const GLuint pipelineMatricesUniformBlockIndex = glGetUniformBlockIndex(m_InstancePipeline.Id(), "Matrices");
-		const GLuint noInstancePipelineMatricesUniformBlockIndex = glGetUniformBlockIndex(m_NoInstancePipeline.Id(),
-			"Matrices");
 		GLCALL(glUniformBlockBinding(m_InstancePipeline.Id(), pipelineMatricesUniformBlockIndex, 0));
-		GLCALL(glUniformBlockBinding(m_NoInstancePipeline.Id(), noInstancePipelineMatricesUniformBlockIndex, 0));
-
 		GLCALL(glGenBuffers(1, &m_UboMatrices));
 		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices));
 
@@ -81,40 +76,6 @@ public:
 		UpdateProjection();
 
 		SetupRockMatrices();
-
-		const auto modelMatricesBufferSize = static_cast<GLsizeiptr>(rockModelMatrices.size() * sizeof(glm::mat4));
-		GLCALL(glGenBuffers(1, &modelMatricesBuffer));
-		GLCALL(glBindBuffer(GL_ARRAY_BUFFER, modelMatricesBuffer));
-		GLCALL(glBufferData(GL_ARRAY_BUFFER, modelMatricesBufferSize, rockModelMatrices.data(), GL_STATIC_DRAW));
-
-		for (const auto& rockModel : m_RockModel.Meshes())
-		{
-			const auto vao = rockModel.Vao();
-			GLCALL(glBindVertexArray(vao));
-
-			// set attribute pointers for model matrix (4 times vec4)
-			GLCALL(glEnableVertexAttribArray(3));
-			GLCALL(glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), nullptr));
-
-			GLCALL(glEnableVertexAttribArray(4));
-			auto offset = reinterpret_cast<void*>(sizeof(glm::vec4)); // NOLINT(performance-no-int-to-ptr)
-			GLCALL(glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), offset));
-
-			GLCALL(glEnableVertexAttribArray(5));
-			offset = reinterpret_cast<void*>(2 * sizeof(glm::vec4)); // NOLINT(performance-no-int-to-ptr)
-			GLCALL(glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), offset));
-
-			GLCALL(glEnableVertexAttribArray(6));
-			offset = reinterpret_cast<void*>(3 * sizeof(glm::vec4)); // NOLINT(performance-no-int-to-ptr)
-			GLCALL(glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), offset));
-
-			GLCALL(glVertexAttribDivisor(3, 1));
-			GLCALL(glVertexAttribDivisor(4, 1));
-			GLCALL(glVertexAttribDivisor(5, 1));
-			GLCALL(glVertexAttribDivisor(6, 1));
-
-			GLCALL(glBindVertexArray(0));
-		}
 	}
 
 	void SetupRockMatrices()
@@ -164,17 +125,6 @@ public:
 		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, 0));
 	}
 
-	void RenderPlanet(const Pipeline& pipeline) const
-	{
-		pipeline.Use();
-		auto planetModelMat = glm::mat4(1.0f);
-		planetModelMat = translate(planetModelMat, glm::vec3(0.0f, 0.0f, 0.0f));
-		planetModelMat = scale(planetModelMat, glm::vec3(5.0f, 5.0f, 5.0f));
-		pipeline.SetMat4("model", planetModelMat);
-
-		m_PlanetModel.DrawNoSpecular(pipeline);
-	}
-
 	void Update(const f32 deltaTime) override
 	{
 		m_Time += deltaTime;
@@ -184,10 +134,15 @@ public:
 
 		UpdateView();
 
-		RenderPlanet(m_NoInstancePipeline);
-
 		m_InstancePipeline.Use();
-		m_RockModel.DrawNoSpecularInstanced(m_InstancePipeline, RockCount);
+
+		auto planetModelMat = glm::mat4(1.0f);
+		planetModelMat = translate(planetModelMat, glm::vec3(0.0f, 0.0f, 0.0f));
+		planetModelMat = scale(planetModelMat, glm::vec3(5.0f, 5.0f, 5.0f));
+
+		m_PlanetModel.DrawNoSpecular(m_InstancePipeline, planetModelMat);
+
+		m_RockModel.DrawNoSpecularInstanced(m_InstancePipeline, rockModelMatrices);
 
 #pragma region Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
@@ -249,14 +204,12 @@ public:
 	void Delete() override
 	{
 		m_InstancePipeline.Delete();
-		m_NoInstancePipeline.Delete();
 		m_PlanetModel.Delete();
 		m_RockModel.Delete();
 	}
 
 private:
 	Pipeline m_InstancePipeline{};
-	Pipeline m_NoInstancePipeline{};
 	f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 20.0f, 40.0f}};
 	Model m_PlanetModel;

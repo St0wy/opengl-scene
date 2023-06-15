@@ -1,5 +1,12 @@
 #include "ogl/vertex_array.hpp"
 
+stw::VertexArray::VertexArray(VertexArray&& other) noexcept
+	: m_Vao(other.m_Vao), m_CurrentIndex(other.m_CurrentIndex)
+{
+	other.m_Vao = 0;
+	other.m_CurrentIndex = 0;
+}
+
 stw::VertexArray::~VertexArray()
 {
 	if (m_Vao != 0)
@@ -24,6 +31,7 @@ void stw::VertexArray::Bind() const
 	GLCALL(glBindVertexArray(m_Vao));
 }
 
+// ReSharper disable once CppMemberFunctionMayBeStatic
 void stw::VertexArray::UnBind() const
 {
 	GLCALL(glBindVertexArray(0));

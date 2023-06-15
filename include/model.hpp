@@ -5,10 +5,10 @@
 #include <span>
 #include <unordered_set>
 #include <vector>
+#include <assimp/scene.h>
 
 #include "mesh.hpp"
 #include "texture.hpp"
-#include "assimp/scene.h"
 #include "ogl/pipeline.hpp"
 
 namespace stw
@@ -18,15 +18,12 @@ class Model
 public:
 	Model() = default;
 
-	[[nodiscard]] std::span<Mesh> Meshes();
-
 	void AddMesh(Mesh mesh);
 
-	void Draw(const Pipeline& pipeline) const;
-	void DrawNoSpecular(const Pipeline& pipeline) const;
-	void DrawMeshOnly() const;
-	void DrawInstanced(const Pipeline& pipeline, GLsizei count) const;
-	void DrawNoSpecularInstanced(const Pipeline& pipeline, GLsizei count) const;
+	void Draw(const Pipeline& pipeline, const glm::mat4&) const;
+	void DrawNoSpecular(const Pipeline& pipeline, const glm::mat4& modelMatrix) const;
+	void DrawInstanced(const Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
+	void DrawNoSpecularInstanced(const Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
 
 	void Delete();
 

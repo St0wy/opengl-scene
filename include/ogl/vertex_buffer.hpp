@@ -20,7 +20,9 @@ public:
 	VertexBuffer& operator=(const VertexBuffer&) = delete;
 	VertexBuffer& operator=(VertexBuffer&& other) noexcept;
 
-	void Init(std::span<T> data);
+	void Init(std::span<const T> data);
+	void Init();
+	void SetData(std::span<const T> data) const;
 	void Bind() const;
 	void UnBind() const;
 	void Delete();
@@ -50,7 +52,7 @@ VertexBuffer<T>::~VertexBuffer()
 template <class T>
 VertexBuffer<T>& VertexBuffer<T>::operator=(VertexBuffer&& other) noexcept
 {
-	if (this == other)
+	if (this == &other)
 		return *this;
 
 	m_BufferId = other.m_BufferId;
@@ -62,17 +64,32 @@ VertexBuffer<T>& VertexBuffer<T>::operator=(VertexBuffer&& other) noexcept
 }
 
 template <class T>
-void VertexBuffer<T>::Init(std::span<T> data)
+void VertexBuffer<T>::Init(std::span<const T> data)
+{
+	Init();
+	SetData(data);
+}
+
+template <class T>
+void VertexBuffer<T>::Init()
 {
 	GLCALL(glGenBuffers(1, &m_BufferId));
-	GLCALL(glBindBuffer(GL_ARRAY_BUFFER, m_BufferId));
-	const auto size = static_cast<GLsizeiptr>(data.size() * sizeof(T));
-	GLCALL(glBufferData(GL_ARRAY_BUFFER, size, data.data(), GL_STATIC_DRAW));
+	m_IsInitialized = true;
+}
+
+template <class T>
+void VertexBuffer<T>::SetData(std::span<const T> data) const
+{
+	assert(m_IsInitialized);
+	Bind();
+	GLCALL(glBufferData(GL_ARRAY_BUFFER, data.size_bytes(), data.data(), GL_STATIC_DRAW));
+	UnBind();
 }
 
 template <class T>
 void VertexBuffer<T>::Bind() const
 {
+	assert(m_IsInitialized);
 	GLCALL(glBindBuffer(GL_ARRAY_BUFFER, m_BufferId));
 }
 
