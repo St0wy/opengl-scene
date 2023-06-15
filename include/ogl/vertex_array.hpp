@@ -44,6 +44,11 @@ void VertexArray::AddBuffer(const VertexBuffer<T>& vertexBuffer, const VertexBuf
 			glVertexAttribPointer(glI, element.count, element.type, element.normalized, layout.GetStride(), offsetVoid
 			));
 		offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
+
+		if (element.divisor.has_value())
+		{
+			GLCALL(glVertexAttribDivisor(glI, element.divisor.value()));
+		}
 	}
 }
 }

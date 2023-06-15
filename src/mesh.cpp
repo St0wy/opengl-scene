@@ -188,6 +188,7 @@ void stw::Mesh::SetupMesh()
 
 	VertexBufferLayout layout;
 
+	// Add vertex layout in shader
 	layout.Push<float>(3);
 	layout.Push<float>(3);
 	layout.Push<float>(2);

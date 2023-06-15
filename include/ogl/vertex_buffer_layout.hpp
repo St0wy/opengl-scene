@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <vector>
 #include <GL/glew.h>
 #include <spdlog/spdlog.h>
@@ -13,6 +14,7 @@ struct VertexBufferElement
 	GLenum type;
 	GLint count;
 	GLboolean normalized;
+	std::optional<GLuint> divisor{};
 
 	static GLsizei GetSizeOfType(const GLenum type)
 	{
@@ -41,6 +43,9 @@ public:
 	template <typename T>
 	void Push(GLint count);
 
+	template<typename T>
+	void Push(GLint count, GLuint divisor);
+
 private:
 	std::vector<VertexBufferElement> m_Elements{};
 	GLsizei m_Stride{};
@@ -52,9 +57,21 @@ void VertexBufferLayout::Push(GLint count)
 	spdlog::error("Push of an unknown type in vertex buffer layout");
 }
 
+template <typename T>
+void VertexBufferLayout::Push(GLint count, GLuint divisor)
+{
+	spdlog::error("Push of an unknown type in vertex buffer layout with divisor");
+}
+
 template <>
 void VertexBufferLayout::Push<f32>(GLint count);
 
 template <>
 void VertexBufferLayout::Push<u32>(GLint count);
+
+template <>
+void VertexBufferLayout::Push<f32>(GLint count, GLuint divisor);
+
+template <>
+void VertexBufferLayout::Push<u32>(GLint count, GLuint divisor);
 }

@@ -97,16 +97,16 @@ public:
 			GLCALL(glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), nullptr));
 
 			GLCALL(glEnableVertexAttribArray(4));
-			auto size = reinterpret_cast<void*>(sizeof(glm::vec4)); // NOLINT(performance-no-int-to-ptr)
-			GLCALL(glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), size));
+			auto offset = reinterpret_cast<void*>(sizeof(glm::vec4)); // NOLINT(performance-no-int-to-ptr)
+			GLCALL(glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), offset));
 
 			GLCALL(glEnableVertexAttribArray(5));
-			size = reinterpret_cast<void*>(2 * sizeof(glm::vec4)); // NOLINT(performance-no-int-to-ptr)
-			GLCALL(glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), size));
+			offset = reinterpret_cast<void*>(2 * sizeof(glm::vec4)); // NOLINT(performance-no-int-to-ptr)
+			GLCALL(glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), offset));
 
 			GLCALL(glEnableVertexAttribArray(6));
-			size = reinterpret_cast<void*>(3 * sizeof(glm::vec4)); // NOLINT(performance-no-int-to-ptr)
-			GLCALL(glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), size));
+			offset = reinterpret_cast<void*>(3 * sizeof(glm::vec4)); // NOLINT(performance-no-int-to-ptr)
+			GLCALL(glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), offset));
 
 			GLCALL(glVertexAttribDivisor(3, 1));
 			GLCALL(glVertexAttribDivisor(4, 1));
@@ -136,13 +136,13 @@ public:
 			const f32 y = displacement * 0.4f;
 			displacement = displacementDistribution(rng) / 100.0f - offset;
 			const f32 z = std::cos(angle) * radius + displacement;
-			model = glm::translate(model, glm::vec3(x, y, z));
+			model = translate(model, glm::vec3(x, y, z));
 
 			const f32 scale = scaleDistribution(rng) / 100.0f + 0.05f;
 			model = glm::scale(model, glm::vec3(scale));
 
 			const f32 rotationAngle = rotationDistribution(rng);
-			model = glm::rotate(model, rotationAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+			model = rotate(model, rotationAngle, glm::vec3(0.4f, 0.6f, 0.8f));
 
 			rockModelMatrices[i] = model;
 		}
