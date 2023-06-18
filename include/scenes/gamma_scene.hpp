@@ -1,9 +1,8 @@
 //
-// Created by stowy on 16/06/2023.
+// Created by stowy on 25/05/2023.
 //
 
 #pragma once
-#include <array>
 #include <random>
 #include <GL/glew.h>
 #include <glm/ext.hpp>
@@ -26,8 +25,7 @@ public:
 
 	void Init() override
 	{
-		m_PlanetModel = Model::LoadFromPath("data/planet/planet.obj").value();
-		m_RockModel = Model::LoadFromPath("data/rock/rock.obj").value();
+		m_GroundModel = Model::LoadFromPath("data/ground/ground.obj").value();
 
 		if (GLEW_VERSION_4_3)
 		{
@@ -59,10 +57,10 @@ public:
 		GLCALL(glCullFace(GL_BACK));
 		GLCALL(glFrontFace(GL_CCW));
 
-		m_InstancePipeline.InitFromPathSingleFile("shaders/instancing/instancing.glsl");
+		m_Pipeline.InitFromPath("shaders/gamma/mesh.vert", "shaders/gamma/mesh_no_specular.frag");
 
-		const GLuint pipelineMatricesUniformBlockIndex = glGetUniformBlockIndex(m_InstancePipeline.Id(), "Matrices");
-		GLCALL(glUniformBlockBinding(m_InstancePipeline.Id(), pipelineMatricesUniformBlockIndex, 0));
+		const GLuint pipelineMatricesUniformBlockIndex = glGetUniformBlockIndex(m_Pipeline.Id(), "Matrices");
+		GLCALL(glUniformBlockBinding(m_Pipeline.Id(), pipelineMatricesUniformBlockIndex, 0));
 		GLCALL(glGenBuffers(1, &m_UboMatrices));
 		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices));
 
@@ -74,39 +72,29 @@ public:
 		// Bind buffer to binding point 0
 		GLCALL(glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_UboMatrices, 0, matricesSize));
 		UpdateProjection();
-
-		SetupRockMatrices();
 	}
 
-	void SetupRockMatrices()
+	void SetupPipeline(Pipeline& pipeline) const
 	{
-		static std::random_device device{};
-		static std::mt19937 rng{device()};
-		constexpr f32 offset = 25.0f;
-		std::uniform_real_distribution displacementDistribution(0.0f, 2.0f * offset * 100.0f);
-		std::uniform_real_distribution scaleDistribution(0.0f, 20.0f);
-		std::uniform_real_distribution rotationDistribution(0.0f, 360.0f);
-		for (std::size_t i = 0; i < rockModelMatrices.size(); i++)
-		{
-			constexpr f32 radius = 75.0f;
-			auto model = glm::mat4(1.0f);
-			const f32 angle = static_cast<f32>(i) / static_cast<f32>(rockModelMatrices.size()) * 360.0f;
-			f32 displacement = displacementDistribution(rng) / 100.0f - offset;
-			const f32 x = std::sin(angle) * radius + displacement;
-			displacement = displacementDistribution(rng) / 100.0f - offset;
-			const f32 y = displacement * 0.4f;
-			displacement = displacementDistribution(rng) / 100.0f - offset;
-			const f32 z = std::cos(angle) * radius + displacement;
-			model = translate(model, glm::vec3(x, y, z));
+		pipeline.Bind();
+		pipeline.SetFloat("material.shininess", 32.0f);
 
-			const f32 scale = scaleDistribution(rng) / 100.0f + 0.05f;
-			model = glm::scale(model, glm::vec3(scale));
+		const glm::mat4 view = m_Camera.GetViewMatrix();
 
-			const f32 rotationAngle = rotationDistribution(rng);
-			model = rotate(model, rotationAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+		// Setup lights
+		constexpr PointLight pointLight{
+			{0.0f, 2.0f, 0.0f},
+			{0.01f},
+			{0.1f},
+			{0.2f},
+			{0.5f, 0.5f, 0.5f},
+			{0.8f, 0.8f, 0.8f},
+			{1.0f, 1.0f, 1.0f}
+		};
+		pipeline.SetPointLightsCount(1);
+		pipeline.SetPointLight("pointLights", 0, pointLight, view);
 
-			rockModelMatrices[i] = model;
-		}
+		pipeline.UnBind();
 	}
 
 	void UpdateProjection() const
@@ -127,22 +115,25 @@ public:
 
 	void Update(const f32 deltaTime) override
 	{
-		m_Time += deltaTime;
-
 		GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 		GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 		UpdateView();
 
-		m_InstancePipeline.Bind();
+		SetupPipeline(m_Pipeline);
 
-		auto planetModelMat = glm::mat4(1.0f);
-		planetModelMat = translate(planetModelMat, glm::vec3(0.0f, 0.0f, 0.0f));
-		planetModelMat = scale(planetModelMat, glm::vec3(5.0f, 5.0f, 5.0f));
+		m_Pipeline.Bind();
 
-		m_PlanetModel.DrawNoSpecular(m_InstancePipeline, planetModelMat);
+		m_Pipeline.SetFloat("material.specular", 0.3f);
 
-		m_RockModel.DrawNoSpecularInstanced(m_InstancePipeline, rockModelMatrices);
+
+		auto modelMatrix = glm::mat4(1.0f);
+		modelMatrix = translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		modelMatrix = scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
+
+		m_GroundModel.DrawNoSpecular(m_Pipeline, modelMatrix);
+
+		m_Pipeline.UnBind();
 
 #pragma region Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
@@ -203,17 +194,15 @@ public:
 
 	void Delete() override
 	{
-		m_InstancePipeline.Delete();
-		m_PlanetModel.Delete();
-		m_RockModel.Delete();
+		m_Pipeline.Delete();
+		m_GroundModel.Delete();
 	}
 
 private:
-	Pipeline m_InstancePipeline{};
-	f32 m_Time{};
-	Camera m_Camera{glm::vec3{0.0f, 20.0f, 40.0f}};
-	Model m_PlanetModel;
-	Model m_RockModel;
+	Pipeline m_Pipeline{};
+	//f32 m_Time{};
+	Camera m_Camera{glm::vec3{0.0f, 5.0f, 40.0f}};
+	Model m_GroundModel;
 	GLuint m_UboMatrices{};
 };
 } // namespace stw

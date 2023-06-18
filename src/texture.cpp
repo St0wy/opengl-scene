@@ -5,6 +5,9 @@
 #include "texture.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
+#ifndef NDEBUG
+#define STBI_FAILURE_USERMSG
+#endif
 #include <array>
 #include <stb_image.h>
 #include <spdlog/spdlog.h>
@@ -23,7 +26,8 @@ void stw::SmartTexture::Bind(Pipeline& pipeline) const
 }
 
 std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::filesystem::path& path,
-	const TextureType type)
+	const TextureType type,
+	const TextureFormat format)
 {
 	GLuint textureId = 0;
 	glGenTextures(1, &textureId);
@@ -38,34 +42,50 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::f
 	{
 		stbi_image_free(data);
 		glDeleteTextures(1, &textureId);
-		return std::unexpected(fmt::format("Texture failed to load at path: {}", stringPath));
+		return std::unexpected(fmt::format("Texture failed to load at path: {}\n{}",
+			stringPath,
+			stbi_failure_reason()));
 	}
 
-	GLenum format;
+	GLenum glFormat;
+	GLint internalFormat = 0;
 	switch (nbrComponents)
 	{
 	case 1:
-		format = GL_RED;
+		glFormat = GL_RED;
+		internalFormat = static_cast<GLint>(glFormat);
+
 		break;
 	case 3:
-		format = GL_RGB;
+		glFormat = GL_RGB;
+		internalFormat = static_cast<GLint>(glFormat);
+		if (format == TextureFormat::Srgb)
+		{
+			internalFormat = GL_SRGB;
+		}
 		break;
 	case 4:
-		format = GL_RGBA;
+		glFormat = GL_RGBA;
+		internalFormat = static_cast<GLint>(glFormat);
+		if (format == TextureFormat::Srgb)
+		{
+			internalFormat = GL_SRGB_ALPHA;
+		}
 		break;
 	default:
-		format = GL_INVALID_ENUM;
+		glFormat = GL_INVALID_ENUM;
+		internalFormat = GL_INVALID_ENUM;
 		break;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, textureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(format), width, height, 0, format, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	GLCALL(glBindTexture(GL_TEXTURE_2D, textureId));
+	GLCALL(glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, glFormat, GL_UNSIGNED_BYTE, data));
+	GLCALL(glGenerateMipmap(GL_TEXTURE_2D));
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
 	stbi_image_free(data);
 
@@ -94,6 +114,7 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadCubeMap(
 		}
 
 		const auto target = static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
+		// TODO: Handle SRGB
 		glTexImage2D(target, 0, GL_RGB, width, height, 0,GL_RGB, GL_UNSIGNED_BYTE, data);
 		stbi_image_free(data);
 	}

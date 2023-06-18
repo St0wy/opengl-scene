@@ -170,7 +170,7 @@ std::vector<stw::Texture> stw::Model::LoadMaterialTextures(const aiMaterial* mat
 			continue;
 		}
 
-		auto loadResult = Texture::LoadFromPath(texturePath, textureType);
+		auto loadResult = Texture::LoadFromPath(texturePath, textureType, TextureFormat::Srgb);
 		if (!loadResult.has_value())
 		{
 			spdlog::error(loadResult.error());

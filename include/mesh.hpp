@@ -33,11 +33,11 @@ public:
 	void Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures);
 	void Delete();
 
-	void Draw(::stw::Pipeline& pipeline, const glm::mat4&) const;
-	void DrawNoSpecular(::stw::Pipeline& pipeline, const glm::mat4& modelMatrix) const;
+	void Draw(Pipeline& pipeline, const glm::mat4&) const;
+	void DrawNoSpecular(Pipeline& pipeline, const glm::mat4& modelMatrix) const;
 
-	void DrawInstanced(::stw::Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const;
-	void DrawNoSpecularInstanced(::stw::Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
+	void DrawInstanced(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
+	void DrawNoSpecularInstanced(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
 	void DrawMeshOnlyInstanced(std::span<const glm::mat4> modelMatrices) const;
 
 private:

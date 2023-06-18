@@ -14,7 +14,7 @@ elseif(UNIX)
 endif()
 
 # Validate every shader
-foreach(SHADER ${SHADER_FILES})
+foreach(SHADER ${SHADER_FILES_VALIDATE})
 	get_filename_component(FILE_NAME ${SHADER} NAME)
 	get_filename_component(PATH_NAME ${SHADER} DIRECTORY)
 	get_filename_component(EXTENSION ${SHADER} EXT)
