@@ -5,6 +5,8 @@
 #pragma once
 
 #include <filesystem>
+#include <string_view>
+#include <unordered_map>
 #include <GL/glew.h>
 #include <glm/fwd.hpp>
 #include <glm/vec3.hpp>
@@ -68,24 +70,27 @@ public:
 
 	[[nodiscard]] GLuint Id() const;
 
-	void Use() const;
-	void SetBool(std::string_view name, bool value) const;
-	void SetInt(std::string_view name, i32 value) const;
-	void SetUnsignedInt(std::string_view name, u32 value) const;
-	void SetFloat(std::string_view name, f32 value) const;
-	void SetVec3(std::string_view name, glm::vec3 value) const;
-	void SetMat3(std::string_view name, const glm::mat3& mat) const;
-	void SetMat4(std::string_view name, const glm::mat4& mat) const;
+	void Bind() const;
+	void UnBind() const;
+
+	void SetBool(std::string_view name, bool value);
+	void SetInt(std::string_view name, i32 value);
+	void SetUnsignedInt(std::string_view name, u32 value);
+	void SetFloat(std::string_view name, f32 value);
+	void SetVec3(std::string_view name, glm::vec3 value);
+	void SetMat3(std::string_view name, const glm::mat3& mat);
+	void SetMat4(std::string_view name, const glm::mat4& mat);
 
 	void SetPointLightsCount(u32 count);
 	void SetDirectionalLightsCount(u32 count);
 	void SetSpotLightsCount(u32 count);
 
-	void SetPointLight(std::string_view name, u32 index, const PointLight& pointLight, const glm::mat4& view) const;
-	void SetDirectionalLight(std::string_view name, u32 index, const DirectionalLight& directionalLight) const;
-	void SetSpotLight(std::string_view name, u32 index, const SpotLight& spotLight, const glm::mat4& view) const;
+	void SetPointLight(std::string_view name, u32 index, const PointLight& pointLight, const glm::mat4& view);
+	void SetDirectionalLight(std::string_view name, u32 index, const DirectionalLight& directionalLight);
+	void SetSpotLight(std::string_view name, u32 index, const SpotLight& spotLight, const glm::mat4& view);
 
 private:
+	std::unordered_map<std::string_view, GLint> m_UniformsLocation{};
 	bool m_IsInitialized = false;
 
 	GLuint m_ProgramId{};
@@ -95,5 +100,8 @@ private:
 	u32 m_DirectionalLightsCount = 0;
 	u32 m_PointLightsCount = 0;
 	u32 m_SpotLightsCount = 0;
+
+	GLint GetUniformLocation(const std::string_view name);
+
 };
 }

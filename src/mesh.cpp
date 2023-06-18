@@ -71,18 +71,18 @@ void stw::Mesh::Delete()
 	m_IsInitialized = false;
 }
 
-void stw::Mesh::Draw(const Pipeline& pipeline, const glm::mat4& modelMatrix) const
+void stw::Mesh::Draw(Pipeline& pipeline, const glm::mat4& modelMatrix) const
 {
 	DrawInstanced(pipeline, {&modelMatrix, 1});
 }
 
-void stw::Mesh::DrawNoSpecular(const Pipeline& pipeline, const glm::mat4& modelMatrix) const
+void stw::Mesh::DrawNoSpecular(stw::Pipeline& pipeline, const glm::mat4& modelMatrix) const
 {
 	std::array matrices{modelMatrix};
 	DrawNoSpecularInstanced(pipeline, matrices);
 }
 
-void stw::Mesh::DrawInstanced(const Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
+void stw::Mesh::DrawInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
 {
 	u32 diffuseTextureCount = 0;
 	u32 specularTextureCount = 0;
@@ -116,7 +116,7 @@ void stw::Mesh::DrawInstanced(const Pipeline& pipeline, const std::span<const gl
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void stw::Mesh::DrawNoSpecularInstanced(const Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
+void stw::Mesh::DrawNoSpecularInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
 {
 	u32 diffuseTextureCount = 0;
 	for (std::size_t i = 0; i < m_Textures.size(); i++)

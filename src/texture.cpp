@@ -12,7 +12,7 @@
 #include "utils.hpp"
 
 
-void stw::SmartTexture::Bind(const Pipeline& pipeline) const
+void stw::SmartTexture::Bind(Pipeline& pipeline) const
 {
 	ASSERT_MESSAGE(m_TextureId != 0, "The texture should be initialized before being boud.");
 	const GLenum activeTexture = GetTextureFromId(m_UniformId);
@@ -146,7 +146,7 @@ stw::SmartTexture::~SmartTexture()
 void stw::SmartTexture::Init(const std::string_view path,
 	std::string uniformName,
 	const GLint uniformId,
-	const Pipeline& pipeline,
+	Pipeline& pipeline,
 	const GLint format)
 {
 	m_UniformId = uniformId;
@@ -175,6 +175,6 @@ void stw::SmartTexture::Init(const std::string_view path,
 	}
 	stbi_image_free(data);
 
-	pipeline.Use();
+	pipeline.Bind();
 	pipeline.SetInt(m_UniformName.c_str(), m_UniformId);
 }

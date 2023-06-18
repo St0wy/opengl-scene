@@ -40,9 +40,9 @@ public:
 	void Init(std::string_view path,
 		std::string uniformName,
 		GLint uniformId,
-		const Pipeline& pipeline,
+		Pipeline& pipeline,
 		GLint format = GL_RGB);
-	void Bind(const Pipeline& pipeline) const;
+	void Bind(Pipeline& pipeline) const;
 
 private:
 	GLuint m_TextureId{};

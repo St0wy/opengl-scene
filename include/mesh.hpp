@@ -3,7 +3,6 @@
 #include <vector>
 #include <glm/fwd.hpp>
 #include <glm/vec2.hpp>
-#include <glm/mat4x4.hpp>
 
 #include "number_types.hpp"
 #include "texture.hpp"
@@ -34,11 +33,11 @@ public:
 	void Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures);
 	void Delete();
 
-	void Draw(const Pipeline& pipeline, const glm::mat4&) const;
-	void DrawNoSpecular(const Pipeline& pipeline, const glm::mat4& modelMatrix) const;
+	void Draw(::stw::Pipeline& pipeline, const glm::mat4&) const;
+	void DrawNoSpecular(::stw::Pipeline& pipeline, const glm::mat4& modelMatrix) const;
 
-	void DrawInstanced(const Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const;
-	void DrawNoSpecularInstanced(const Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
+	void DrawInstanced(::stw::Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const;
+	void DrawNoSpecularInstanced(::stw::Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
 	void DrawMeshOnlyInstanced(std::span<const glm::mat4> modelMatrices) const;
 
 private:

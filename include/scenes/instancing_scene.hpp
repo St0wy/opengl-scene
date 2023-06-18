@@ -134,7 +134,7 @@ public:
 
 		UpdateView();
 
-		m_InstancePipeline.Use();
+		m_InstancePipeline.Bind();
 
 		auto planetModelMat = glm::mat4(1.0f);
 		planetModelMat = translate(planetModelMat, glm::vec3(0.0f, 0.0f, 0.0f));

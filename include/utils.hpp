@@ -36,7 +36,7 @@ std::optional<std::string> OpenFile(const std::filesystem::path& filename);
 GLenum GetTextureFromId(i32 id);
 
 template <typename T>
-T MapRange(T value, T a, T b, T c, T d)
+constexpr T MapRange(T value, T a, T b, T c, T d)
 {
 	// first map value from (a..b) to (0..1)
 	value = (value - a) / (b - a);

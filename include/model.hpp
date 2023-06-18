@@ -20,10 +20,10 @@ public:
 
 	void AddMesh(Mesh mesh);
 
-	void Draw(const Pipeline& pipeline, const glm::mat4&) const;
-	void DrawNoSpecular(const Pipeline& pipeline, const glm::mat4& modelMatrix) const;
-	void DrawInstanced(const Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
-	void DrawNoSpecularInstanced(const Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
+	void Draw(Pipeline& pipeline, const glm::mat4&) const;
+	void DrawNoSpecular(Pipeline& pipeline, const glm::mat4& modelMatrix) const;
+	void DrawInstanced(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
+	void DrawNoSpecularInstanced(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
 
 	void Delete();
 

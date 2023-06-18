@@ -2,6 +2,7 @@
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
+#include <glm/mat4x4.hpp>
 #include <spdlog/spdlog.h>
 
 #include "timer.hpp"
@@ -11,7 +12,7 @@ void stw::Model::AddMesh(Mesh mesh)
 	m_Meshes.push_back(std::move(mesh));
 }
 
-void stw::Model::Draw(const Pipeline& pipeline, const glm::mat4& modelMatrix) const
+void stw::Model::Draw(stw::Pipeline& pipeline, const glm::mat4& modelMatrix) const
 {
 	for (const auto& mesh : m_Meshes)
 	{
@@ -19,7 +20,7 @@ void stw::Model::Draw(const Pipeline& pipeline, const glm::mat4& modelMatrix) co
 	}
 }
 
-void stw::Model::DrawNoSpecular(const Pipeline& pipeline, const glm::mat4& modelMatrix) const
+void stw::Model::DrawNoSpecular(stw::Pipeline& pipeline, const glm::mat4& modelMatrix) const
 {
 	for (const auto& mesh : m_Meshes)
 	{
@@ -27,7 +28,7 @@ void stw::Model::DrawNoSpecular(const Pipeline& pipeline, const glm::mat4& model
 	}
 }
 
-void stw::Model::DrawInstanced(const Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
+void stw::Model::DrawInstanced(stw::Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
 {
 	for (const auto& mesh : m_Meshes)
 	{
@@ -35,7 +36,7 @@ void stw::Model::DrawInstanced(const Pipeline& pipeline, const std::span<const g
 	}
 }
 
-void stw::Model::DrawNoSpecularInstanced(const Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
+void stw::Model::DrawNoSpecularInstanced(stw::Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
 {
 	for (const auto& mesh : m_Meshes)
 	{

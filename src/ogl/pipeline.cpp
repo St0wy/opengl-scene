@@ -12,101 +12,58 @@
 
 constexpr std::size_t LogSize = 512;
 
-void stw::Pipeline::Use() const
+void stw::Pipeline::Bind() const
 {
 	ASSERT_MESSAGE(m_IsInitialized, "Pipeline should be initialized before using it.");
-	glUseProgram(m_ProgramId);
+	GLCALL(glUseProgram(m_ProgramId));
 }
 
-void stw::Pipeline::SetBool(const std::string_view name, const bool value) const
+void stw::Pipeline::UnBind() const
 {
-	const auto location = glGetUniformLocation(m_ProgramId, name.data());
-	if (location == -1)
-	{
-		spdlog::warn("Uniform \"{}\" does not exist.", name);
-	}
-	else
-	{
-		glUniform1i(location, static_cast<int>(value));
-	}
+	ASSERT_MESSAGE(m_IsInitialized, "Pipeline should be initialized when unbinding.");
+	GLCALL(glUseProgram(0));
 }
 
-void stw::Pipeline::SetInt(const std::string_view name, const int value) const
+void stw::Pipeline::SetBool(const std::string_view name, const bool value)
 {
-	const auto location = glGetUniformLocation(m_ProgramId, name.data());
-	if (location == -1)
-	{
-		spdlog::warn("Uniform \"{}\" does not exist.", name);
-	}
-	else
-	{
-		glUniform1i(location, value);
-	}
+	const auto location = GetUniformLocation(name);
+	GLCALL(glUniform1i(location, static_cast<int>(value)));
 }
 
-void stw::Pipeline::SetUnsignedInt(const std::string_view name, const u32 value) const
+void stw::Pipeline::SetInt(const std::string_view name, const int value)
 {
-	const auto location = glGetUniformLocation(m_ProgramId, name.data());
-	if (location == -1)
-	{
-		spdlog::warn("Uniform \"{}\" does not exist.", name);
-	}
-	else
-	{
-		glUniform1ui(location, value);
-	}
+	const auto location = GetUniformLocation(name);
+	GLCALL(glUniform1i(location, value));
 }
 
-void stw::Pipeline::SetFloat(const std::string_view name, const float value) const
+void stw::Pipeline::SetUnsignedInt(const std::string_view name, const u32 value)
 {
-	const auto location = glGetUniformLocation(m_ProgramId, name.data());
-	if (location == -1)
-	{
-		spdlog::warn("Uniform \"{}\" does not exist.", name);
-	}
-	else
-	{
-		glUniform1f(location, value);
-	}
+	const auto location = GetUniformLocation(name);
+	GLCALL(glUniform1ui(location, value));
 }
 
-void stw::Pipeline::SetVec3(const std::string_view name, glm::vec3 value) const
+void stw::Pipeline::SetFloat(const std::string_view name, const float value)
 {
-	const auto location = glGetUniformLocation(m_ProgramId, name.data());
-	if (location == -1)
-	{
-		spdlog::warn("Uniform \"{}\" does not exist.", name);
-	}
-	else
-	{
-		glUniform3fv(location, 1, &value[0]);
-	}
+	const auto location = GetUniformLocation(name);
+	GLCALL(glUniform1f(location, value));
 }
 
-void stw::Pipeline::SetMat3(const std::string_view name, const glm::mat3& mat) const
+void stw::Pipeline::SetVec3(const std::string_view name, glm::vec3 value)
 {
-	const auto location = glGetUniformLocation(m_ProgramId, name.data());
-	if (location == -1)
-	{
-		spdlog::warn("Uniform \"{}\" does not exist.", name);
-	}
-	else
-	{
-		glUniformMatrix3fv(location, 1, GL_FALSE, &mat[0][0]);
-	}
+	const auto location = GetUniformLocation(name);
+	GLCALL(glUniform3fv(location, 1, &value[0]));
 }
 
-void stw::Pipeline::SetMat4(const std::string_view name, const glm::mat4& mat) const
+void stw::Pipeline::SetMat3(const std::string_view name, const glm::mat3& mat)
 {
-	const auto location = glGetUniformLocation(m_ProgramId, name.data());
-	if (location == -1)
-	{
-		spdlog::warn("Uniform \"{}\" does not exist.", name);
-	}
-	else
-	{
-		glUniformMatrix4fv(location, 1, GL_FALSE, &mat[0][0]);
-	}
+	const auto location = GetUniformLocation(name);
+	GLCALL(glUniformMatrix3fv(location, 1, GL_FALSE, &mat[0][0]));
+}
+
+void stw::Pipeline::SetMat4(const std::string_view name, const glm::mat4& mat)
+{
+	const auto location = GetUniformLocation(name);
+	GLCALL(glUniformMatrix4fv(location, 1, GL_FALSE, &mat[0][0]));
 }
 
 void stw::Pipeline::SetPointLightsCount(const u32 count)
@@ -133,7 +90,7 @@ void stw::Pipeline::SetSpotLightsCount(const u32 count)
 void stw::Pipeline::SetPointLight(std::string_view name,
 	u32 index,
 	const PointLight& pointLight,
-	const glm::mat4& view) const
+	const glm::mat4& view)
 {
 	ASSERT_MESSAGE(index < m_PointLightsCount, "Index should be bellow the light count.");
 
@@ -153,7 +110,7 @@ void stw::Pipeline::SetPointLight(std::string_view name,
 
 void stw::Pipeline::SetDirectionalLight(std::string_view name,
 	u32 index,
-	const DirectionalLight& directionalLight) const
+	const DirectionalLight& directionalLight)
 {
 	ASSERT_MESSAGE(index < m_DirectionalLightsCount, "Index should be bellow the light count.");
 
@@ -167,7 +124,7 @@ void stw::Pipeline::SetDirectionalLight(std::string_view name,
 void stw::Pipeline::SetSpotLight(std::string_view name,
 	u32 index,
 	const SpotLight& spotLight,
-	const glm::mat4& view) const
+	const glm::mat4& view)
 {
 	ASSERT_MESSAGE(index < m_SpotLightsCount, "Index should be bellow the light count.");
 
@@ -185,6 +142,23 @@ void stw::Pipeline::SetSpotLight(std::string_view name,
 	SetFloat(fmt::format("{}.quadratic", indexedName), spotLight.quadratic);
 	SetFloat(fmt::format("{}.cutOff", indexedName), spotLight.cutOff);
 	SetFloat(fmt::format("{}.outerCutOff", indexedName), spotLight.outerCutOff);
+}
+
+GLint stw::Pipeline::GetUniformLocation(const std::string_view name)
+{
+	if (const auto search = m_UniformsLocation.find(name); search != m_UniformsLocation.end())
+	{
+		return search->second;
+	}
+
+	const auto location = glGetUniformLocation(m_ProgramId, name.data());
+	if (location == -1)
+	{
+		spdlog::warn("Uniform \"{}\" does not exist.", name);
+	}
+
+	m_UniformsLocation[name] = location;
+	return location;
 }
 
 stw::Pipeline::~Pipeline()
@@ -239,11 +213,11 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 {
 	const char* vertexSourcePtr = vertexSource.data();
 	m_VertexShaderId = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(m_VertexShaderId, 1, &vertexSourcePtr, nullptr);
-	glCompileShader(m_VertexShaderId);
+	GLCALL(glShaderSource(m_VertexShaderId, 1, &vertexSourcePtr, nullptr));
+	GLCALL(glCompileShader(m_VertexShaderId));
 
 	GLint success;
-	glGetShaderiv(m_VertexShaderId, GL_COMPILE_STATUS, &success);
+	GLCALL(glGetShaderiv(m_VertexShaderId, GL_COMPILE_STATUS, &success));
 	if (!success)
 	{
 		char infoLog[LogSize];
@@ -254,34 +228,34 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 
 	const char* fragmentSourcePtr = fragmentSource.data();
 	m_FragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(m_FragmentShaderId, 1, &fragmentSourcePtr, nullptr);
-	glCompileShader(m_FragmentShaderId);
+	GLCALL(glShaderSource(m_FragmentShaderId, 1, &fragmentSourcePtr, nullptr));
+	GLCALL(glCompileShader(m_FragmentShaderId));
 
-	glGetShaderiv(m_FragmentShaderId, GL_COMPILE_STATUS, &success);
+	GLCALL(glGetShaderiv(m_FragmentShaderId, GL_COMPILE_STATUS, &success));
 	if (!success)
 	{
 		char infoLog[LogSize];
-		glGetShaderInfoLog(m_FragmentShaderId, LogSize, nullptr, infoLog);
+		GLCALL(glGetShaderInfoLog(m_FragmentShaderId, LogSize, nullptr, infoLog));
 		spdlog::error("Error while loading fragment shader. {}", infoLog);
 		return;
 	}
 
 	m_ProgramId = glCreateProgram();
-	glAttachShader(m_ProgramId, m_VertexShaderId);
-	glAttachShader(m_ProgramId, m_FragmentShaderId);
-	glLinkProgram(m_ProgramId);
+	GLCALL(glAttachShader(m_ProgramId, m_VertexShaderId));
+	GLCALL(glAttachShader(m_ProgramId, m_FragmentShaderId));
+	GLCALL(glLinkProgram(m_ProgramId));
 
-	glGetProgramiv(m_ProgramId, GL_LINK_STATUS, &success);
+	GLCALL(glGetProgramiv(m_ProgramId, GL_LINK_STATUS, &success));
 	if (!success)
 	{
 		char infoLog[LogSize];
-		glGetProgramInfoLog(m_ProgramId, LogSize, nullptr, infoLog);
+		GLCALL(glGetProgramInfoLog(m_ProgramId, LogSize, nullptr, infoLog));
 		spdlog::error("Error while linking shader program. {}", infoLog);
 		return;
 	}
 
-	glDeleteShader(m_FragmentShaderId);
-	glDeleteShader(m_VertexShaderId);
+	GLCALL(glDeleteShader(m_FragmentShaderId));
+	GLCALL(glDeleteShader(m_VertexShaderId));
 
 	m_IsInitialized = true;
 }
@@ -295,7 +269,7 @@ void stw::Pipeline::Delete()
 		return;
 	}
 
-	glDeleteProgram(m_ProgramId);
+	GLCALL(glDeleteProgram(m_ProgramId));
 	m_ProgramId = 0;
 }
 
