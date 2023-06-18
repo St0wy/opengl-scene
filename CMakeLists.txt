@@ -27,6 +27,7 @@ add_executable(
 	"include/scenes/cubemap_scene.hpp"
 	"include/scenes/instancing_scene.hpp"
 	"include/scenes/scene.hpp"
+	"include/scenes/gamma_scene.hpp"
 	"include/shader.hpp"
 	"include/texture.hpp"
 	"include/timer.hpp"

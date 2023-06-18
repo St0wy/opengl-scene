@@ -36,8 +36,6 @@ class VertexBufferLayout
 public:
 	VertexBufferLayout() = default;
 
-	VertexBufferLayout(GLuint startIndex);
-
 	[[nodiscard]] GLsizei GetStride() const;
 	[[nodiscard]] const std::vector<VertexBufferElement>& GetElements() const;
 	[[nodiscard]] std::vector<VertexBufferElement>& GetElements();
