@@ -1,7 +1,7 @@
 #include <spdlog/spdlog.h>
 
 #include "window.hpp"
-#include "scenes/gamma_scene.hpp"
+#include "scenes/normal_map_scene.hpp"
 
 int main(int, char*[])
 {
@@ -9,7 +9,7 @@ int main(int, char*[])
 	spdlog::set_level(spdlog::level::debug);
 #endif
 
-	stw::Window<stw::GammaScene> window("OpenGL Scene");
+	stw::Window<stw::NormalMapScene> window("OpenGL Scene");
 	window.Loop();
 	return 0;
 }

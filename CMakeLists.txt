@@ -45,6 +45,7 @@ add_executable(
 	"src/texture.cpp"
 	"src/timer.cpp"
 	"src/utils.cpp"
+	"include/scenes/normal_map_scene.hpp"
 )
 
 target_include_directories(opengl_scene PRIVATE include/ external/)

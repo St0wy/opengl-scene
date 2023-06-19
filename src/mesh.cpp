@@ -86,6 +86,7 @@ void stw::Mesh::DrawInstanced(Pipeline& pipeline, const std::span<const glm::mat
 {
 	u32 diffuseTextureCount = 0;
 	u32 specularTextureCount = 0;
+	u32 normalTextureCount = 0;
 	for (std::size_t i = 0; i < m_Textures.size(); i++)
 	{
 		const auto id = GetTextureFromId(static_cast<i32>(i));
@@ -101,6 +102,10 @@ void stw::Mesh::DrawInstanced(Pipeline& pipeline, const std::span<const glm::mat
 		case TextureType::Specular:
 			specularTextureCount++;
 			number = specularTextureCount;
+			break;
+		case TextureType::Normal:
+			normalTextureCount++;
+			number = normalTextureCount;
 			break;
 		default:
 			break;
@@ -119,6 +124,7 @@ void stw::Mesh::DrawInstanced(Pipeline& pipeline, const std::span<const glm::mat
 void stw::Mesh::DrawNoSpecularInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
 {
 	u32 diffuseTextureCount = 0;
+	u32 normalTextureCount = 0;
 	for (std::size_t i = 0; i < m_Textures.size(); i++)
 	{
 		const auto id = GetTextureFromId(static_cast<i32>(i));
@@ -131,11 +137,15 @@ void stw::Mesh::DrawNoSpecularInstanced(Pipeline& pipeline, const std::span<cons
 			diffuseTextureCount++;
 			number = diffuseTextureCount;
 			break;
+		case TextureType::Normal:
+			normalTextureCount++;
+			number = normalTextureCount;
+			break;
 		default:
 			break;
 		}
 
-		pipeline.SetInt(fmt::format("material.texture_diffuse{}", number), static_cast<i32>(i));
+		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
 		glBindTexture(GL_TEXTURE_2D, m_Textures[i].textureId);
 	}
 	glActiveTexture(GL_TEXTURE0);
@@ -169,6 +179,7 @@ void stw::Mesh::SetupMesh()
 	vertexLayout.Push<float>(3);
 	vertexLayout.Push<float>(3);
 	vertexLayout.Push<float>(2);
+	vertexLayout.Push<float>(3);
 
 	m_VertexArray.AddBuffer(m_VertexBuffer, vertexLayout);
 

@@ -214,7 +214,7 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 	{
 		char infoLog[LogSize];
 		glGetShaderInfoLog(m_VertexShaderId, LogSize, nullptr, infoLog);
-		spdlog::error("Error while loading vertex shader. {}", infoLog);
+		spdlog::error("Error while loading vertex shader.\n{}", infoLog);
 		return;
 	}
 
@@ -228,7 +228,7 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 	{
 		char infoLog[LogSize];
 		GLCALL(glGetShaderInfoLog(m_FragmentShaderId, LogSize, nullptr, infoLog));
-		spdlog::error("Error while loading fragment shader. {}", infoLog);
+		spdlog::error("Error while loading fragment shader.\n{}", infoLog);
 		return;
 	}
 
@@ -242,7 +242,9 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 	{
 		char infoLog[LogSize];
 		GLCALL(glGetProgramInfoLog(m_ProgramId, LogSize, nullptr, infoLog));
-		spdlog::error("Error while linking shader program. {}", infoLog);
+		spdlog::error("Error while linking shader program.\n{}", infoLog);
+		GLCALL(glDeleteShader(m_FragmentShaderId));
+		GLCALL(glDeleteShader(m_VertexShaderId));
 		return;
 	}
 
@@ -250,24 +252,6 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 	GLCALL(glDeleteShader(m_VertexShaderId));
 
 	m_IsInitialized = true;
-
-	GLint numActiveUniforms = 0;
-	glGetProgramiv(m_ProgramId, GL_ACTIVE_UNIFORMS, &numActiveUniforms);
-
-	spdlog::debug("Number of active uniforms : {}", numActiveUniforms);
-
-	for (int i = 0; i < numActiveUniforms; ++i)
-	{
-		constexpr GLsizei bufferSize = 256;
-		GLchar name[bufferSize];
-		GLsizei length;
-		GLint size;
-		GLenum type;
-
-		glGetActiveUniform(m_ProgramId, i, bufferSize, &length, &size, &type, name);
-
-		spdlog::debug("Uniform #{} : Name={}, Length={}, Size={}, Type={}", i, name, length, size, type);
-	}
 }
 
 void stw::Pipeline::Delete()

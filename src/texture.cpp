@@ -48,13 +48,17 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::f
 	}
 
 	GLenum glFormat;
-	GLint internalFormat = 0;
+	GLint internalFormat;
 	switch (nbrComponents)
 	{
 	case 1:
 		glFormat = GL_RED;
 		internalFormat = static_cast<GLint>(glFormat);
 
+		break;
+	case 2:
+		glFormat = GL_RG;
+		internalFormat = static_cast<GLint>(glFormat);
 		break;
 	case 3:
 		glFormat = GL_RGB;
@@ -136,6 +140,8 @@ const char* stw::ToString(const TextureType type)
 		return "texture_diffuse";
 	case TextureType::Specular:
 		return "texture_specular";
+	case TextureType::Normal:
+		return "texture_normal";
 	case TextureType::CubeMap:
 		return "texture_cube_map";
 	}
@@ -151,6 +157,8 @@ aiTextureType stw::ToAssimpTextureType(const TextureType type)
 		return aiTextureType_DIFFUSE;
 	case TextureType::Specular:
 		return aiTextureType_SPECULAR;
+	case TextureType::Normal:
+		return aiTextureType_NORMALS;
 	default:
 		return aiTextureType_NONE;
 	}

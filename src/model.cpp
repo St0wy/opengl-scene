@@ -101,10 +101,11 @@ stw::Mesh stw::Model::ProcessMesh(aiMesh* assimpMesh, const aiScene* assimpScene
 	vertices.reserve(assimpMesh->mNumVertices);
 	for (std::size_t i = 0; i < assimpMesh->mNumVertices; ++i)
 	{
-		const auto meshVertex = assimpMesh->mVertices[i];
-		const auto meshNormal = assimpMesh->mNormals[i];
+		const aiVector3D meshVertex = assimpMesh->mVertices[i];
+		const aiVector3D meshNormal = assimpMesh->mNormals[i];
+		const aiVector3D meshTangent = assimpMesh->mTangents[i];
 
-		glm::vec2 textureCoords(0.0);
+		glm::vec2 textureCoords(0.0f);
 		if (assimpMesh->mTextureCoords[0])
 		{
 			const auto meshTextureCoords = assimpMesh->mTextureCoords[0][i];
@@ -115,7 +116,8 @@ stw::Mesh stw::Model::ProcessMesh(aiMesh* assimpMesh, const aiScene* assimpScene
 		Vertex vertex{
 			{meshVertex.x, meshVertex.y, meshVertex.z,},
 			{meshNormal.x, meshNormal.y, meshNormal.z,},
-			textureCoords
+			textureCoords,
+			{meshTangent.x, meshTangent.y, meshTangent.z}
 		};
 		vertices.push_back(vertex);
 	}
@@ -140,6 +142,9 @@ stw::Mesh stw::Model::ProcessMesh(aiMesh* assimpMesh, const aiScene* assimpScene
 
 		std::vector<Texture> specularMaps = LoadMaterialTextures(material, TextureType::Specular);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+
+		std::vector<Texture> normalMaps = LoadMaterialTextures(material, TextureType::Normal);
+		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 	}
 
 	Mesh mesh;

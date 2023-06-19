@@ -19,6 +19,7 @@ enum class TextureType
 {
 	Diffuse,
 	Specular,
+	Normal,
 	CubeMap,
 };
 
