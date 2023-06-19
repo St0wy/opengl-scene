@@ -87,10 +87,7 @@ void stw::Pipeline::SetSpotLightsCount(const u32 count)
 	m_SpotLightsCount = count;
 }
 
-void stw::Pipeline::SetPointLight(std::string_view name,
-	u32 index,
-	const PointLight& pointLight,
-	const glm::mat4& view)
+void stw::Pipeline::SetPointLight(std::string_view name, u32 index, const PointLight& pointLight, const glm::mat4& view)
 {
 	ASSERT_MESSAGE(index < m_PointLightsCount, "Index should be bellow the light count.");
 
@@ -108,9 +105,7 @@ void stw::Pipeline::SetPointLight(std::string_view name,
 	SetFloat(fmt::format("{}.quadratic", indexedName), pointLight.quadratic);
 }
 
-void stw::Pipeline::SetDirectionalLight(std::string_view name,
-	u32 index,
-	const DirectionalLight& directionalLight)
+void stw::Pipeline::SetDirectionalLight(std::string_view name, u32 index, const DirectionalLight& directionalLight)
 {
 	ASSERT_MESSAGE(index < m_DirectionalLightsCount, "Index should be bellow the light count.");
 
@@ -121,10 +116,7 @@ void stw::Pipeline::SetDirectionalLight(std::string_view name,
 	SetVec3(fmt::format("{}.specular", indexedName), directionalLight.specular);
 }
 
-void stw::Pipeline::SetSpotLight(std::string_view name,
-	u32 index,
-	const SpotLight& spotLight,
-	const glm::mat4& view)
+void stw::Pipeline::SetSpotLight(std::string_view name, u32 index, const SpotLight& spotLight, const glm::mat4& view)
 {
 	ASSERT_MESSAGE(index < m_SpotLightsCount, "Index should be bellow the light count.");
 
@@ -146,10 +138,8 @@ void stw::Pipeline::SetSpotLight(std::string_view name,
 
 GLint stw::Pipeline::GetUniformLocation(const std::string_view name)
 {
-	Bind();
 	if (const auto search = m_UniformsLocation.find(name); search != m_UniformsLocation.end())
 	{
-		UnBind();
 		return search->second;
 	}
 
@@ -160,7 +150,6 @@ GLint stw::Pipeline::GetUniformLocation(const std::string_view name)
 	}
 
 	m_UniformsLocation[name] = location;
-	UnBind();
 	return location;
 }
 
@@ -261,6 +250,24 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 	GLCALL(glDeleteShader(m_VertexShaderId));
 
 	m_IsInitialized = true;
+
+	GLint numActiveUniforms = 0;
+	glGetProgramiv(m_ProgramId, GL_ACTIVE_UNIFORMS, &numActiveUniforms);
+
+	spdlog::debug("Number of active uniforms : {}", numActiveUniforms);
+
+	for (int i = 0; i < numActiveUniforms; ++i)
+	{
+		constexpr GLsizei bufferSize = 256;
+		GLchar name[bufferSize];
+		GLsizei length;
+		GLint size;
+		GLenum type;
+
+		glGetActiveUniform(m_ProgramId, i, bufferSize, &length, &size, &type, name);
+
+		spdlog::debug("Uniform #{} : Name={}, Length={}, Size={}, Type={}", i, name, length, size, type);
+	}
 }
 
 void stw::Pipeline::Delete()

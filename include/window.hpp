@@ -73,7 +73,7 @@ Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 window
 
 	m_GlRenderContext = SDL_GL_CreateContext(m_Window);
 	SDL_GL_SetSwapInterval(-1);
-	// SDL_SetRelativeMouseMode(SDL_TRUE);
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	if (glewInit() != GLEW_OK)
 	{

@@ -37,7 +37,16 @@ GLenum GetTextureFromId(const i32 id)
 
 void ClearGlErrors()
 {
-	while (glGetError() != GL_NO_ERROR);
+	constexpr int maxErrorCount = 100;
+	int i = 0;
+	while (glGetError() != GL_NO_ERROR)
+	{
+		i++;
+		if (i >= maxErrorCount)
+		{
+			spdlog::warn("Clearing more than {} errors...", maxErrorCount);
+		}
+	}
 }
 
 bool CheckGlError(std::string_view file, u32 line)
