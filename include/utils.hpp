@@ -14,7 +14,7 @@
 #if defined(_MSC_VER) && !defined(NDEBUG)
 #define ASSERTD(x) if(!(x)) __debugbreak()
 #else
-#define ASSERTD(x) x
+#define ASSERTD(x) (void)x
 #endif
 
 #ifndef NDEBUG

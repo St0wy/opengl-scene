@@ -93,11 +93,11 @@ Duration Timer::GetElapsedTime()
 	m_StartTimeInMicroSec = startCountDouble * (1000000.0 / frequencyDouble);
 	m_EndTimeInMicroSec = endCountDouble * (1000000.0 / frequencyDouble);
 #else
-    if(!stopped)
-        gettimeofday(&m_EndCount, NULL);
+	if (!m_Stopped)
+		gettimeofday(&m_EndCount, NULL);
 
-    startTimeInMicroSec = (m_StartCount.tv_sec * 1000000.0) + m_StartCount.tv_usec;
-    endTimeInMicroSec = (m_EndCount.tv_sec * 1000000.0) + m_EndCount.tv_usec;
+	m_StartTimeInMicroSec = (m_StartCount.tv_sec * 1000000.0) + m_StartCount.tv_usec;
+	m_EndTimeInMicroSec = (m_EndCount.tv_sec * 1000000.0) + m_EndCount.tv_usec;
 #endif
 
 	return Duration::FromMicroSeconds(m_EndTimeInMicroSec - m_StartTimeInMicroSec);

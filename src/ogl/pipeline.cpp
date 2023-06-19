@@ -146,18 +146,21 @@ void stw::Pipeline::SetSpotLight(std::string_view name,
 
 GLint stw::Pipeline::GetUniformLocation(const std::string_view name)
 {
+	Bind();
 	if (const auto search = m_UniformsLocation.find(name); search != m_UniformsLocation.end())
 	{
+		UnBind();
 		return search->second;
 	}
 
-	const auto location = glGetUniformLocation(m_ProgramId, name.data());
+	GLCALL(const auto location = glGetUniformLocation(m_ProgramId, name.data()));
 	if (location == -1)
 	{
 		spdlog::warn("Uniform \"{}\" does not exist.", name);
 	}
 
 	m_UniformsLocation[name] = location;
+	UnBind();
 	return location;
 }
 

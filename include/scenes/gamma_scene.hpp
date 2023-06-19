@@ -84,13 +84,12 @@ public:
 		// Setup lights
 		constexpr PointLight pointLight{
 			{0.0f, 2.0f, 0.0f},
-			{0.01f},
-			{0.1f},
-			{0.2f},
+			0.01f,
+			0.1f,
+			0.2f,
 			{0.5f, 0.5f, 0.5f},
 			{0.8f, 0.8f, 0.8f},
-			{1.0f, 1.0f, 1.0f}
-		};
+			{1.0f, 1.0f, 1.0f}};
 		pipeline.SetPointLightsCount(1);
 		pipeline.SetPointLight("pointLights", 0, pointLight, view);
 

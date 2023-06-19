@@ -9,7 +9,7 @@
 #define STBI_FAILURE_USERMSG
 #endif
 #include <array>
-#include <stb_image.h>
+#include <stb_image/stb_image.h>
 #include <spdlog/spdlog.h>
 
 #include "utils.hpp"

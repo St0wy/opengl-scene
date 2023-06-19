@@ -136,11 +136,10 @@ stw::Mesh stw::Model::ProcessMesh(aiMesh* assimpMesh, const aiScene* assimpScene
 	{
 		aiMaterial* material = assimpScene->mMaterials[assimpMesh->mMaterialIndex];
 		std::vector<Texture> diffuseMaps = LoadMaterialTextures(material, TextureType::Diffuse);
-
-		textures.insert_range(textures.end(), diffuseMaps);
+		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
 		std::vector<Texture> specularMaps = LoadMaterialTextures(material, TextureType::Specular);
-		textures.insert_range(textures.end(), specularMaps);
+		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 	}
 
 	Mesh mesh;

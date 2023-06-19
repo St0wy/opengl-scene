@@ -65,9 +65,9 @@ target_link_system_libraries(
 add_dependencies(opengl_scene shader_target data_target)
 
 set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION true)
-set_target_properties(opengl_scene PROPERTIES CXX_EXCEPTIONS Off)
+#set_target_properties(opengl_scene PROPERTIES CXX_EXCEPTIONS Off)
 set_target_properties(opengl_scene PROPERTIES CXX_RTTI Off)
-set_target_properties(opengl_scene PROPERTIES CXX_WARNINGS All)
+#set_target_properties(opengl_scene PROPERTIES CXX_WARNINGS All)
 
 # if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release") message("Setting flags to have no console")
 # set_target_properties(opengl_scene PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup") endif()

@@ -100,8 +100,8 @@ private:
 	LARGE_INTEGER m_StartCount;
 	LARGE_INTEGER m_EndCount;
 #else
-    timeval startCount;                         
-    timeval endCount;                           
+    timeval m_StartCount;                         
+    timeval m_EndCount;                           
 #endif
 };
 }
