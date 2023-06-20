@@ -90,7 +90,7 @@ void main()
     vec3 N = normalize(normalMatrix * aNormal);
     T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);
-    mat3 TBN = mat3(T, B, N);
+    mat3 TBN = transpose(mat3(T, B, N));
 
     for (int i = 0; i < pointLightsCount; i++)
     {
@@ -101,3 +101,23 @@ void main()
 
     gl_Position = projection * view * modelMatrix * vec4(aPos, 1.0);
 }
+//
+//void main()
+//{
+//    vec3 fragPos = vec3(modelMatrix * vec4(aPos, 1.0));   
+//    TexCoords = aTexCoords;
+//    
+//    mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
+//    vec3 T = normalize(normalMatrix * aTangent);
+//    vec3 N = normalize(normalMatrix * aNormal);
+//    T = normalize(T - dot(T, N) * N);
+//    vec3 B = cross(N, T);
+//    
+//    mat3 TBN = transpose(mat3(T, B, N));    
+//    TangentPointLightsPos[0] = TBN * pointLights[0].position;
+//    TangentViewPos  = TBN * viewPos;
+//    TangentFragPos  = TBN * fragPos;
+//        
+//    gl_Position = projection * view * modelMatrix * vec4(aPos, 1.0);
+//}
+//

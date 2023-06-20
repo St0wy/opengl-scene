@@ -48,10 +48,11 @@ void stw::Pipeline::SetFloat(const std::string_view name, const float value)
 	GLCALL(glUniform1f(location, value));
 }
 
-void stw::Pipeline::SetVec3(const std::string_view name, glm::vec3 value)
+void stw::Pipeline::SetVec3(const std::string_view name, const glm::vec3 value)
 {
 	const auto location = GetUniformLocation(name);
-	GLCALL(glUniform3fv(location, 1, &value[0]));
+
+	GLCALL(glUniform3f(location, value.x, value.y, value.z));
 }
 
 void stw::Pipeline::SetMat3(const std::string_view name, const glm::mat3& mat)
@@ -87,14 +88,14 @@ void stw::Pipeline::SetSpotLightsCount(const u32 count)
 	m_SpotLightsCount = count;
 }
 
-void stw::Pipeline::SetPointLight(std::string_view name, u32 index, const PointLight& pointLight, const glm::mat4& view)
+void stw::Pipeline::SetPointLight(std::string_view name, u32 index, const stw::PointLight& pointLight)
 {
 	ASSERT_MESSAGE(index < m_PointLightsCount, "Index should be bellow the light count.");
 
 	const auto indexedName = fmt::format("{}[{}]", name, index);
 
-	const auto viewSpaceLightPosition = glm::vec3(view * glm::vec4(pointLight.position, 1.0f));
-	SetVec3(fmt::format("{}.position", indexedName), viewSpaceLightPosition);
+	//const auto viewSpaceLightPosition = glm::vec3(view * glm::vec4(pointLight.position, 1.0f));
+	SetVec3(fmt::format("{}.position", indexedName), pointLight.position);
 
 	SetVec3(fmt::format("{}.ambient", indexedName), pointLight.ambient);
 	SetVec3(fmt::format("{}.diffuse", indexedName), pointLight.diffuse);
@@ -116,16 +117,14 @@ void stw::Pipeline::SetDirectionalLight(std::string_view name, u32 index, const 
 	SetVec3(fmt::format("{}.specular", indexedName), directionalLight.specular);
 }
 
-void stw::Pipeline::SetSpotLight(std::string_view name, u32 index, const SpotLight& spotLight, const glm::mat4& view)
+void stw::Pipeline::SetSpotLight(std::string_view name, u32 index, const SpotLight& spotLight)
 {
 	ASSERT_MESSAGE(index < m_SpotLightsCount, "Index should be bellow the light count.");
 
 	const auto indexedName = fmt::format("{}[{}]", name, index);
 
-	const auto viewSpacePosition = glm::vec3(view * glm::vec4(spotLight.position, 1.0f));
-	SetVec3(fmt::format("{}.position", indexedName), viewSpacePosition);
-	const auto viewSpaceDirection = glm::vec3(view * glm::vec4(spotLight.direction, 1.0f));
-	SetVec3(fmt::format("{}.direction", indexedName), viewSpaceDirection);
+	SetVec3(fmt::format("{}.position", indexedName), spotLight.position);
+	SetVec3(fmt::format("{}.direction", indexedName), spotLight.direction);
 	SetVec3(fmt::format("{}.ambient", indexedName), spotLight.ambient);
 	SetVec3(fmt::format("{}.diffuse", indexedName), spotLight.diffuse);
 	SetVec3(fmt::format("{}.specular", indexedName), spotLight.specular);

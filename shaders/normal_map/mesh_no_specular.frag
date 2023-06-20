@@ -61,7 +61,6 @@ uniform Material material;
 
 out vec4 FragColor;
 
-//in vec3 FragPos;
 in vec2 TexCoords;
 in vec3 TangentViewPos;
 in vec3 TangentPointLightsPos[MAX_POINT_LIGHTS];
@@ -70,6 +69,31 @@ in vec3 TangentFragPos;
 vec3 ComputeDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirection);
 vec3 ComputePointLight(PointLight light, vec3 lightPos, vec3 normal, vec3 fragmentPosition, vec3 viewDirection);
 vec3 ComputeSpotLight(SpotLight light, vec3 normal, vec3 fragmentPosition, vec3 viewDirection);
+
+//void main()
+//{           
+//     // obtain normal from normal map in range [0,1]
+//    vec3 normal = texture(material.texture_normal1, TexCoords).rgb;
+//    // transform normal vector to range [-1,1]
+//    normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space
+//   
+//    // get diffuse color
+//    vec3 color = texture(material.texture_diffuse1, TexCoords).rgb;
+//    // ambient
+//    vec3 ambient = 0.1 * color;
+//    // diffuse
+//    vec3 lightDir = normalize(TangentPointLightsPos[0] - TangentFragPos);
+//    float diff = max(dot(lightDir, normal), 0.0);
+//    vec3 diffuse = diff * color;
+//    // specular
+//    vec3 viewDir = normalize(TangentViewPos - TangentFragPos);
+//    vec3 reflectDir = reflect(-lightDir, normal);
+//    vec3 halfwayDir = normalize(lightDir + viewDir);  
+//    float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
+//
+//    vec3 specular = vec3(0.2) * spec;
+//    FragColor = vec4(ambient + diffuse + specular, 1.0);
+//}
 
 void main()
 {
@@ -118,10 +142,12 @@ vec3 ComputeDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirec
 
 vec3 ComputePointLight(PointLight light, vec3 lightPos, vec3 normal, vec3 fragmentPosition, vec3 viewDirection)
 {
+    vec3 diffuseTexture = texture(material.texture_diffuse1, TexCoords).rgb;
+
     vec3 lightDirection = normalize(lightPos - fragmentPosition);
 
     // Diffuse
-    float diffuseIntensity = max(dot(normal, lightDirection), 0.0);
+    float diffuseIntensity = max(dot(lightDirection, normal), 0.0);
 
     // Specular
     vec3 reflectDirection = reflect(-lightDirection, normal);
@@ -132,8 +158,8 @@ vec3 ComputePointLight(PointLight light, vec3 lightPos, vec3 normal, vec3 fragme
     float distance = length(lightPos - fragmentPosition);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
-    vec3 ambient = light.ambient * texture(material.texture_diffuse1, TexCoords).rgb;
-    vec3 diffuse = light.diffuse * diffuseIntensity * texture(material.texture_diffuse1, TexCoords).rgb;
+    vec3 ambient = light.ambient * diffuseTexture;
+    vec3 diffuse = light.diffuse * diffuseIntensity * diffuseTexture;
     vec3 specular = light.specular * specularIntensity * material.specular;
 
     ambient *= attenuation;

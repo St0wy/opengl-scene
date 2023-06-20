@@ -83,12 +83,12 @@ public:
 
 		// Setup lights
 		constexpr PointLight pointLight{
-			{0.0f, 2.0f, 2.0f},
+			{0.0f, 0.0f, 1.0f},
 			0.01f,
 			0.1f,
-			0.4f,
-			{0.5f, 0.5f, 0.5f},
-			{0.5f, 0.5f, 0.5f},
+			0.5f,
+			glm::vec3{0.5f},
+			glm::vec3{0.3f},
 			{1.0f, 1.0f, 1.0f}
 		};
 		pipeline.SetPointLightsCount(1);
@@ -127,7 +127,7 @@ public:
 
 		m_Pipeline.Bind();
 
-		m_Pipeline.SetFloat("material.specular", 0.1f);
+		m_Pipeline.SetFloat("material.specular", 0.5f);
 
 
 		auto modelMatrix = glm::mat4(1.0f);
