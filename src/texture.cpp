@@ -132,6 +132,28 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadCubeMap(
 	return {Texture{textureId, TextureType::CubeMap}};
 }
 
+void stw::Texture::Init()
+{
+	glGenTextures(1, &textureId);
+}
+
+void stw::Texture::Bind() const
+{
+	if (textureId == 0)
+	{
+		spdlog::error("Binding texture that is not initialized");
+	}
+
+	const auto glType = GetGlTextureType(textureType);
+	GLCALL(glBindTexture(glType, textureId));
+}
+
+void stw::Texture::Delete()
+{
+	glDeleteTextures(1, &textureId);
+	textureId = 0;
+}
+
 const char* stw::ToString(const TextureType type)
 {
 	switch (type)

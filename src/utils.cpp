@@ -10,6 +10,8 @@
 #include <GL/glew.h>
 #include <spdlog/spdlog.h>
 
+#include "texture.hpp"
+
 namespace stw
 {
 std::optional<std::string> OpenFile(const std::filesystem::path& filename)
@@ -33,6 +35,21 @@ GLenum GetTextureFromId(const i32 id)
 	}
 
 	return static_cast<GLenum>(GL_TEXTURE0 + id);
+}
+
+GLenum GetGlTextureType(const TextureType type)
+{
+	switch (type)
+	{
+	case TextureType::Diffuse:
+	case TextureType::Specular:
+	case TextureType::Normal:
+		return GL_TEXTURE_2D;
+	case TextureType::CubeMap:
+		return GL_TEXTURE_CUBE_MAP;
+	}
+
+	return GL_INVALID_ENUM;
 }
 
 void ClearGlErrors()

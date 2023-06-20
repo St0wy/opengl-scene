@@ -66,6 +66,9 @@ struct Texture
 	static std::expected<Texture, std::string> LoadFromPath(const std::filesystem::path& path, TextureType type, TextureFormat format = TextureFormat::Linear);
 	static std::expected<Texture, std::string> LoadCubeMap(const std::array<std::filesystem::path, CubeMapTextureCount>& paths);
 
+	void Init();
+	void Bind() const;
+
 	GLuint textureId;
 	TextureType textureType;
 };

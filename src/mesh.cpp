@@ -146,7 +146,7 @@ void stw::Mesh::DrawNoSpecularInstanced(Pipeline& pipeline, const std::span<cons
 		}
 
 		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
-		glBindTexture(GL_TEXTURE_2D, m_Textures[i].textureId);
+		m_Textures[i].Bind();
 	}
 	glActiveTexture(GL_TEXTURE0);
 

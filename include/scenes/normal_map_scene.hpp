@@ -92,7 +92,7 @@ public:
 			{1.0f, 1.0f, 1.0f}
 		};
 		pipeline.SetPointLightsCount(1);
-		pipeline.SetPointLight("pointLights", 0, pointLight, view);
+		pipeline.SetPointLight("pointLights", 0, pointLight);
 
 		pipeline.UnBind();
 	}

@@ -2,6 +2,7 @@
 
 #include "window.hpp"
 #include "scenes/normal_map_scene.hpp"
+#include "ogl/framebuffer.hpp"
 
 int main(int, char*[])
 {
