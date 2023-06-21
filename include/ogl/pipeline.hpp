@@ -85,9 +85,9 @@ public:
 	void SetDirectionalLightsCount(u32 count);
 	void SetSpotLightsCount(u32 count);
 
-	void SetPointLight(std::string_view name, u32 index, const PointLight& pointLight, const glm::mat4& view);
+	void SetPointLight(std::string_view name, u32 index, const PointLight& pointLight);
 	void SetDirectionalLight(std::string_view name, u32 index, const DirectionalLight& directionalLight);
-	void SetSpotLight(std::string_view name, u32 index, const SpotLight& spotLight, const glm::mat4& view);
+	void SetSpotLight(std::string_view name, u32 index, const SpotLight& spotLight);
 
 private:
 	std::unordered_map<std::string_view, GLint> m_UniformsLocation{};
@@ -102,6 +102,5 @@ private:
 	u32 m_SpotLightsCount = 0;
 
 	GLint GetUniformLocation(const std::string_view name);
-
 };
 }

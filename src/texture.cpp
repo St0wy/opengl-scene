@@ -27,11 +27,8 @@ void stw::SmartTexture::Bind(Pipeline& pipeline) const
 
 std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::filesystem::path& path,
 	const TextureType type,
-	const TextureFormat format)
+	const TextureSpace space)
 {
-	GLuint textureId = 0;
-	glGenTextures(1, &textureId);
-
 	int width;
 	int height;
 	int nbrComponents;
@@ -41,15 +38,76 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::f
 	if (!data)
 	{
 		stbi_image_free(data);
-		glDeleteTextures(1, &textureId);
 		return std::unexpected(fmt::format("Texture failed to load at path: {}\n{}",
 			stringPath,
 			stbi_failure_reason()));
 	}
 
-	GLenum glFormat;
-	GLint internalFormat;
-	switch (nbrComponents)
+	Texture texture;
+	texture.Init(type, space);
+	texture.SetFormat(nbrComponents);
+	texture.Bind();
+	texture.Specify(width, height, data);
+	texture.GenerateMipmap();
+
+	texture.SetMinFilter(GL_LINEAR_MIPMAP_LINEAR);
+	texture.SetMagFilter(GL_LINEAR);
+	texture.SetWrapS(GL_REPEAT);
+	texture.SetWrapT(GL_REPEAT);
+
+	stbi_image_free(data);
+
+	return {texture};
+}
+
+std::expected<stw::Texture, std::string> stw::Texture::LoadCubeMap(
+	const std::array<std::filesystem::path, CubeMapTextureCount>& paths)
+{
+	Texture texture;
+	texture.Init(TextureType::CubeMap, TextureSpace::Srgb);
+	texture.Bind();
+
+	int width;
+	int height;
+	int nbrComponents;
+
+	for (std::size_t i = 0; i < paths.size(); i++)
+	{
+		const auto stringPath = paths[i].string();
+		unsigned char* data = stbi_load(stringPath.c_str(), &width, &height, &nbrComponents, 0);
+		if (!data)
+		{
+			stbi_image_free(data);
+			texture.Delete();
+			return std::unexpected(fmt::format("Texture failed to load at path: {}", stringPath));
+		}
+
+		texture.SetFormat(nbrComponents);
+		const auto target = static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
+		texture.Specify(width, height, data, {target});
+		stbi_image_free(data);
+	}
+
+	texture.SetMinFilter(GL_LINEAR);
+	texture.SetMagFilter(GL_LINEAR);
+	texture.SetWrapS(GL_CLAMP_TO_EDGE);
+	texture.SetWrapT(GL_CLAMP_TO_EDGE);
+	texture.SetWrapR(GL_CLAMP_TO_EDGE);
+
+	return {texture};
+}
+
+void stw::Texture::Init(const TextureType type, const stw::TextureSpace textureSpace)
+{
+	glGenTextures(1, &textureId);
+	this->textureType = type;
+	this->space = textureSpace;
+	m_GlTextureTarget = GetGlTextureTarget(this->textureType);
+}
+
+void stw::Texture::SetFormat(const int nbComponents)
+{
+	switch (nbComponents)
 	{
 	case 1:
 		glFormat = GL_RED;
@@ -63,7 +121,7 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::f
 	case 3:
 		glFormat = GL_RGB;
 		internalFormat = static_cast<GLint>(glFormat);
-		if (format == TextureFormat::Srgb)
+		if (space == TextureSpace::Srgb)
 		{
 			internalFormat = GL_SRGB;
 		}
@@ -71,7 +129,7 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::f
 	case 4:
 		glFormat = GL_RGBA;
 		internalFormat = static_cast<GLint>(glFormat);
-		if (format == TextureFormat::Srgb)
+		if (space == TextureSpace::Srgb)
 		{
 			internalFormat = GL_SRGB_ALPHA;
 		}
@@ -81,60 +139,6 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::f
 		internalFormat = GL_INVALID_ENUM;
 		break;
 	}
-
-	GLCALL(glBindTexture(GL_TEXTURE_2D, textureId));
-	GLCALL(glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, glFormat, GL_UNSIGNED_BYTE, data));
-	GLCALL(glGenerateMipmap(GL_TEXTURE_2D));
-
-	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
-	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-
-	stbi_image_free(data);
-
-	return {Texture{textureId, type}};
-}
-
-std::expected<stw::Texture, std::string> stw::Texture::LoadCubeMap(
-	const std::array<std::filesystem::path, CubeMapTextureCount>& paths)
-{
-	GLuint textureId = 0;
-	glGenTextures(1, &textureId);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
-	int width;
-	int height;
-	int nbrComponents;
-
-	for (std::size_t i = 0; i < paths.size(); i++)
-	{
-		const auto stringPath = paths[i].string();
-		unsigned char* data = stbi_load(stringPath.c_str(), &width, &height, &nbrComponents, 0);
-		if (!data)
-		{
-			stbi_image_free(data);
-			glDeleteTextures(1, &textureId);
-			return std::unexpected(fmt::format("Texture failed to load at path: {}", stringPath));
-		}
-
-		const auto target = static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
-		// TODO: Handle SRGB
-		glTexImage2D(target, 0, GL_RGB, width, height, 0,GL_RGB, GL_UNSIGNED_BYTE, data);
-		stbi_image_free(data);
-	}
-
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-	return {Texture{textureId, TextureType::CubeMap}};
-}
-
-void stw::Texture::Init()
-{
-	glGenTextures(1, &textureId);
 }
 
 void stw::Texture::Bind() const
@@ -144,8 +148,53 @@ void stw::Texture::Bind() const
 		spdlog::error("Binding texture that is not initialized");
 	}
 
-	const auto glType = GetGlTextureType(textureType);
-	GLCALL(glBindTexture(glType, textureId));
+	GLCALL(glBindTexture(m_GlTextureTarget, textureId));
+}
+
+void stw::Texture::Specify(const GLsizei width,
+	const GLsizei height,
+	const GLvoid* data,
+	const std::optional<GLenum> optionalTarget,
+	const GLenum dataType) const
+{
+	if (optionalTarget.has_value())
+	{
+		GLCALL(glTexImage2D(optionalTarget.value(), 0, internalFormat, width, height, 0, glFormat, dataType, data));
+	}
+	else
+	{
+		GLCALL(glTexImage2D(m_GlTextureTarget, 0, internalFormat, width, height, 0, glFormat, dataType, data));
+	}
+}
+
+void stw::Texture::GenerateMipmap() const
+{
+	GLCALL(glGenerateMipmap(m_GlTextureTarget));
+}
+
+void stw::Texture::SetMinFilter(const GLint filter) const
+{
+	glTexParameteri(m_GlTextureTarget, GL_TEXTURE_MIN_FILTER, filter);
+}
+
+void stw::Texture::SetMagFilter(const GLint filter) const
+{
+	glTexParameteri(m_GlTextureTarget, GL_TEXTURE_MAG_FILTER, filter);
+}
+
+void stw::Texture::SetWrapS(const GLint wrap) const
+{
+	glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_S, wrap);
+}
+
+void stw::Texture::SetWrapT(const GLint wrap) const
+{
+	glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_T, wrap);
+}
+
+void stw::Texture::SetWrapR(const GLint wrap) const
+{
+	glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_R, wrap);
 }
 
 void stw::Texture::Delete()
@@ -166,9 +215,9 @@ const char* stw::ToString(const TextureType type)
 		return "texture_normal";
 	case TextureType::CubeMap:
 		return "texture_cube_map";
+	default:
+		return "";
 	}
-
-	return "";
 }
 
 aiTextureType stw::ToAssimpTextureType(const TextureType type)

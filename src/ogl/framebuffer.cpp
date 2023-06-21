@@ -39,6 +39,7 @@ void stw::Framebuffer::UnBind() const
 
 void stw::Framebuffer::Delete()
 {
+	m_Texture.Delete();
 	GLCALL(glDeleteFramebuffers(1, &m_Fbo));
 	m_Fbo = 0;
 }

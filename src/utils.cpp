@@ -37,7 +37,7 @@ GLenum GetTextureFromId(const i32 id)
 	return static_cast<GLenum>(GL_TEXTURE0 + id);
 }
 
-GLenum GetGlTextureType(const TextureType type)
+GLenum GetGlTextureTarget(const TextureType type)
 {
 	switch (type)
 	{
@@ -47,6 +47,8 @@ GLenum GetGlTextureType(const TextureType type)
 		return GL_TEXTURE_2D;
 	case TextureType::CubeMap:
 		return GL_TEXTURE_CUBE_MAP;
+	case TextureType::DepthMap:
+		return GL_DEPTH_COMPONENT;
 	}
 
 	return GL_INVALID_ENUM;

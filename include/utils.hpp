@@ -35,7 +35,7 @@ template <class T, class U>concept Derived = std::is_base_of_v<U, T>;
 std::optional<std::string> OpenFile(const std::filesystem::path& filename);
 
 GLenum GetTextureFromId(i32 id);
-GLenum GetGlTextureType(TextureType type);
+GLenum GetGlTextureTarget(TextureType type);
 
 template <typename T>
 constexpr T MapRange(T value, T a, T b, T c, T d)

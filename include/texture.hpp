@@ -21,9 +21,10 @@ enum class TextureType
 	Specular,
 	Normal,
 	CubeMap,
+	DepthMap,
 };
 
-enum class TextureFormat
+enum class TextureSpace
 {
 	Srgb,
 	Linear
@@ -63,13 +64,35 @@ private:
 struct Texture
 {
 	static constexpr std::size_t CubeMapTextureCount = 6;
-	static std::expected<Texture, std::string> LoadFromPath(const std::filesystem::path& path, TextureType type, TextureFormat format = TextureFormat::Linear);
-	static std::expected<Texture, std::string> LoadCubeMap(const std::array<std::filesystem::path, CubeMapTextureCount>& paths);
-
-	void Init();
-	void Bind() const;
+	static std::expected<Texture, std::string> LoadFromPath(const std::filesystem::path& path,
+		TextureType type,
+		TextureSpace space = TextureSpace::Linear);
+	static std::expected<Texture, std::string> LoadCubeMap(
+		const std::array<std::filesystem::path, CubeMapTextureCount>& paths);
 
 	GLuint textureId;
 	TextureType textureType;
+	TextureSpace space;
+	GLenum glFormat;
+	GLint internalFormat;
+
+	void Bind() const;
+	void Init(TextureType type, const TextureSpace textureSpace);
+	void SetFormat(int nbComponents);
+	void Specify(GLsizei width,
+		GLsizei height,
+		const GLvoid* data,
+		std::optional<GLenum> optionalTarget = {},
+		GLenum dataType = GL_UNSIGNED_BYTE) const;
+	void GenerateMipmap() const;
+	void SetMinFilter(GLint filter) const;
+	void SetMagFilter(GLint filter) const;
+	void SetWrapS(GLint wrap) const;
+	void SetWrapT(GLint wrap) const;
+	void SetWrapR(GLint wrap) const;
+	void Delete();
+
+private:
+	GLenum m_GlTextureTarget = GL_INVALID_ENUM;
 };
 } // namespace stw
