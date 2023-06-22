@@ -13,6 +13,7 @@
 #include "scene.hpp"
 #include "utils.hpp"
 #include "ogl/pipeline.hpp"
+#include "ogl/uniform_buffer.hpp"
 
 namespace stw
 {
@@ -59,27 +60,17 @@ public:
 
 		m_Pipeline.InitFromPath("shaders/normal_map/mesh.vert", "shaders/normal_map/mesh_no_specular.frag");
 
-		const GLuint pipelineMatricesUniformBlockIndex = glGetUniformBlockIndex(m_Pipeline.Id(), "Matrices");
-		GLCALL(glUniformBlockBinding(m_Pipeline.Id(), pipelineMatricesUniformBlockIndex, 0));
-		GLCALL(glGenBuffers(1, &m_UboMatrices));
-		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices));
-
-		// Allocate buffer memory on the gpu
+		m_UniformBuffer.Init(0);
+		m_UniformBuffer.Bind();
 		constexpr GLsizeiptr matricesSize = 2 * sizeof(glm::mat4);
-		GLCALL(glBufferData(GL_UNIFORM_BUFFER, matricesSize, nullptr, GL_STATIC_DRAW));
-		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, 0));
-
-		// Bind buffer to binding point 0
-		GLCALL(glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_UboMatrices, 0, matricesSize));
+		m_UniformBuffer.Allocate(matricesSize);
 		UpdateProjection();
 	}
 
-	void SetupPipeline(Pipeline& pipeline) const
+	static void SetupPipeline(Pipeline& pipeline)
 	{
 		pipeline.Bind();
 		pipeline.SetFloat("material.shininess", 64.0f);
-
-		const glm::mat4 view = m_Camera.GetViewMatrix();
 
 		// Setup lights
 		constexpr PointLight pointLight{
@@ -100,17 +91,17 @@ public:
 	void UpdateProjection() const
 	{
 		const auto projection = m_Camera.GetProjectionMatrix();
-		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices));
-		GLCALL(glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection)));
-		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, 0));
+		m_UniformBuffer.Bind();
+		m_UniformBuffer.SetSubData(0, sizeof(glm::mat4), glm::value_ptr(projection));
+		m_UniformBuffer.UnBind();
 	}
 
 	void UpdateView()
 	{
 		glm::mat4 view = m_Camera.GetViewMatrix();
-		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, m_UboMatrices));
-		GLCALL(glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view)));
-		GLCALL(glBindBuffer(GL_UNIFORM_BUFFER, 0));
+		m_UniformBuffer.Bind();
+		m_UniformBuffer.SetSubData(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+		m_UniformBuffer.UnBind();
 		m_Pipeline.Bind();
 		m_Pipeline.SetVec3("viewPos", m_Camera.Position());
 		m_Pipeline.UnBind();
@@ -199,6 +190,7 @@ public:
 	{
 		m_Pipeline.Delete();
 		m_WallModel.Delete();
+		m_UniformBuffer.Delete();
 	}
 
 private:
@@ -206,6 +198,6 @@ private:
 	//f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 5.0f, 40.0f}};
 	Model m_WallModel;
-	GLuint m_UboMatrices{};
+	UniformBuffer m_UniformBuffer;
 };
 } // namespace stw

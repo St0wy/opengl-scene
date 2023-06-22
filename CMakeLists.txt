@@ -48,6 +48,8 @@ add_executable(
 	"include/scenes/normal_map_scene.hpp"
 	"include/ogl/framebuffer.hpp"
 	"src/ogl/framebuffer.cpp"
+	"include/ogl/uniform_buffer.hpp"
+	"src/ogl/uniform_buffer.cpp"
 )
 
 target_include_directories(opengl_scene PRIVATE include/ external/)

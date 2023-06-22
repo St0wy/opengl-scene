@@ -65,14 +65,12 @@ layout (location = 2) in vec2 aTexCoords;
 layout (location = 3) in vec3 aTangent;
 layout (location = 4) in mat4 modelMatrix;
 
-//out vec3 FragPos;
-//out vec3 Normal;
 out vec2 TexCoords;
 out vec3 TangentViewPos;
 out vec3 TangentPointLightsPos[MAX_POINT_LIGHTS];
 out vec3 TangentFragPos;
 
-layout (std140) uniform Matrices
+layout (std140, binding = 0) uniform Matrices
 {
 	mat4 projection;
     mat4 view;
@@ -101,23 +99,3 @@ void main()
 
     gl_Position = projection * view * modelMatrix * vec4(aPos, 1.0);
 }
-//
-//void main()
-//{
-//    vec3 fragPos = vec3(modelMatrix * vec4(aPos, 1.0));   
-//    TexCoords = aTexCoords;
-//    
-//    mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
-//    vec3 T = normalize(normalMatrix * aTangent);
-//    vec3 N = normalize(normalMatrix * aNormal);
-//    T = normalize(T - dot(T, N) * N);
-//    vec3 B = cross(N, T);
-//    
-//    mat3 TBN = transpose(mat3(T, B, N));    
-//    TangentPointLightsPos[0] = TBN * pointLights[0].position;
-//    TangentViewPos  = TBN * viewPos;
-//    TangentFragPos  = TBN * fragPos;
-//        
-//    gl_Position = projection * view * modelMatrix * vec4(aPos, 1.0);
-//}
-//

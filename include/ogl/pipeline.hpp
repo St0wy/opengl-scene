@@ -101,6 +101,6 @@ private:
 	u32 m_PointLightsCount = 0;
 	u32 m_SpotLightsCount = 0;
 
-	GLint GetUniformLocation(const std::string_view name);
+	GLint GetUniformLocation(std::string_view name);
 };
 }
