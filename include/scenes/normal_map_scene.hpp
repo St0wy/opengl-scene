@@ -11,19 +11,14 @@
 #include "model.hpp"
 #include "number_types.hpp"
 #include "scene.hpp"
-#include "utils.hpp"
 #include "ogl/pipeline.hpp"
-#include "ogl/uniform_buffer.hpp"
+#include "ogl/renderer.hpp"
 
 namespace stw
 {
 class NormalMapScene final : public Scene
 {
 public:
-	static constexpr std::size_t RockCount = 10'000;
-	std::vector<glm::mat4> rockModelMatrices{RockCount};
-	GLuint modelMatricesBuffer = 0;
-
 	void Init() override
 	{
 		m_WallModel = Model::LoadFromPath("data/wall/wall.obj").value();
@@ -50,20 +45,15 @@ public:
 
 		m_Camera.SetMovementSpeed(20.0f);
 
-		GLCALL(glEnable(GL_MULTISAMPLE));
-		GLCALL(glEnable(GL_DEPTH_TEST));
-		GLCALL(glDepthFunc(GL_LEQUAL));
+		m_Renderer.Init();
+		m_Renderer.SetEnableMultisample(true);
+		m_Renderer.SetEnableDepthTest(true);
+		m_Renderer.SetDepthFunc(GL_LEQUAL);
 
-		GLCALL(glEnable(GL_CULL_FACE));
-		GLCALL(glCullFace(GL_BACK));
-		GLCALL(glFrontFace(GL_CCW));
+		m_Renderer.SetEnableCullFace(true);
 
 		m_Pipeline.InitFromPath("shaders/normal_map/mesh.vert", "shaders/normal_map/mesh_no_specular.frag");
 
-		m_UniformBuffer.Init(0);
-		m_UniformBuffer.Bind();
-		constexpr GLsizeiptr matricesSize = 2 * sizeof(glm::mat4);
-		m_UniformBuffer.Allocate(matricesSize);
 		UpdateProjection();
 	}
 
@@ -91,26 +81,19 @@ public:
 	void UpdateProjection() const
 	{
 		const auto projection = m_Camera.GetProjectionMatrix();
-		m_UniformBuffer.Bind();
-		m_UniformBuffer.SetSubData(0, sizeof(glm::mat4), glm::value_ptr(projection));
-		m_UniformBuffer.UnBind();
+		m_Renderer.SetProjectionMatrix(projection);
 	}
 
 	void UpdateView()
 	{
-		glm::mat4 view = m_Camera.GetViewMatrix();
-		m_UniformBuffer.Bind();
-		m_UniformBuffer.SetSubData(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-		m_UniformBuffer.UnBind();
-		m_Pipeline.Bind();
-		m_Pipeline.SetVec3("viewPos", m_Camera.Position());
-		m_Pipeline.UnBind();
+		const glm::mat4 view = m_Camera.GetViewMatrix();
+		m_Renderer.SetViewMatrix(view);
+		m_Renderer.viewPosition = m_Camera.Position();
 	}
 
 	void Update(const f32 deltaTime) override
 	{
-		GLCALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-		GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+		m_Renderer.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		UpdateView();
 
@@ -125,7 +108,7 @@ public:
 		modelMatrix = translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 		modelMatrix = scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 
-		m_WallModel.DrawNoSpecular(m_Pipeline, modelMatrix);
+		m_Renderer.Draw(m_WallModel, m_Pipeline, modelMatrix);
 
 		m_Pipeline.UnBind();
 
@@ -182,7 +165,7 @@ public:
 
 	void OnResize(const i32 windowWidth, const i32 windowHeight) override
 	{
-		glViewport(0, 0, windowWidth, windowHeight);
+		m_Renderer.SetViewport({0, 0}, {windowWidth, windowHeight});
 		m_Camera.SetAspectRatio(static_cast<f32>(windowWidth) / static_cast<f32>(windowHeight));
 	}
 
@@ -190,14 +173,13 @@ public:
 	{
 		m_Pipeline.Delete();
 		m_WallModel.Delete();
-		m_UniformBuffer.Delete();
+		m_Renderer.Delete();
 	}
 
 private:
 	Pipeline m_Pipeline{};
-	//f32 m_Time{};
 	Camera m_Camera{glm::vec3{0.0f, 5.0f, 40.0f}};
+	Renderer m_Renderer{};
 	Model m_WallModel;
-	UniformBuffer m_UniformBuffer;
 };
 } // namespace stw

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <span>
 #include <vector>
 #include <glm/fwd.hpp>
 #include <glm/vec2.hpp>
@@ -31,15 +32,23 @@ public:
 	Mesh& operator=(const Mesh&) = delete;
 	Mesh& operator=(Mesh&& other) noexcept;
 
+	[[nodiscard]] std::span<const Texture> GetTextures() const;
+
+
 	void Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures);
 	void Delete();
 
-	void Draw(Pipeline& pipeline, const glm::mat4&) const;
-	void DrawNoSpecular(Pipeline& pipeline, const glm::mat4& modelMatrix) const;
+	[[nodiscard]] std::size_t GetIndicesSize() const;
 
-	void DrawInstanced(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
-	void DrawNoSpecularInstanced(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
-	void DrawMeshOnlyInstanced(std::span<const glm::mat4> modelMatrices) const;
+	void Bind(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
+	void UnBind() const;
+
+	//void Draw(Pipeline& pipeline, const glm::mat4&) const;
+	//void DrawNoSpecular(Pipeline& pipeline, const glm::mat4& modelMatrix) const;
+
+	//void DrawInstanced(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
+	//void DrawNoSpecularInstanced(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
+	//void DrawMeshOnlyInstanced(std::span<const glm::mat4> modelMatrices) const;
 
 private:
 	std::vector<Vertex> m_Vertices{};

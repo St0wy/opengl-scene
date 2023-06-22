@@ -50,6 +50,8 @@ add_executable(
 	"src/ogl/framebuffer.cpp"
 	"include/ogl/uniform_buffer.hpp"
 	"src/ogl/uniform_buffer.cpp"
+	"include/ogl/renderer.hpp"
+	"src/ogl/renderer.cpp"
 )
 
 target_include_directories(opengl_scene PRIVATE include/ external/)

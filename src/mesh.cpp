@@ -3,9 +3,9 @@
 #include <span>
 #include <GL/glew.h>
 #include <spdlog/spdlog.h>
+#include <glm/mat4x4.hpp>
 
 #include "utils.hpp"
-#include "scenes/instancing_scene.hpp"
 
 stw::Mesh::Mesh(Mesh&& other) noexcept
 	: m_Vertices(std::move(other.m_Vertices)),
@@ -46,6 +46,11 @@ stw::Mesh& stw::Mesh::operator=(Mesh&& other) noexcept
 	return *this;
 }
 
+std::span<const stw::Texture> stw::Mesh::GetTextures() const
+{
+	return m_Textures;
+}
+
 void stw::Mesh::Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures)
 {
 	m_Vertices = std::move(vertices);
@@ -71,64 +76,19 @@ void stw::Mesh::Delete()
 	m_IsInitialized = false;
 }
 
-void stw::Mesh::Draw(Pipeline& pipeline, const glm::mat4& modelMatrix) const
+std::size_t stw::Mesh::GetIndicesSize() const
 {
-	DrawInstanced(pipeline, {&modelMatrix, 1});
+	return m_Indices.size();
 }
 
-void stw::Mesh::DrawNoSpecular(stw::Pipeline& pipeline, const glm::mat4& modelMatrix) const
-{
-	std::array matrices{modelMatrix};
-	DrawNoSpecularInstanced(pipeline, matrices);
-}
-
-void stw::Mesh::DrawInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
-{
-	u32 diffuseTextureCount = 0;
-	u32 specularTextureCount = 0;
-	u32 normalTextureCount = 0;
-	for (std::size_t i = 0; i < m_Textures.size(); i++)
-	{
-		const auto id = GetTextureFromId(static_cast<i32>(i));
-		glActiveTexture(id);
-
-		u32 number;
-		switch (m_Textures[i].textureType)
-		{
-		case TextureType::Diffuse:
-			diffuseTextureCount++;
-			number = diffuseTextureCount;
-			break;
-		case TextureType::Specular:
-			specularTextureCount++;
-			number = specularTextureCount;
-			break;
-		case TextureType::Normal:
-			normalTextureCount++;
-			number = normalTextureCount;
-			break;
-		default:
-			break;
-		}
-
-		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
-		glBindTexture(GL_TEXTURE_2D, m_Textures[i].textureId);
-	}
-	glActiveTexture(GL_TEXTURE0);
-
-	DrawMeshOnlyInstanced(modelMatrices);
-
-	glActiveTexture(GL_TEXTURE0);
-}
-
-void stw::Mesh::DrawNoSpecularInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
+void stw::Mesh::Bind(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
 {
 	u32 diffuseTextureCount = 0;
 	u32 normalTextureCount = 0;
 	for (std::size_t i = 0; i < m_Textures.size(); i++)
 	{
 		const auto id = GetTextureFromId(static_cast<i32>(i));
-		glActiveTexture(id);
+		GLCALL(glActiveTexture(id));
 
 		u32 number;
 		switch (m_Textures[i].textureType)
@@ -148,24 +108,116 @@ void stw::Mesh::DrawNoSpecularInstanced(Pipeline& pipeline, const std::span<cons
 		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
 		m_Textures[i].Bind();
 	}
-	glActiveTexture(GL_TEXTURE0);
+	GLCALL(glActiveTexture(GL_TEXTURE0));
 
-	DrawMeshOnlyInstanced(modelMatrices);
-
-	glActiveTexture(GL_TEXTURE0);
-}
-
-void stw::Mesh::DrawMeshOnlyInstanced(const std::span<const glm::mat4> modelMatrices) const
-{
 	m_VertexArray.Bind();
 
 	m_ModelMatrixBuffer.SetData(modelMatrices);
-	const auto size = static_cast<GLsizei>(m_Indices.size());
-	const auto elemCount = static_cast<GLsizei>(modelMatrices.size());
-	glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, elemCount);
-
-	m_VertexArray.UnBind();
 }
+
+void stw::Mesh::UnBind() const
+{
+	m_VertexArray.UnBind();
+
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+}
+
+//
+//void stw::Mesh::Draw(Pipeline& pipeline, const glm::mat4& modelMatrix) const
+//{
+//	DrawInstanced(pipeline, std::span{&modelMatrix, 1});
+//}
+//
+//void stw::Mesh::DrawNoSpecular(Pipeline& pipeline, const glm::mat4& modelMatrix) const
+//{
+//	std::array matrices{modelMatrix};
+//	DrawNoSpecularInstanced(pipeline, {matrices});
+//}
+//
+//void stw::Mesh::DrawInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
+//{
+//	u32 diffuseTextureCount = 0;
+//	u32 specularTextureCount = 0;
+//	u32 normalTextureCount = 0;
+//	for (std::size_t i = 0; i < m_Textures.size(); i++)
+//	{
+//		const auto id = GetTextureFromId(static_cast<i32>(i));
+//		glActiveTexture(id);
+//
+//		u32 number;
+//		switch (m_Textures[i].textureType)
+//		{
+//		case TextureType::Diffuse:
+//			diffuseTextureCount++;
+//			number = diffuseTextureCount;
+//			break;
+//		case TextureType::Specular:
+//			specularTextureCount++;
+//			number = specularTextureCount;
+//			break;
+//		case TextureType::Normal:
+//			normalTextureCount++;
+//			number = normalTextureCount;
+//			break;
+//		default:
+//			break;
+//		}
+//
+//		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
+//		glBindTexture(GL_TEXTURE_2D, m_Textures[i].textureId);
+//	}
+//	glActiveTexture(GL_TEXTURE0);
+//
+//	DrawMeshOnlyInstanced(modelMatrices);
+//
+//	glActiveTexture(GL_TEXTURE0);
+//}
+//
+//void stw::Mesh::DrawNoSpecularInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
+//{
+//	u32 diffuseTextureCount = 0;
+//	u32 normalTextureCount = 0;
+//	for (std::size_t i = 0; i < m_Textures.size(); i++)
+//	{
+//		const auto id = GetTextureFromId(static_cast<i32>(i));
+//		glActiveTexture(id);
+//
+//		u32 number;
+//		switch (m_Textures[i].textureType)
+//		{
+//		case TextureType::Diffuse:
+//			diffuseTextureCount++;
+//			number = diffuseTextureCount;
+//			break;
+//		case TextureType::Normal:
+//			normalTextureCount++;
+//			number = normalTextureCount;
+//			break;
+//		default:
+//			break;
+//		}
+//
+//		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
+//		m_Textures[i].Bind();
+//	}
+//	glActiveTexture(GL_TEXTURE0);
+//
+//	DrawMeshOnlyInstanced(modelMatrices);
+//
+//	glActiveTexture(GL_TEXTURE0);
+//}
+//
+//void stw::Mesh::DrawMeshOnlyInstanced(const std::span<const glm::mat4> modelMatrices) const
+//{
+//	m_VertexArray.Bind();
+//
+//	m_ModelMatrixBuffer.SetData(modelMatrices);
+//	const auto size = static_cast<GLsizei>(m_Indices.size());
+//	const auto elemCount = static_cast<GLsizei>(modelMatrices.size());
+//	glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, elemCount);
+//
+//	m_VertexArray.UnBind();
+//}
 
 void stw::Mesh::SetupMesh()
 {

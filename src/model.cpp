@@ -12,37 +12,42 @@ void stw::Model::AddMesh(Mesh mesh)
 	m_Meshes.push_back(std::move(mesh));
 }
 
-void stw::Model::Draw(stw::Pipeline& pipeline, const glm::mat4& modelMatrix) const
+std::span<const stw::Mesh> stw::Model::GetMeshes() const
 {
-	for (const auto& mesh : m_Meshes)
-	{
-		mesh.Draw(pipeline, modelMatrix);
-	}
+	return m_Meshes;
 }
-
-void stw::Model::DrawNoSpecular(stw::Pipeline& pipeline, const glm::mat4& modelMatrix) const
-{
-	for (const auto& mesh : m_Meshes)
-	{
-		mesh.DrawNoSpecular(pipeline, modelMatrix);
-	}
-}
-
-void stw::Model::DrawInstanced(stw::Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
-{
-	for (const auto& mesh : m_Meshes)
-	{
-		mesh.DrawInstanced(pipeline, modelMatrices);
-	}
-}
-
-void stw::Model::DrawNoSpecularInstanced(stw::Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
-{
-	for (const auto& mesh : m_Meshes)
-	{
-		mesh.DrawNoSpecularInstanced(pipeline, modelMatrices);
-	}
-}
+//
+//void stw::Model::Draw(Pipeline& pipeline, const glm::mat4& modelMatrix) const
+//{
+//	for (const auto& mesh : m_Meshes)
+//	{
+//		mesh.Draw(pipeline, modelMatrix);
+//	}
+//}
+//
+//void stw::Model::DrawNoSpecular(Pipeline& pipeline, const glm::mat4& modelMatrix) const
+//{
+//	for (const auto& mesh : m_Meshes)
+//	{
+//		mesh.DrawNoSpecular(pipeline, modelMatrix);
+//	}
+//}
+//
+//void stw::Model::DrawInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
+//{
+//	for (const auto& mesh : m_Meshes)
+//	{
+//		mesh.DrawInstanced(pipeline, modelMatrices);
+//	}
+//}
+//
+//void stw::Model::DrawNoSpecularInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
+//{
+//	for (const auto& mesh : m_Meshes)
+//	{
+//		mesh.DrawNoSpecularInstanced(pipeline, modelMatrices);
+//	}
+//}
 
 void stw::Model::Delete()
 {
