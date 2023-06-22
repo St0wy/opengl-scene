@@ -16,6 +16,7 @@ std::span<const stw::Mesh> stw::Model::GetMeshes() const
 {
 	return m_Meshes;
 }
+
 //
 //void stw::Model::Draw(Pipeline& pipeline, const glm::mat4& modelMatrix) const
 //{
@@ -143,13 +144,19 @@ stw::Mesh stw::Model::ProcessMesh(aiMesh* assimpMesh, const aiScene* assimpScene
 	{
 		aiMaterial* material = assimpScene->mMaterials[assimpMesh->mMaterialIndex];
 		std::vector<Texture> diffuseMaps = LoadMaterialTextures(material, TextureType::Diffuse);
-		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+		textures.insert(textures.end(),
+			std::make_move_iterator(diffuseMaps.begin()),
+			std::make_move_iterator(diffuseMaps.end()));
 
 		std::vector<Texture> specularMaps = LoadMaterialTextures(material, TextureType::Specular);
-		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+		textures.insert(textures.end(),
+			std::make_move_iterator(specularMaps.begin()),
+			std::make_move_iterator(specularMaps.end()));
 
 		std::vector<Texture> normalMaps = LoadMaterialTextures(material, TextureType::Normal);
-		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+		textures.insert(textures.end(),
+			std::make_move_iterator(normalMaps.begin()),
+			std::make_move_iterator(normalMaps.end()));
 	}
 
 	Mesh mesh;
@@ -187,7 +194,7 @@ std::vector<stw::Texture> stw::Model::LoadMaterialTextures(const aiMaterial* mat
 		}
 
 		s_LoadedTextures.insert(texturePath);
-		textures.push_back(loadResult.value());
+		textures.push_back(std::move(loadResult.value()));
 
 		spdlog::info("Loaded texture {} in {:0.0f} ms",
 			texturePath.string(),

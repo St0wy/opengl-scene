@@ -16,6 +16,7 @@ public:
 	void Bind() const;
 	void UnBind() const;
 	void Delete();
+
 private:
 	GLuint m_Fbo = 0;
 	Texture m_Texture;

@@ -24,10 +24,7 @@ add_executable(
 	"include/ogl/vertex_array.hpp"
 	"include/ogl/vertex_buffer.hpp"
 	"include/ogl/vertex_buffer_layout.hpp"
-	"include/scenes/cubemap_scene.hpp"
-	"include/scenes/instancing_scene.hpp"
 	"include/scenes/scene.hpp"
-	"include/scenes/gamma_scene.hpp"
 	"include/shader.hpp"
 	"include/texture.hpp"
 	"include/timer.hpp"
@@ -52,6 +49,8 @@ add_executable(
 	"src/ogl/uniform_buffer.cpp"
 	"include/ogl/renderer.hpp"
 	"src/ogl/renderer.cpp"
+	"include/ogl/material.hpp"
+	"src/ogl/material.cpp"
 )
 
 target_include_directories(opengl_scene PRIVATE include/ external/)

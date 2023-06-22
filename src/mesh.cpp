@@ -73,6 +73,11 @@ void stw::Mesh::Delete()
 	m_VertexArray.Delete();
 	m_ModelMatrixBuffer.Delete();
 
+	for (auto& texture : m_Textures)
+	{
+		texture.Delete();
+	}
+
 	m_IsInitialized = false;
 }
 

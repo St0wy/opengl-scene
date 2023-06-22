@@ -15,15 +15,15 @@
 #include "utils.hpp"
 
 
-void stw::SmartTexture::Bind(Pipeline& pipeline) const
-{
-	ASSERT_MESSAGE(m_TextureId != 0, "The texture should be initialized before being boud.");
-	const GLenum activeTexture = GetTextureFromId(m_UniformId);
-
-	glActiveTexture(activeTexture);
-	pipeline.SetInt(m_UniformName.c_str(), m_UniformId);
-	glBindTexture(GL_TEXTURE_2D, m_TextureId);
-}
+//void stw::SmartTexture::Bind(Pipeline& pipeline) const
+//{
+//	ASSERT_MESSAGE(m_TextureId != 0, "The texture should be initialized before being boud.");
+//	const GLenum activeTexture = GetTextureFromId(m_UniformId);
+//
+//	glActiveTexture(activeTexture);
+//	pipeline.SetInt(m_UniformName.c_str(), m_UniformId);
+//	glBindTexture(GL_TEXTURE_2D, m_TextureId);
+//}
 
 std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::filesystem::path& path,
 	const TextureType type,
@@ -57,7 +57,7 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::f
 
 	stbi_image_free(data);
 
-	return {texture};
+	return {std::move(texture)};
 }
 
 std::expected<stw::Texture, std::string> stw::Texture::LoadCubeMap(
@@ -94,7 +94,7 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadCubeMap(
 	texture.SetWrapT(GL_CLAMP_TO_EDGE);
 	texture.SetWrapR(GL_CLAMP_TO_EDGE);
 
-	return {texture};
+	return {std::move(texture)};
 }
 
 void stw::Texture::Init(const TextureType type, const stw::TextureSpace textureSpace)
@@ -235,46 +235,44 @@ aiTextureType stw::ToAssimpTextureType(const TextureType type)
 	}
 }
 
-stw::SmartTexture::~SmartTexture()
+stw::Texture::Texture(Texture&& other) noexcept
+	: textureId(other.textureId),
+	textureType(other.textureType),
+	space(other.space),
+	glFormat(other.glFormat),
+	internalFormat(other.internalFormat),
+	m_GlTextureTarget(other.m_GlTextureTarget)
 {
-	if (m_TextureId == 0)
-		return;
-
-	glDeleteTextures(1, &m_TextureId);
+	other.textureId = 0;
+	other.glFormat = GL_INVALID_ENUM;
+	other.internalFormat = -1;
+	other.m_GlTextureTarget = GL_INVALID_ENUM;
 }
 
-void stw::SmartTexture::Init(const std::string_view path,
-	std::string uniformName,
-	const GLint uniformId,
-	Pipeline& pipeline,
-	const GLint format)
+stw::Texture::~Texture()
 {
-	m_UniformId = uniformId;
-	m_UniformName = std::move(uniformName);
-
-	glGenTextures(1, &m_TextureId);
-	glBindTexture(GL_TEXTURE_2D, m_TextureId);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load(path.data(), &m_Width, &m_Height, &m_ChannelsInFile, 0);
-
-	if (data)
+	if (textureId != 0)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_Width, m_Height, 0, format, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
+		spdlog::error("Destructor called on texture that wasn't deleted.");
 	}
-	else
-	{
-		spdlog::error("Failed to load texture ");
-		assert(false);
-	}
-	stbi_image_free(data);
+}
 
-	pipeline.Bind();
-	pipeline.SetInt(m_UniformName.c_str(), m_UniformId);
+stw::Texture& stw::Texture::operator=(Texture&& other) noexcept
+{
+	if (this == &other)
+		return *this;
+
+	Delete();
+	textureId = other.textureId;
+	textureType = other.textureType;
+	space = other.space;
+	glFormat = other.glFormat;
+	internalFormat = other.internalFormat;
+	m_GlTextureTarget = other.m_GlTextureTarget;
+	other.textureId = 0;
+	other.glFormat = GL_INVALID_ENUM;
+	other.internalFormat = -1;
+	other.m_GlTextureTarget = GL_INVALID_ENUM;
+
+	return *this;
 }

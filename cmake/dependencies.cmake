@@ -1,6 +1,6 @@
 include(cmake/download-cpm.cmake)
 
-cpmaddpackage("gh:libsdl-org/SDL#release-2.26.5")
+cpmaddpackage("gh:libsdl-org/SDL#release-2.28.0")
 cpmaddpackage("gh:Perlmint/glew-cmake#glew-cmake-2.2.0")
 
 cpmaddpackage(

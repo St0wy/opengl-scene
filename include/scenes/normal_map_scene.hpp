@@ -25,13 +25,8 @@ public:
 
 		if (GLEW_VERSION_4_3)
 		{
-			glDebugMessageCallback([](GLenum source,
-					GLenum type,
-					GLuint id,
-					GLenum severity,
-					const GLsizei length,
-					const GLchar* message,
-					const void*)
+			constexpr auto messageCallback = 
+				[](GLenum source, GLenum type, GLuint id, GLenum severity, const GLsizei length, const GLchar* message, const void*)
 				{
 					spdlog::error("[OpenGL Error source {}, type {}, id {}, severity {}] {}",
 						source,
@@ -39,8 +34,8 @@ public:
 						id,
 						severity,
 						std::string_view(message, length));
-				},
-				nullptr);
+				};
+			glDebugMessageCallback(messageCallback, nullptr);
 		}
 
 		m_Camera.SetMovementSpeed(20.0f);

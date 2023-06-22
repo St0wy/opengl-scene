@@ -35,46 +35,55 @@ aiTextureType ToAssimpTextureType(TextureType type);
 
 // This is the texture that was used in the light scene
 // It is called smart because it handle the OpenGL logic to bind it to the shader
-class SmartTexture final
-{
-public:
-	SmartTexture() = default;
-	~SmartTexture();
-	SmartTexture(const SmartTexture& other) = delete;
-	SmartTexture(SmartTexture&& other) = default;
-	SmartTexture& operator=(const SmartTexture& other) = delete;
-	SmartTexture& operator=(SmartTexture&& other) noexcept = default;
-
-	void Init(std::string_view path,
-		std::string uniformName,
-		GLint uniformId,
-		Pipeline& pipeline,
-		GLint format = GL_RGB);
-	void Bind(Pipeline& pipeline) const;
-
-private:
-	GLuint m_TextureId{};
-	i32 m_Width{};
-	i32 m_Height{};
-	i32 m_ChannelsInFile{};
-	std::string m_UniformName{};
-	GLint m_UniformId{};
-};
+//class SmartTexture final
+//{
+//public:
+//	SmartTexture() = default;
+//	~SmartTexture();
+//	SmartTexture(const SmartTexture& other) = delete;
+//	SmartTexture(SmartTexture&& other) = default;
+//	SmartTexture& operator=(const SmartTexture& other) = delete;
+//	SmartTexture& operator=(SmartTexture&& other) noexcept = default;
+//
+//	void Init(std::string_view path,
+//		std::string uniformName,
+//		GLint uniformId,
+//		Pipeline& pipeline,
+//		GLint format = GL_RGB);
+//	void Bind(Pipeline& pipeline) const;
+//
+//private:
+//	GLuint m_TextureId{};
+//	i32 m_Width{};
+//	i32 m_Height{};
+//	i32 m_ChannelsInFile{};
+//	std::string m_UniformName{};
+//	GLint m_UniformId{};
+//};
 
 struct Texture
 {
+	Texture() = default;
+	Texture(const Texture&) = delete;
+	Texture(Texture&& other) noexcept;
+	~Texture();
+
+	Texture& operator=(const Texture&) = delete;
+	Texture& operator=(Texture&& other) noexcept;
+
 	static constexpr std::size_t CubeMapTextureCount = 6;
+
 	static std::expected<Texture, std::string> LoadFromPath(const std::filesystem::path& path,
 		TextureType type,
 		TextureSpace space = TextureSpace::Linear);
 	static std::expected<Texture, std::string> LoadCubeMap(
 		const std::array<std::filesystem::path, CubeMapTextureCount>& paths);
 
-	GLuint textureId;
-	TextureType textureType;
-	TextureSpace space;
-	GLenum glFormat;
-	GLint internalFormat;
+	GLuint textureId = 0;
+	TextureType textureType = TextureType::Diffuse;
+	TextureSpace space = TextureSpace::Srgb;
+	GLenum glFormat = GL_INVALID_ENUM;
+	GLint internalFormat = -1;
 
 	void Bind() const;
 	void Init(TextureType type, const TextureSpace textureSpace);
