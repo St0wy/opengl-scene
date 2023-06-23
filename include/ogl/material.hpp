@@ -1,7 +1,9 @@
 #pragma once
 
-#include <ogl/pipeline.hpp>
 #include <variant>
+#include <ogl/pipeline.hpp>
+
+#include "texture.hpp"
 
 namespace stw
 {
@@ -10,20 +12,22 @@ struct MaterialBase
 	Pipeline& pipeline;
 };
 
-struct MaterialNormalNoSpecular
+struct MaterialNormalNoSpecular : MaterialBase
 {
 	f32 specular;
 	f32 shininess;
-	std::size_t diffuseMapIndex;
-	std::size_t normalMapIndex;
+	Texture diffuseMap;
+	Texture normalMap;
 };
 
-struct MaterialNoNormalNoSpecular
+struct MaterialNoNormalNoSpecular : MaterialBase
 {
 	f32 specular;
 	f32 shininess;
-	std::size_t diffuseMapIndex;
+	Texture diffuseMap;
 };
 
 using Material = std::variant<MaterialNoNormalNoSpecular, MaterialNormalNoSpecular>;
+
+void BindMaterial(const Material& materialVariant);
 }

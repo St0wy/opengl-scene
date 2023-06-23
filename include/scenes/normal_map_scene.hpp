@@ -13,6 +13,7 @@
 #include "scene.hpp"
 #include "ogl/pipeline.hpp"
 #include "ogl/renderer.hpp"
+#include "ogl/material.hpp"
 
 namespace stw
 {
@@ -98,6 +99,12 @@ public:
 
 		m_Pipeline.SetFloat("material.specular", 0.5f);
 
+		// TODO: material manager.............
+		const Material m = MaterialNormalNoSpecular {
+			.pipeline = m_Pipeline,
+			.shininess = 64.0f,
+			.specular = 0.5f,
+		}
 
 		auto modelMatrix = glm::mat4(1.0f);
 		modelMatrix = translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));

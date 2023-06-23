@@ -5,8 +5,8 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
+#include "material.hpp"
 #include "uniform_buffer.hpp"
-#include "glm/gtc/bitfield.hpp"
 #include "glm/gtc/bitfield.hpp"
 
 namespace stw
@@ -42,7 +42,7 @@ public:
 
 	void Clear(GLbitfield mask);
 
-	void Draw(const Model& model, ::stw::Pipeline& pipeline, const glm::mat4& modelMatrix) const;
+	void Draw(const Model& model, Pipeline& pipeline, const Material& material, const glm::mat4& modelMatrix) const;
 
 	void Delete();
 

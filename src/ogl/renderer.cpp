@@ -91,9 +91,13 @@ void stw::Renderer::Clear(const GLbitfield mask)
 	GLCALL(glClear(mask));
 }
 
-void stw::Renderer::Draw(const Model& model, Pipeline& pipeline, const glm::mat4& modelMatrix) const
+void stw::Renderer::Draw(const Model& model,
+	Pipeline& pipeline,
+	const Material& material,
+	const glm::mat4& modelMatrix) const
 {
 	pipeline.SetVec3("viewPos", viewPosition);
+	BindMaterial(material);
 	for (const auto& mesh : model.GetMeshes())
 	{
 		mesh.Bind(pipeline, {&modelMatrix, 1});
