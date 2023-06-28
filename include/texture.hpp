@@ -11,8 +11,6 @@
 #include <assimp/material.h>
 #include <GL/glew.h>
 
-#include "ogl/pipeline.hpp"
-
 namespace stw
 {
 enum class TextureType

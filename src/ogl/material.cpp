@@ -20,5 +20,10 @@ void stw::BindMaterial(const Material& materialVariant)
 		spdlog::warn("Not implemented... {} {}", __FILE__, __LINE__);
 	};
 
-	std::visit(Overloaded{normalNoSpecular, noNormalNoSpecular}, materialVariant);
+	constexpr auto invalid = [](const InvalidMaterial& material)
+	{
+		spdlog::warn("Invalid material... {} {}", __FILE__, __LINE__);
+	};
+
+	std::visit(Overloaded{invalid, normalNoSpecular, noNormalNoSpecular}, materialVariant);
 }

@@ -5,6 +5,7 @@
 #pragma once
 #include <random>
 #include <GL/glew.h>
+#include <variant>
 #include <glm/ext.hpp>
 
 #include "camera.hpp"
@@ -51,6 +52,16 @@ public:
 		m_Pipeline.InitFromPath("shaders/normal_map/mesh.vert", "shaders/normal_map/mesh_no_specular.frag");
 
 		UpdateProjection();
+
+		auto mat = MaterialNormalNoSpecular {
+			{m_Pipeline},
+			0.5f,
+			64.0f,
+			std::move(Texture::LoadFromPath("./data/wall/brickwall.jpg", TextureType::Diffuse).value()),
+			std::move(Texture::LoadFromPath("./data/wall/brickwall_normal.jpg", TextureType::Normal).value()),
+		};
+
+		m_TempMat.emplace<MaterialNormalNoSpecular>(std::move(mat));
 	}
 
 	static void SetupPipeline(Pipeline& pipeline)
@@ -99,18 +110,13 @@ public:
 
 		m_Pipeline.SetFloat("material.specular", 0.5f);
 
-		// TODO: material manager.............
-		const Material m = MaterialNormalNoSpecular {
-			.pipeline = m_Pipeline,
-			.shininess = 64.0f,
-			.specular = 0.5f,
-		}
+		// TODO: material manager for textures
 
-		auto modelMatrix = glm::mat4(1.0f);
+		glm::mat4 modelMatrix = glm::mat4(1.0f);
 		modelMatrix = translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 		modelMatrix = scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 
-		m_Renderer.Draw(m_WallModel, m_Pipeline, modelMatrix);
+		m_Renderer.Draw(m_WallModel, m_Pipeline, m_TempMat, modelMatrix);
 
 		m_Pipeline.UnBind();
 
@@ -176,6 +182,9 @@ public:
 		m_Pipeline.Delete();
 		m_WallModel.Delete();
 		m_Renderer.Delete();
+		auto& mat = std::get<MaterialNormalNoSpecular>(m_TempMat);
+		mat.diffuseMap.Delete();
+		mat.normalMap.Delete();
 	}
 
 private:
@@ -183,5 +192,6 @@ private:
 	Camera m_Camera{glm::vec3{0.0f, 5.0f, 40.0f}};
 	Renderer m_Renderer{};
 	Model m_WallModel;
+	Material m_TempMat = InvalidMaterial{};
 };
 } // namespace stw

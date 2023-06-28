@@ -36,6 +36,9 @@ template <class T, class U>concept Derived = std::is_base_of_v<U, T>;
 template<class... Ts>
 struct Overloaded : Ts... { using Ts::operator()...; };
 
+template<class... Ts>
+Overloaded(Ts...) -> Overloaded<Ts...>;
+
 std::optional<std::string> OpenFile(const std::filesystem::path& filename);
 
 GLenum GetTextureFromId(i32 id);

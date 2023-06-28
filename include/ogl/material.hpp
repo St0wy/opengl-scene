@@ -1,12 +1,14 @@
 #pragma once
 
 #include <variant>
-#include <ogl/pipeline.hpp>
 
 #include "texture.hpp"
+#include "ogl/pipeline.hpp"
 
 namespace stw
 {
+struct InvalidMaterial{};
+
 struct MaterialBase
 {
 	Pipeline& pipeline;
@@ -27,7 +29,7 @@ struct MaterialNoNormalNoSpecular : MaterialBase
 	Texture diffuseMap;
 };
 
-using Material = std::variant<MaterialNoNormalNoSpecular, MaterialNormalNoSpecular>;
+using Material = std::variant<InvalidMaterial, MaterialNoNormalNoSpecular, MaterialNormalNoSpecular>;
 
 void BindMaterial(const Material& materialVariant);
 }

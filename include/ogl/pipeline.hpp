@@ -5,7 +5,6 @@
 #pragma once
 
 #include <filesystem>
-#include <string_view>
 #include <unordered_map>
 #include <GL/glew.h>
 #include <glm/fwd.hpp>
