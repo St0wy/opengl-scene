@@ -32,10 +32,7 @@ public:
 	Mesh& operator=(const Mesh&) = delete;
 	Mesh& operator=(Mesh&& other) noexcept;
 
-	[[nodiscard]] std::span<const Texture> GetTextures() const;
-
-
-	void Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures);
+	void Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::size_t materialIndex);
 	void Delete();
 
 	[[nodiscard]] std::size_t GetIndicesSize() const;
@@ -43,17 +40,17 @@ public:
 	void Bind(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
 	void UnBind() const;
 
-	//void Draw(Pipeline& pipeline, const glm::mat4&) const;
-	//void DrawNoSpecular(Pipeline& pipeline, const glm::mat4& modelMatrix) const;
-
-	//void DrawInstanced(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
-	//void DrawNoSpecularInstanced(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
-	//void DrawMeshOnlyInstanced(std::span<const glm::mat4> modelMatrices) const;
+	[[nodiscard]] std::size_t GetMaterialIndex() const
+	{
+		return m_MaterialIndex;
+	}
 
 private:
 	std::vector<Vertex> m_Vertices{};
 	std::vector<u32> m_Indices{};
-	std::vector<Texture> m_Textures{};
+
+	// TODO: Remove this from here
+	std::size_t m_MaterialIndex{};
 
 	VertexArray m_VertexArray{};
 	VertexBuffer<Vertex> m_VertexBuffer{};

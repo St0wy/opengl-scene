@@ -11,16 +11,18 @@
 
 #define CHECK_GL_ERROR() stw::CheckGlError(__FILE__, __LINE__)
 
-#if defined(_MSC_VER) && !defined(NDEBUG)
-#define ASSERTD(x) if(!(x)) __debugbreak()
-#else
-#define ASSERTD(x) (void)x
-#endif
+
 
 #ifndef NDEBUG
 #define GLCALL(x) ClearGlErrors();\
 	x;\
 	ASSERTD(!CHECK_GL_ERROR())
+
+#ifdef _MSC_VER
+#define ASSERTD(x) if(!(x)) __debugbreak()
+#elifdef __clang__
+#define ASSERTD(x) if(!(x)) __builtin_debugtrap()
+#endif
 #else
 #define GLCALL(x) x
 #endif

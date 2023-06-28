@@ -8,14 +8,10 @@
 #include "utils.hpp"
 
 stw::Mesh::Mesh(Mesh&& other) noexcept
-	: m_Vertices(std::move(other.m_Vertices)),
-	m_Indices(std::move(other.m_Indices)),
-	m_Textures(std::move(other.m_Textures)),
-	m_VertexArray(std::move(other.m_VertexArray)),
-	m_VertexBuffer(std::move(other.m_VertexBuffer)),
-	m_ModelMatrixBuffer(std::move(other.m_ModelMatrixBuffer)),
-	m_IndexBuffer(std::move(other.m_IndexBuffer)),
-	m_IsInitialized(other.m_IsInitialized)
+	: m_Vertices(std::move(other.m_Vertices)), m_Indices(std::move(other.m_Indices)), m_MaterialIndex(other
+	.m_MaterialIndex), m_VertexArray(std::move(other.m_VertexArray)), m_VertexBuffer(std::move(other
+	.m_VertexBuffer)), m_ModelMatrixBuffer(std::move(other.m_ModelMatrixBuffer)), m_IndexBuffer(std::move(other
+	.m_IndexBuffer)), m_IsInitialized(other.m_IsInitialized)
 {
 	other.m_IsInitialized = false;
 }
@@ -35,27 +31,22 @@ stw::Mesh& stw::Mesh::operator=(Mesh&& other) noexcept
 
 	m_Vertices = std::move(other.m_Vertices);
 	m_Indices = std::move(other.m_Indices);
-	m_Textures = std::move(other.m_Textures);
 	m_VertexArray = std::move(other.m_VertexArray);
 	m_VertexBuffer = std::move(other.m_VertexBuffer);
 	m_ModelMatrixBuffer = std::move(other.m_ModelMatrixBuffer);
 	m_IndexBuffer = std::move(other.m_IndexBuffer);
+	m_MaterialIndex = other.m_MaterialIndex;
 	m_IsInitialized = other.m_IsInitialized;
 	other.m_IsInitialized = false;
 
 	return *this;
 }
 
-std::span<const stw::Texture> stw::Mesh::GetTextures() const
-{
-	return m_Textures;
-}
-
-void stw::Mesh::Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::vector<Texture> textures)
+void stw::Mesh::Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::size_t materialIndex)
 {
 	m_Vertices = std::move(vertices);
 	m_Indices = std::move(indices);
-	m_Textures = std::move(textures);
+	m_MaterialIndex = materialIndex;
 	SetupMesh();
 
 	m_IsInitialized = true;
@@ -73,11 +64,6 @@ void stw::Mesh::Delete()
 	m_VertexArray.Delete();
 	m_ModelMatrixBuffer.Delete();
 
-	for (auto& texture : m_Textures)
-	{
-		texture.Delete();
-	}
-
 	m_IsInitialized = false;
 }
 
@@ -88,35 +74,7 @@ std::size_t stw::Mesh::GetIndicesSize() const
 
 void stw::Mesh::Bind(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
 {
-	u32 diffuseTextureCount = 0;
-	u32 normalTextureCount = 0;
-	for (std::size_t i = 0; i < m_Textures.size(); i++)
-	{
-		const auto id = GetTextureFromId(static_cast<i32>(i));
-		GLCALL(glActiveTexture(id));
-
-		u32 number;
-		switch (m_Textures[i].textureType)
-		{
-		case TextureType::Diffuse:
-			diffuseTextureCount++;
-			number = diffuseTextureCount;
-			break;
-		case TextureType::Normal:
-			normalTextureCount++;
-			number = normalTextureCount;
-			break;
-		default:
-			break;
-		}
-
-		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
-		m_Textures[i].Bind();
-	}
-	GLCALL(glActiveTexture(GL_TEXTURE0));
-
 	m_VertexArray.Bind();
-
 	m_ModelMatrixBuffer.SetData(modelMatrices);
 }
 

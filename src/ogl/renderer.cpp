@@ -6,6 +6,7 @@
 
 #include "model.hpp"
 #include "utils.hpp"
+#include "timer.hpp"
 
 stw::Renderer::~Renderer()
 {
@@ -79,28 +80,24 @@ void stw::Renderer::SetViewMatrix(const glm::mat4& view) const
 	m_MatricesUniformBuffer.UnBind();
 }
 
-// ReSharper disable once CppMemberFunctionMayBeStatic
 void stw::Renderer::SetViewport(const glm::ivec2 pos, const glm::uvec2 size) const
 {
 	GLCALL(glViewport(pos.x, pos.y, static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y)));
 }
 
-// ReSharper disable once CppMemberFunctionMayBeStatic
-void stw::Renderer::Clear(const GLbitfield mask)
+void stw::Renderer::Clear(const GLbitfield mask) // NOLINT(readability-convert-member-functions-to-static)
 {
 	GLCALL(glClear(mask));
 }
 
-void stw::Renderer::Draw(const Model& model,
-	Pipeline& pipeline,
-	const Material& material,
-	const glm::mat4& modelMatrix) const
+void stw::Renderer::Draw(Pipeline& pipeline, const glm::mat4& modelMatrix)
 {
 	pipeline.SetVec3("viewPos", viewPosition);
-	BindMaterial(material);
-	for (const auto& mesh : model.GetMeshes())
+	for (const Mesh& mesh : m_Meshes)
 	{
-		mesh.Bind(pipeline, {&modelMatrix, 1});
+		const auto idx = mesh.GetMaterialIndex();
+		BindMaterial(m_MaterialManager[idx], m_TextureManager);
+		mesh.Bind(pipeline, { &modelMatrix, 1 });
 
 		const auto size = static_cast<GLsizei>(mesh.GetIndicesSize());
 		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, 1));
@@ -113,6 +110,12 @@ void stw::Renderer::Delete()
 {
 	m_IsInitialized = false;
 	m_MatricesUniformBuffer.Delete();
+	m_TextureManager.Delete();
+
+	for (auto& mesh : m_Meshes)
+	{
+		mesh.Delete();
+	}
 }
 
 void stw::Renderer::SetOpenGlCapability(const bool enabled, const GLenum capability, bool& field)
@@ -126,4 +129,95 @@ void stw::Renderer::SetOpenGlCapability(const bool enabled, const GLenum capabil
 	{
 		GLCALL(glDisable(capability));
 	}
+}
+
+stw::TextureManager& stw::Renderer::GetTextureManager()
+{
+	return m_TextureManager;
+}
+
+std::optional<std::string> stw::Renderer::LoadModel(const std::filesystem::path& path, Pipeline& pipeline)
+{
+	Assimp::Importer importer;
+	constexpr u32 assimpImportFlags = aiProcessPreset_TargetRealtime_Fast;
+
+	const auto pathString = path.string();
+
+	Timer timer;
+	timer.Start();
+
+	const aiScene* scene = importer.ReadFile(pathString.c_str(), assimpImportFlags);
+
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	{
+		return { importer.GetErrorString() };
+	}
+
+	spdlog::info("Imported model {} in {:0.0f} ms", pathString, timer.GetElapsedTime().GetInMilliseconds());
+
+	auto workingDirectory = path.parent_path();
+	std::size_t materialIndexOffset = m_MaterialManager
+		.LoadMaterialsFromAssimpScene(scene, workingDirectory, m_TextureManager, pipeline);
+
+	m_Meshes.reserve(m_Meshes.size() + scene->mNumMeshes);
+	ProcessNode(scene->mRootNode, scene, materialIndexOffset);
+
+	spdlog::info("Converted model {} in {:0.0f} ms", pathString, timer.GetElapsedTime().GetInMilliseconds());
+
+	return {};
+
+}
+
+void stw::Renderer::ProcessNode(const aiNode* node, const aiScene* scene, std::size_t materialIndexOffset)
+{
+	for (std::size_t i = 0; i < node->mNumMeshes; ++i)
+	{
+		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		m_Meshes.push_back(ProcessMesh(mesh, materialIndexOffset));
+	}
+
+	for (std::size_t i = 0; i < node->mNumChildren; ++i)
+	{
+		ProcessNode(node->mChildren[i], scene, 0);
+	}
+}
+
+stw::Mesh stw::Renderer::ProcessMesh(aiMesh* assimpMesh, std::size_t materialIndexOffset)
+{
+	std::vector<Vertex> vertices{};
+	vertices.reserve(assimpMesh->mNumVertices);
+	for (std::size_t i = 0; i < assimpMesh->mNumVertices; ++i)
+	{
+		const aiVector3D meshVertex = assimpMesh->mVertices[i];
+		const aiVector3D meshNormal = assimpMesh->mNormals[i];
+		const aiVector3D meshTangent = assimpMesh->mTangents[i];
+
+		glm::vec2 textureCoords(0.0f);
+		if (assimpMesh->mTextureCoords[0])
+		{
+			const auto meshTextureCoords = assimpMesh->mTextureCoords[0][i];
+			textureCoords.x = meshTextureCoords.x;
+			textureCoords.y = meshTextureCoords.y;
+		}
+
+		Vertex vertex{{ meshVertex.x, meshVertex.y, meshVertex.z, }, { meshNormal.x, meshNormal.y, meshNormal.z, },
+					  textureCoords, { meshTangent.x, meshTangent.y, meshTangent.z }};
+		vertices.push_back(vertex);
+	}
+
+	std::vector<u32> indices{};
+	indices.reserve(static_cast<std::size_t>(assimpMesh->mNumFaces) * 3);
+	for (std::size_t i = 0; i < assimpMesh->mNumFaces; ++i)
+	{
+		const aiFace& face = assimpMesh->mFaces[i];
+		for (std::size_t j = 0; j < face.mNumIndices; ++j)
+		{
+			indices.push_back(face.mIndices[j]);
+		}
+	}
+
+	Mesh mesh;
+	mesh.Init(std::move(vertices), std::move(indices), materialIndexOffset + assimpMesh->mMaterialIndex);
+
+	return mesh;
 }

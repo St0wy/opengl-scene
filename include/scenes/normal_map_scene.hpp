@@ -9,12 +9,11 @@
 #include <glm/ext.hpp>
 
 #include "camera.hpp"
-#include "model.hpp"
 #include "number_types.hpp"
 #include "scene.hpp"
 #include "ogl/pipeline.hpp"
 #include "ogl/renderer.hpp"
-#include "ogl/material.hpp"
+#include "material.hpp"
 
 namespace stw
 {
@@ -23,20 +22,12 @@ class NormalMapScene final : public Scene
 public:
 	void Init() override
 	{
-		m_WallModel = Model::LoadFromPath("data/wall/wall.obj").value();
-
 		if (GLEW_VERSION_4_3)
 		{
-			constexpr auto messageCallback = 
-				[](GLenum source, GLenum type, GLuint id, GLenum severity, const GLsizei length, const GLchar* message, const void*)
-				{
-					spdlog::error("[OpenGL Error source {}, type {}, id {}, severity {}] {}",
-						source,
-						type,
-						id,
-						severity,
-						std::string_view(message, length));
-				};
+			constexpr auto messageCallback = [](GLenum source, GLenum type, GLuint id, GLenum severity, const GLsizei length, const GLchar* message, const void*)
+			{
+				spdlog::error("[OpenGL Error source {}, type {}, id {}, severity {}] {}", source, type, id, severity, std::string_view(message, length));
+			};
 			glDebugMessageCallback(messageCallback, nullptr);
 		}
 
@@ -53,15 +44,7 @@ public:
 
 		UpdateProjection();
 
-		auto mat = MaterialNormalNoSpecular {
-			{m_Pipeline},
-			0.5f,
-			64.0f,
-			std::move(Texture::LoadFromPath("./data/wall/brickwall.jpg", TextureType::Diffuse).value()),
-			std::move(Texture::LoadFromPath("./data/wall/brickwall_normal.jpg", TextureType::Normal).value()),
-		};
-
-		m_TempMat.emplace<MaterialNormalNoSpecular>(std::move(mat));
+		auto result = m_Renderer.LoadModel("./data/wall/wall.obj", m_Pipeline);
 	}
 
 	static void SetupPipeline(Pipeline& pipeline)
@@ -70,15 +53,8 @@ public:
 		pipeline.SetFloat("material.shininess", 64.0f);
 
 		// Setup lights
-		constexpr PointLight pointLight{
-			{0.0f, 0.0f, 1.0f},
-			0.01f,
-			0.1f,
-			0.5f,
-			glm::vec3{0.5f},
-			glm::vec3{0.3f},
-			{1.0f, 1.0f, 1.0f}
-		};
+		constexpr PointLight pointLight{{ 0.0f, 0.0f, 1.0f }, 0.01f, 0.1f, 0.5f, glm::vec3{ 0.5f }, glm::vec3{ 0.3f },
+										{ 1.0f, 1.0f, 1.0f }};
 		pipeline.SetPointLightsCount(1);
 		pipeline.SetPointLight("pointLights", 0, pointLight);
 
@@ -108,28 +84,19 @@ public:
 
 		m_Pipeline.Bind();
 
-		m_Pipeline.SetFloat("material.specular", 0.5f);
-
 		// TODO: material manager for textures
 
 		glm::mat4 modelMatrix = glm::mat4(1.0f);
 		modelMatrix = translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 		modelMatrix = scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 
-		m_Renderer.Draw(m_WallModel, m_Pipeline, m_TempMat, modelMatrix);
+		m_Renderer.Draw(m_Pipeline, modelMatrix);
 
 		m_Pipeline.UnBind();
 
 #pragma region Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
-		const CameraMovementState cameraMovementState{
-			.forward = static_cast<bool>(keyboardState[SDL_SCANCODE_W]),
-			.backward = static_cast<bool>(keyboardState[SDL_SCANCODE_S]),
-			.left = static_cast<bool>(keyboardState[SDL_SCANCODE_A]),
-			.right = static_cast<bool>(keyboardState[SDL_SCANCODE_D]),
-			.up = static_cast<bool>(keyboardState[SDL_SCANCODE_SPACE]),
-			.down = static_cast<bool>(keyboardState[SDL_SCANCODE_LSHIFT])
-		};
+		const CameraMovementState cameraMovementState{ .forward = static_cast<bool>(keyboardState[SDL_SCANCODE_W]), .backward = static_cast<bool>(keyboardState[SDL_SCANCODE_S]), .left = static_cast<bool>(keyboardState[SDL_SCANCODE_A]), .right = static_cast<bool>(keyboardState[SDL_SCANCODE_D]), .up = static_cast<bool>(keyboardState[SDL_SCANCODE_SPACE]), .down = static_cast<bool>(keyboardState[SDL_SCANCODE_LSHIFT]) };
 
 		if (cameraMovementState.HasMovement())
 		{
@@ -173,25 +140,19 @@ public:
 
 	void OnResize(const i32 windowWidth, const i32 windowHeight) override
 	{
-		m_Renderer.SetViewport({0, 0}, {windowWidth, windowHeight});
+		m_Renderer.SetViewport({ 0, 0 }, { windowWidth, windowHeight });
 		m_Camera.SetAspectRatio(static_cast<f32>(windowWidth) / static_cast<f32>(windowHeight));
 	}
 
 	void Delete() override
 	{
 		m_Pipeline.Delete();
-		m_WallModel.Delete();
 		m_Renderer.Delete();
-		auto& mat = std::get<MaterialNormalNoSpecular>(m_TempMat);
-		mat.diffuseMap.Delete();
-		mat.normalMap.Delete();
 	}
 
 private:
 	Pipeline m_Pipeline{};
-	Camera m_Camera{glm::vec3{0.0f, 5.0f, 40.0f}};
+	Camera m_Camera{ glm::vec3{ 0.0f, 5.0f, 40.0f }};
 	Renderer m_Renderer{};
-	Model m_WallModel;
-	Material m_TempMat = InvalidMaterial{};
 };
 } // namespace stw

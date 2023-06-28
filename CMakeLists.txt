@@ -49,9 +49,9 @@ add_executable(
 	"src/ogl/uniform_buffer.cpp"
 	"include/ogl/renderer.hpp"
 	"src/ogl/renderer.cpp"
-	"include/ogl/material.hpp"
-	"src/ogl/material.cpp"
-)
+	"include/material.hpp"
+	"src/material.cpp"
+    include/texture_manager.hpp src/texture_manager.cpp include/material_manager.hpp src/material_manager.cpp)
 
 target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_system_libraries(

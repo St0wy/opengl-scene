@@ -32,7 +32,7 @@ const char* ToString(TextureType type);
 aiTextureType ToAssimpTextureType(TextureType type);
 
 // This is the texture that was used in the light scene
-// It is called smart because it handle the OpenGL logic to bind it to the shader
+// It is called smart because it handles the OpenGL logic to bind it to the shader
 //class SmartTexture final
 //{
 //public:
@@ -84,7 +84,7 @@ struct Texture
 	GLint internalFormat = -1;
 
 	void Bind() const;
-	void Init(TextureType type, const TextureSpace textureSpace);
+	void Init(TextureType type, TextureSpace textureSpace);
 	void SetFormat(int nbComponents);
 	void Specify(GLsizei width,
 		GLsizei height,

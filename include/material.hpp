@@ -4,10 +4,13 @@
 
 #include "texture.hpp"
 #include "ogl/pipeline.hpp"
+#include "texture_manager.hpp"
 
 namespace stw
 {
-struct InvalidMaterial{};
+struct InvalidMaterial
+{
+};
 
 struct MaterialBase
 {
@@ -16,20 +19,20 @@ struct MaterialBase
 
 struct MaterialNormalNoSpecular : MaterialBase
 {
-	f32 specular;
+	glm::vec3 specular;
 	f32 shininess;
-	Texture diffuseMap;
-	Texture normalMap;
+	std::size_t diffuseMapIndex;
+	std::size_t normalMapIndex;
 };
 
 struct MaterialNoNormalNoSpecular : MaterialBase
 {
 	f32 specular;
 	f32 shininess;
-	Texture diffuseMap;
+	std::size_t diffuseMapIndex;
 };
 
 using Material = std::variant<InvalidMaterial, MaterialNoNormalNoSpecular, MaterialNormalNoSpecular>;
 
-void BindMaterial(const Material& materialVariant);
+void BindMaterial(const Material& materialVariant, TextureManager& textureManager);
 }
