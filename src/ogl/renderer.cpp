@@ -8,6 +8,11 @@
 #include "utils.hpp"
 #include "timer.hpp"
 
+namespace std {namespace filesystem
+{
+class path;
+}}
+
 stw::Renderer::~Renderer()
 {
 	if (m_IsInitialized)
@@ -97,7 +102,7 @@ void stw::Renderer::Draw(Pipeline& pipeline, const glm::mat4& modelMatrix)
 	{
 		const auto idx = mesh.GetMaterialIndex();
 		BindMaterial(m_MaterialManager[idx], m_TextureManager);
-		mesh.Bind(pipeline, { &modelMatrix, 1 });
+		mesh.Bind(pipeline, {&modelMatrix, 1});
 
 		const auto size = static_cast<GLsizei>(mesh.GetIndicesSize());
 		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, 1));
@@ -150,14 +155,16 @@ std::optional<std::string> stw::Renderer::LoadModel(const std::filesystem::path&
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
-		return { importer.GetErrorString() };
+		return {importer.GetErrorString()};
 	}
 
 	spdlog::info("Imported model {} in {:0.0f} ms", pathString, timer.GetElapsedTime().GetInMilliseconds());
 
 	auto workingDirectory = path.parent_path();
-	std::size_t materialIndexOffset = m_MaterialManager
-		.LoadMaterialsFromAssimpScene(scene, workingDirectory, m_TextureManager, pipeline);
+	const std::size_t materialIndexOffset = m_MaterialManager.LoadMaterialsFromAssimpScene(scene,
+		workingDirectory,
+		m_TextureManager,
+		pipeline);
 
 	m_Meshes.reserve(m_Meshes.size() + scene->mNumMeshes);
 	ProcessNode(scene->mRootNode, scene, materialIndexOffset);
@@ -165,7 +172,6 @@ std::optional<std::string> stw::Renderer::LoadModel(const std::filesystem::path&
 	spdlog::info("Converted model {} in {:0.0f} ms", pathString, timer.GetElapsedTime().GetInMilliseconds());
 
 	return {};
-
 }
 
 void stw::Renderer::ProcessNode(const aiNode* node, const aiScene* scene, std::size_t materialIndexOffset)
@@ -200,8 +206,12 @@ stw::Mesh stw::Renderer::ProcessMesh(aiMesh* assimpMesh, std::size_t materialInd
 			textureCoords.y = meshTextureCoords.y;
 		}
 
-		Vertex vertex{{ meshVertex.x, meshVertex.y, meshVertex.z, }, { meshNormal.x, meshNormal.y, meshNormal.z, },
-					  textureCoords, { meshTangent.x, meshTangent.y, meshTangent.z }};
+		Vertex vertex{
+			{meshVertex.x, meshVertex.y, meshVertex.z,},
+			{meshNormal.x, meshNormal.y, meshNormal.z,},
+			textureCoords,
+			{meshTangent.x, meshTangent.y, meshTangent.z}
+		};
 		vertices.push_back(vertex);
 	}
 
@@ -217,7 +227,7 @@ stw::Mesh stw::Renderer::ProcessMesh(aiMesh* assimpMesh, std::size_t materialInd
 	}
 
 	Mesh mesh;
-	mesh.Init(std::move(vertices), std::move(indices), materialIndexOffset + assimpMesh->mMaterialIndex);
+	mesh.Init(std::move(vertices), std::move(indices), materialIndexOffset + assimpMesh->mMaterialIndex - 1);
 
 	return mesh;
 }

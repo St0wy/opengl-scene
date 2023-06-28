@@ -53,7 +53,7 @@ public:
 		pipeline.SetFloat("material.shininess", 64.0f);
 
 		// Setup lights
-		constexpr PointLight pointLight{{ 0.0f, 0.0f, 1.0f }, 0.01f, 0.1f, 0.5f, glm::vec3{ 0.5f }, glm::vec3{ 0.3f },
+		constexpr PointLight pointLight{{ 0.0f, 1.0f, 1.0f }, 0.01f, 0.1f, 0.5f, glm::vec3{ 0.5f }, glm::vec3{ 0.3f },
 										{ 1.0f, 1.0f, 1.0f }};
 		pipeline.SetPointLightsCount(1);
 		pipeline.SetPointLight("pointLights", 0, pointLight);
@@ -86,7 +86,7 @@ public:
 
 		// TODO: material manager for textures
 
-		glm::mat4 modelMatrix = glm::mat4(1.0f);
+		auto modelMatrix = glm::mat4(1.0f);
 		modelMatrix = translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 		modelMatrix = scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 
@@ -152,7 +152,7 @@ public:
 
 private:
 	Pipeline m_Pipeline{};
-	Camera m_Camera{ glm::vec3{ 0.0f, 5.0f, 40.0f }};
+	Camera m_Camera{ glm::vec3{ 0.0f, 0.0f, 10.0f }};
 	Renderer m_Renderer{};
 };
 } // namespace stw

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <vector>
 #include <assimp/scene.h>
 
@@ -23,7 +24,7 @@ private:
 	void
 	LoadNoNormalNoSpecular(aiMaterial* material, const std::filesystem::path& workingDirectory, TextureManager& textureManager, Pipeline& pipeline);
 	void
-	LoadNormalNoSpecular(aiMaterial* material, const std::filesystem::path& workingDirectory, TextureManager& textureManager, Pipeline& pipeline);
+	LoadNormalNoSpecular(const aiMaterial* material, const std::filesystem::path& workingDirectory, TextureManager& textureManager, Pipeline& pipeline);
 	void
 	LoadNoNormalSpecular(aiMaterial* material, const std::filesystem::path& workingDirectory, TextureManager& textureManager, Pipeline& pipeline);
 	void
