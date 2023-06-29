@@ -3,7 +3,7 @@
 #define MAX_POINT_LIGHTS 8
 #define MAX_SPOT_LIGHTS 8
 
-struct Material 
+struct Material
 {
     sampler2D texture_diffuse1;
     float specular;
@@ -33,20 +33,20 @@ struct PointLight
     vec3 specular;
 };
 
-struct SpotLight 
+struct SpotLight
 {
     vec3 position;
     vec3 direction;
     float cutOff;
     float outerCutOff;
-  
+
     float constant;
     float linear;
     float quadratic;
-  
+
     vec3 ambient;
     vec3 diffuse;
-    vec3 specular;       
+    vec3 specular;
 };
 
 uniform DirectionalLight directionalLight;
@@ -67,7 +67,11 @@ layout (location = 4) in mat4 modelMatrix;
 
 out vec2 TexCoords;
 out vec3 TangentViewPos;
+
 out vec3 TangentPointLightsPos[MAX_POINT_LIGHTS];
+out vec3 TangentSpotLightsPos[MAX_SPOT_LIGHTS];
+out vec3 TangentSpotLightsDir[MAX_SPOT_LIGHTS];
+
 out vec3 TangentFragPos;
 
 layout (std140, binding = 0) uniform Matrices
@@ -94,6 +98,13 @@ void main()
     {
         TangentPointLightsPos[i] = TBN * pointLights[i].position;
     }
+
+    for (int i = 0; i < spotLightsCount; i++)
+    {
+        TangentSpotLightsPos[i] = TBN * spotLights[i].position;
+        TangentSpotLightsDir[i] = TBN * spotLights[i].direction;
+    }
+
     TangentViewPos = TBN * viewPos;
     TangentFragPos = TBN * fragPos;
 

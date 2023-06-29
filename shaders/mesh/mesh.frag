@@ -5,7 +5,7 @@ precision highp float;
 #define MAX_DIRECTIONAL_LIGHTS 8
 #define MAX_SPOT_LIGHTS 32
 
-struct Material 
+struct Material
 {
 	sampler2D texture_diffuse1;
 	sampler2D texture_specular1;
@@ -34,20 +34,20 @@ struct PointLight
 	vec3 specular;
 };
 
-struct SpotLight 
+struct SpotLight
 {
 	vec3 position;
 	vec3 direction;
 	float cutOff;
 	float outerCutOff;
-  
+
 	float constant;
 	float linear;
 	float quadratic;
-  
+
 	vec3 ambient;
 	vec3 diffuse;
-	vec3 specular;       
+	vec3 specular;
 };
 
 out vec4 FragColor;
@@ -75,10 +75,10 @@ void main()
 {
 	vec3 norm = normalize(Normal);
 	vec3 viewDir = normalize(-FragPos);
-	
+
 	vec3 result = vec3(0.0);
-	
-	for (uint i = 0u; i < directionalLightsCount; i++) 
+
+	for (uint i = 0u; i < directionalLightsCount; i++)
 	{
 		result += ComputeDirectionalLight(directionalLights[i], norm, viewDir);
 	}

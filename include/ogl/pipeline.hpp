@@ -81,11 +81,10 @@ public:
 	void SetMat4(std::string_view name, const glm::mat4& mat);
 
 	void SetPointLightsCount(u32 count);
-	void SetDirectionalLightsCount(u32 count);
 	void SetSpotLightsCount(u32 count);
 
 	void SetPointLight(std::string_view name, u32 index, const PointLight& pointLight);
-	void SetDirectionalLight(std::string_view name, u32 index, const DirectionalLight& directionalLight);
+	void SetDirectionalLight(std::string_view name, const DirectionalLight& directionalLight);
 	void SetSpotLight(std::string_view name, u32 index, const SpotLight& spotLight);
 
 private:
@@ -96,7 +95,6 @@ private:
 	GLuint m_VertexShaderId{};
 	GLuint m_FragmentShaderId{};
 
-	u32 m_DirectionalLightsCount = 0;
 	u32 m_PointLightsCount = 0;
 	u32 m_SpotLightsCount = 0;
 

@@ -3,17 +3,19 @@
 //
 
 #pragma once
-#include <random>
+
 #include <GL/glew.h>
-#include <variant>
 #include <glm/ext.hpp>
+#include <glm/vec4.hpp>
+#include <random>
+#include <variant>
 
 #include "camera.hpp"
+#include "material.hpp"
 #include "number_types.hpp"
-#include "scene.hpp"
 #include "ogl/pipeline.hpp"
 #include "ogl/renderer.hpp"
-#include "material.hpp"
+#include "scene.hpp"
 
 namespace stw
 {
@@ -24,9 +26,19 @@ public:
 	{
 		if (GLEW_VERSION_4_3)
 		{
-			constexpr auto messageCallback = [](GLenum source, GLenum type, GLuint id, GLenum severity, const GLsizei length, const GLchar* message, const void*)
-			{
-				spdlog::error("[OpenGL Error source {}, type {}, id {}, severity {}] {}", source, type, id, severity, std::string_view(message, length));
+			constexpr auto messageCallback = [](GLenum source,
+												 GLenum type,
+												 GLuint id,
+												 GLenum severity,
+												 const GLsizei length,
+												 const GLchar* message,
+												 const void*) {
+				spdlog::error("[OpenGL Error source {}, type {}, id {}, severity {}] {}",
+					source,
+					type,
+					id,
+					severity,
+					std::string_view(message, length));
 			};
 			glDebugMessageCallback(messageCallback, nullptr);
 		}
@@ -40,23 +52,48 @@ public:
 
 		m_Renderer.SetEnableCullFace(true);
 
-		m_Pipeline.InitFromPath("shaders/normal_map/mesh.vert", "shaders/normal_map/mesh_no_specular.frag");
+		m_Pipeline.InitFromPath("shaders/normal_map/mesh.vert", "shaders/normal_map/mesh.frag");
 
 		UpdateProjection();
 
-		auto result = m_Renderer.LoadModel("./data/wall/wall.obj", m_Pipeline);
+		auto result = m_Renderer.LoadModel("./data/backpack/backpack.obj", m_Pipeline);
+		if (result.has_value())
+		{
+			spdlog::error("Error on model loading : {}", result.value());
+		}
 	}
 
-	static void SetupPipeline(Pipeline& pipeline)
+	void SetupPipeline(Pipeline& pipeline)
 	{
 		pipeline.Bind();
-		pipeline.SetFloat("material.shininess", 64.0f);
+		pipeline.SetVec3("viewPos", m_Camera.Position());
 
 		// Setup lights
-		constexpr PointLight pointLight{{ 0.0f, 1.0f, 1.0f }, 0.01f, 0.1f, 0.5f, glm::vec3{ 0.5f }, glm::vec3{ 0.3f },
-										{ 1.0f, 1.0f, 1.0f }};
-		pipeline.SetPointLightsCount(1);
-		pipeline.SetPointLight("pointLights", 0, pointLight);
+		//		const PointLight pointLight{
+		//			{ 0.0f, 5.0f, 2.0f }, 0.01f, 0.02f, 0.02f, glm::vec3{ 0.3f }, glm::vec3{ 0.0f }, glm::vec3{ 0.0f }
+		//		};
+		//		pipeline.SetPointLightsCount(1);
+		//		pipeline.SetPointLight("pointLights", 0, pointLight);
+		//
+		//		const DirectionalLight directionalLight{
+		//			{ -0.2f, -1.0f, -0.3f }, { 0.3f, 0.3f, 0.3f }, { 0.2f, 0.2f, 0.2f }, { 0.2f, 0.2f, 0.2f }
+		//		};
+		//		pipeline.SetDirectionalLight("directionalLight", directionalLight);
+
+		SpotLight spotLight{
+			m_Camera.Position(),
+			m_Camera.Front(),
+			glm::cos(glm::radians(12.5f)),
+			glm::cos(glm::radians(15.0f)),
+			0.001f,
+			0.09f,
+			0.01f,
+			{ 0.2f, 0.2f, 0.2f },
+			glm::vec3{ 0.3f },
+			glm::vec3{ 0.3f },
+		};
+		pipeline.SetSpotLightsCount(1);
+		pipeline.SetSpotLight("spotLights", 0, spotLight);
 
 		pipeline.UnBind();
 	}
@@ -84,8 +121,6 @@ public:
 
 		m_Pipeline.Bind();
 
-		// TODO: material manager for textures
-
 		auto modelMatrix = glm::mat4(1.0f);
 		modelMatrix = translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 		modelMatrix = scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
@@ -96,7 +131,12 @@ public:
 
 #pragma region Camera
 		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
-		const CameraMovementState cameraMovementState{ .forward = static_cast<bool>(keyboardState[SDL_SCANCODE_W]), .backward = static_cast<bool>(keyboardState[SDL_SCANCODE_S]), .left = static_cast<bool>(keyboardState[SDL_SCANCODE_A]), .right = static_cast<bool>(keyboardState[SDL_SCANCODE_D]), .up = static_cast<bool>(keyboardState[SDL_SCANCODE_SPACE]), .down = static_cast<bool>(keyboardState[SDL_SCANCODE_LSHIFT]) };
+		const CameraMovementState cameraMovementState{ .forward = static_cast<bool>(keyboardState[SDL_SCANCODE_W]),
+			.backward = static_cast<bool>(keyboardState[SDL_SCANCODE_S]),
+			.left = static_cast<bool>(keyboardState[SDL_SCANCODE_A]),
+			.right = static_cast<bool>(keyboardState[SDL_SCANCODE_D]),
+			.up = static_cast<bool>(keyboardState[SDL_SCANCODE_SPACE]),
+			.down = static_cast<bool>(keyboardState[SDL_SCANCODE_LSHIFT]) };
 
 		if (cameraMovementState.HasMovement())
 		{
@@ -109,15 +149,13 @@ public:
 	{
 		switch (event.type)
 		{
-		case SDL_MOUSEMOTION:
-		{
+		case SDL_MOUSEMOTION: {
 			const auto xOffset = static_cast<f32>(event.motion.xrel);
 			const auto yOffset = static_cast<f32>(-event.motion.yrel);
 			m_Camera.ProcessMouseMovement(xOffset, yOffset);
 			break;
 		}
-		case SDL_MOUSEWHEEL:
-		{
+		case SDL_MOUSEWHEEL: {
 			const f32 yOffset = event.wheel.preciseY;
 			m_Camera.ProcessMouseScroll(yOffset);
 			UpdateProjection();
@@ -152,7 +190,7 @@ public:
 
 private:
 	Pipeline m_Pipeline{};
-	Camera m_Camera{ glm::vec3{ 0.0f, 0.0f, 10.0f }};
+	Camera m_Camera{ glm::vec3{ 0.0f, 1.0f, 10.0f } };
 	Renderer m_Renderer{};
 };
-} // namespace stw
+}// namespace stw

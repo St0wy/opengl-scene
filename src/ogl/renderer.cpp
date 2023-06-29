@@ -94,17 +94,21 @@ void stw::Renderer::Clear(const GLbitfield mask) // NOLINT(readability-convert-m
 
 void stw::Renderer::Draw(Pipeline& pipeline, const glm::mat4& modelMatrix)
 {
-	pipeline.SetVec3("viewPos", viewPosition);
+
 	for (const Mesh& mesh : m_Meshes)
 	{
+		m_MatricesUniformBuffer.Bind();
 		const auto idx = mesh.GetMaterialIndex();
-		BindMaterial(m_MaterialManager[idx], m_TextureManager);
+		auto& material = m_MaterialManager[idx];
+
+		BindMaterial(material, m_TextureManager);
 		mesh.Bind(pipeline, { &modelMatrix, 1 });
 
 		const auto size = static_cast<GLsizei>(mesh.GetIndicesSize());
 		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, 1));
 
 		mesh.UnBind();
+		m_MatricesUniformBuffer.UnBind();
 	}
 }
 

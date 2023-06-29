@@ -74,13 +74,6 @@ void stw::Pipeline::SetPointLightsCount(const u32 count)
 	m_PointLightsCount = count;
 }
 
-void stw::Pipeline::SetDirectionalLightsCount(const u32 count)
-{
-	ASSERT_MESSAGE(count <= MaxDirectionalLights, "Count is above max lights.");
-	SetUnsignedInt("directionalLightsCount", count);
-	m_DirectionalLightsCount = count;
-}
-
 void stw::Pipeline::SetSpotLightsCount(const u32 count)
 {
 	ASSERT_MESSAGE(count <= MaxSpotLights, "Count is above max lights.");
@@ -94,7 +87,7 @@ void stw::Pipeline::SetPointLight(std::string_view name, u32 index, const stw::P
 
 	const auto indexedName = fmt::format("{}[{}]", name, index);
 
-	//const auto viewSpaceLightPosition = glm::vec3(view * glm::vec4(pointLight.position, 1.0f));
+	// const auto viewSpaceLightPosition = glm::vec3(view * glm::vec4(pointLight.position, 1.0f));
 	SetVec3(fmt::format("{}.position", indexedName), pointLight.position);
 
 	SetVec3(fmt::format("{}.ambient", indexedName), pointLight.ambient);
@@ -106,11 +99,9 @@ void stw::Pipeline::SetPointLight(std::string_view name, u32 index, const stw::P
 	SetFloat(fmt::format("{}.quadratic", indexedName), pointLight.quadratic);
 }
 
-void stw::Pipeline::SetDirectionalLight(std::string_view name, u32 index, const DirectionalLight& directionalLight)
+void stw::Pipeline::SetDirectionalLight(std::string_view name, const DirectionalLight& directionalLight)
 {
-	ASSERT_MESSAGE(index < m_DirectionalLightsCount, "Index should be bellow the light count.");
-
-	const auto indexedName = fmt::format("{}[{}]", name, index);
+	const auto indexedName = fmt::format("{}", name);
 	SetVec3(fmt::format("{}.direction", indexedName), directionalLight.direction);
 	SetVec3(fmt::format("{}.ambient", indexedName), directionalLight.ambient);
 	SetVec3(fmt::format("{}.diffuse", indexedName), directionalLight.diffuse);
@@ -266,7 +257,4 @@ void stw::Pipeline::Delete()
 	m_ProgramId = 0;
 }
 
-GLuint stw::Pipeline::Id() const
-{
-	return m_ProgramId;
-}
+GLuint stw::Pipeline::Id() const { return m_ProgramId; }
