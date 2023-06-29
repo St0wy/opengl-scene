@@ -52,11 +52,11 @@ public:
 
 		m_Renderer.SetEnableCullFace(true);
 
-		m_Pipeline.InitFromPath("shaders/normal_map/mesh.vert", "shaders/normal_map/mesh.frag");
+		m_Pipeline.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh.frag");
 
 		UpdateProjection();
 
-		auto result = m_Renderer.LoadModel("./data/backpack/backpack.obj", m_Pipeline);
+		auto result = m_Renderer.LoadModel("./data/cube/cube.obj", m_Pipeline);
 		if (result.has_value())
 		{
 			spdlog::error("Error on model loading : {}", result.value());
@@ -69,16 +69,16 @@ public:
 		pipeline.SetVec3("viewPos", m_Camera.Position());
 
 		// Setup lights
-		//		const PointLight pointLight{
-		//			{ 0.0f, 5.0f, 2.0f }, 0.01f, 0.02f, 0.02f, glm::vec3{ 0.3f }, glm::vec3{ 0.0f }, glm::vec3{ 0.0f }
-		//		};
-		//		pipeline.SetPointLightsCount(1);
-		//		pipeline.SetPointLight("pointLights", 0, pointLight);
-		//
-		//		const DirectionalLight directionalLight{
-		//			{ -0.2f, -1.0f, -0.3f }, { 0.3f, 0.3f, 0.3f }, { 0.2f, 0.2f, 0.2f }, { 0.2f, 0.2f, 0.2f }
-		//		};
-		//		pipeline.SetDirectionalLight("directionalLight", directionalLight);
+		const PointLight pointLight{
+			{ 0.0f, 3.0f, 2.0f }, 0.01f, 0.02f, 0.02f, glm::vec3{ 0.2f }, glm::vec3{ 0.032f }, glm::vec3{ 0.2f }
+		};
+		pipeline.SetPointLightsCount(1);
+		pipeline.SetPointLight("pointLights", 0, pointLight);
+
+		const DirectionalLight directionalLight{
+			{ -0.2f, -1.0f, -0.3f }, glm::vec3{ 0.03f }, glm::vec3{ 0.2f }, glm::vec3{ 0.1f }
+		};
+		pipeline.SetDirectionalLight("directionalLight", directionalLight);
 
 		SpotLight spotLight{
 			m_Camera.Position(),
@@ -89,7 +89,7 @@ public:
 			0.09f,
 			0.01f,
 			{ 0.2f, 0.2f, 0.2f },
-			glm::vec3{ 0.3f },
+			glm::vec3{ 0.2f },
 			glm::vec3{ 0.3f },
 		};
 		pipeline.SetSpotLightsCount(1);

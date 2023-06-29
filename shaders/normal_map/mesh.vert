@@ -5,48 +5,48 @@
 
 struct Material
 {
-    sampler2D texture_diffuse1;
-    float specular;
-    float shininess;
-    sampler2D texture_normal1;
+	sampler2D texture_diffuse1;
+	float specular;
+	float shininess;
+	sampler2D texture_normal1;
 };
 
 struct DirectionalLight
 {
-    vec3 direction;
+	vec3 direction;
 
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
 };
 
 struct PointLight
 {
-    vec3 position;
+	vec3 position;
 
-    float constant;
-    float linear;
-    float quadratic;
+	float constant;
+	float linear;
+	float quadratic;
 
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
 };
 
 struct SpotLight
 {
-    vec3 position;
-    vec3 direction;
-    float cutOff;
-    float outerCutOff;
+	vec3 position;
+	vec3 direction;
+	float cutOff;
+	float outerCutOff;
 
-    float constant;
-    float linear;
-    float quadratic;
+	float constant;
+	float linear;
+	float quadratic;
 
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
 };
 
 uniform DirectionalLight directionalLight;
@@ -77,36 +77,35 @@ out vec3 TangentFragPos;
 layout (std140, binding = 0) uniform Matrices
 {
 	mat4 projection;
-    mat4 view;
+	mat4 view;
 };
 
 void main()
 {
+	TexCoords = aTexCoords;
+	vec3 fragPos = vec3(modelMatrix * vec4(aPos, 1.0));
 
-    TexCoords = aTexCoords;
-    vec3 fragPos = vec3(modelMatrix * vec4(aPos, 1.0));
+	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
 
-    mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
+	vec3 T = normalize(normalMatrix * aTangent);
+	vec3 N = normalize(normalMatrix * aNormal);
+	T = normalize(T - dot(T, N) * N);
+	vec3 B = cross(N, T);
+	mat3 TBN = transpose(mat3(T, B, N));
 
-    vec3 T = normalize(normalMatrix * aTangent);
-    vec3 N = normalize(normalMatrix * aNormal);
-    T = normalize(T - dot(T, N) * N);
-    vec3 B = cross(N, T);
-    mat3 TBN = transpose(mat3(T, B, N));
+	for (int i = 0; i < pointLightsCount; i++)
+	{
+		TangentPointLightsPos[i] = TBN * pointLights[i].position;
+	}
 
-    for (int i = 0; i < pointLightsCount; i++)
-    {
-        TangentPointLightsPos[i] = TBN * pointLights[i].position;
-    }
+	for (int i = 0; i < spotLightsCount; i++)
+	{
+		TangentSpotLightsPos[i] = TBN * spotLights[i].position;
+		TangentSpotLightsDir[i] = TBN * spotLights[i].direction;
+	}
 
-    for (int i = 0; i < spotLightsCount; i++)
-    {
-        TangentSpotLightsPos[i] = TBN * spotLights[i].position;
-        TangentSpotLightsDir[i] = TBN * spotLights[i].direction;
-    }
+	TangentViewPos = TBN * viewPos;
+	TangentFragPos = TBN * fragPos;
 
-    TangentViewPos = TBN * viewPos;
-    TangentFragPos = TBN * fragPos;
-
-    gl_Position = projection * view * modelMatrix * vec4(aPos, 1.0);
+	gl_Position = projection * view * modelMatrix * vec4(aPos, 1.0);
 }

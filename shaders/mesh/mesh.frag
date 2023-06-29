@@ -1,9 +1,8 @@
 #version 310 es
 precision highp float;
 
-#define MAX_POINT_LIGHTS 32
-#define MAX_DIRECTIONAL_LIGHTS 8
-#define MAX_SPOT_LIGHTS 32
+#define MAX_POINT_LIGHTS 8
+#define MAX_SPOT_LIGHTS 8
 
 struct Material
 {
@@ -56,8 +55,7 @@ in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
 
-uniform uint directionalLightsCount;
-uniform DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
+uniform DirectionalLight directionalLight;
 
 uniform uint pointLightsCount;
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
@@ -67,6 +65,8 @@ uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 
 uniform Material material;
 
+uniform vec3 viewPos;
+
 vec3 ComputeDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirection);
 vec3 ComputePointLight(PointLight light, vec3 normal, vec3 fragmentPosition, vec3 viewDirection);
 vec3 ComputeSpotLight(SpotLight light, vec3 normal, vec3 fragmentPosition, vec3 viewDirection);
@@ -74,14 +74,11 @@ vec3 ComputeSpotLight(SpotLight light, vec3 normal, vec3 fragmentPosition, vec3 
 void main()
 {
 	vec3 norm = normalize(Normal);
-	vec3 viewDir = normalize(-FragPos);
+	vec3 viewDir = normalize(viewPos - FragPos);
 
 	vec3 result = vec3(0.0);
 
-	for (uint i = 0u; i < directionalLightsCount; i++)
-	{
-		result += ComputeDirectionalLight(directionalLights[i], norm, viewDir);
-	}
+	result += ComputeDirectionalLight(directionalLight, norm, viewDir);
 
 	for (uint i = 0u; i < pointLightsCount; i++)
 	{

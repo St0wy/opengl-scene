@@ -91,7 +91,7 @@ void main()
 	for (uint i = 0u; i < spotLightsCount; i++)
 	{
 		result += ComputeSpotLight(spotLights[i], TangentSpotLightsPos[i],
-			TangentSpotLightsDir[i], normal, TangentFragPos, viewDir);
+		TangentSpotLightsDir[i], normal, TangentFragPos, viewDir);
 	}
 
 	float gamma = 2.2;

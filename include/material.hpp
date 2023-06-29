@@ -17,19 +17,26 @@ struct MaterialBase
 	Pipeline& pipeline;
 };
 
+struct MaterialNoNormalNoSpecular : MaterialBase
+{
+	glm::vec3 specular;
+	f32 shininess;
+	std::size_t diffuseMapIndex;
+};
+
+struct MaterialNoNormalSpecular : MaterialBase
+{
+	f32 shininess;
+	std::size_t diffuseMapIndex;
+	std::size_t specularMapIndex;
+};
+
 struct MaterialNormalNoSpecular : MaterialBase
 {
 	glm::vec3 specular;
 	f32 shininess;
 	std::size_t diffuseMapIndex;
 	std::size_t normalMapIndex;
-};
-
-struct MaterialNoNormalNoSpecular : MaterialBase
-{
-	glm::vec3 specular;
-	f32 shininess;
-	std::size_t diffuseMapIndex;
 };
 
 struct MaterialNormalSpecular : MaterialBase
@@ -40,8 +47,11 @@ struct MaterialNormalSpecular : MaterialBase
 	std::size_t normalMapIndex;
 };
 
-using Material =
-	std::variant<InvalidMaterial, MaterialNoNormalNoSpecular, MaterialNormalNoSpecular, MaterialNormalSpecular>;
+using Material = std::variant<InvalidMaterial,
+	MaterialNoNormalNoSpecular,
+	MaterialNormalNoSpecular,
+	MaterialNormalSpecular,
+	MaterialNoNormalSpecular>;
 
 void BindMaterial(const Material& materialVariant, TextureManager& textureManager);
 }// namespace stw
