@@ -51,7 +51,7 @@ add_executable(
 	"src/ogl/renderer.cpp"
 	"include/material.hpp"
 	"src/material.cpp"
-    include/texture_manager.hpp src/texture_manager.cpp include/material_manager.hpp src/material_manager.cpp)
+    include/texture_manager.hpp src/texture_manager.cpp include/material_manager.hpp src/material_manager.cpp include/scene_graph.hpp src/scene_graph.cpp)
 
 target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_system_libraries(
