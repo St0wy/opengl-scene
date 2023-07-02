@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <glm/mat4x4.hpp>
 #include <optional>
+#include <span>
+#include <vector>
 
 namespace stw
 {
@@ -29,6 +31,16 @@ struct SceneGraphNode
 
 class SceneGraph
 {
+public:
+	SceneGraph() = default;
+	SceneGraph(std::vector<SceneGraphElement> elements, std::vector<SceneGraphNode> nodes);
 
+	void AddElement(std::size_t meshId, std::size_t materialId, const glm::mat4& transformMatrix);
+	[[nodiscard]] std::span<const SceneGraphElement> GetElements() const;
+	[[nodiscard]] std::span<const SceneGraphNode> GetNodes() const;
+
+private:
+	std::vector<SceneGraphElement> m_Elements{};
+	std::vector<SceneGraphNode> m_Nodes{};
 };
 }// namespace stw
