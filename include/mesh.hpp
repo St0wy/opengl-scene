@@ -32,25 +32,17 @@ public:
 	Mesh& operator=(const Mesh&) = delete;
 	Mesh& operator=(Mesh&& other) noexcept;
 
-	void Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::size_t materialIndex);
+	void Init(std::vector<Vertex> vertices, std::vector<u32> indices);
 	void Delete();
 
 	[[nodiscard]] std::size_t GetIndicesSize() const;
 
-	void Bind(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
+	void Bind(std::span<const glm::mat4> modelMatrices) const;
 	void UnBind() const;
-
-	[[nodiscard]] std::size_t GetMaterialIndex() const
-	{
-		return m_MaterialIndex;
-	}
 
 private:
 	std::vector<Vertex> m_Vertices{};
 	std::vector<u32> m_Indices{};
-
-	// TODO: Remove this from here
-	std::size_t m_MaterialIndex{};
 
 	VertexArray m_VertexArray{};
 	VertexBuffer<Vertex> m_VertexBuffer{};

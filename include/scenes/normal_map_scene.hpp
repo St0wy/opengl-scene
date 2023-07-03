@@ -49,6 +49,7 @@ public:
 		m_Renderer.SetEnableMultisample(true);
 		m_Renderer.SetEnableDepthTest(true);
 		m_Renderer.SetDepthFunc(GL_LEQUAL);
+		m_Renderer.SetClearColor(glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
 
 		m_Renderer.SetEnableCullFace(true);
 
@@ -121,11 +122,7 @@ public:
 
 		m_Pipeline.Bind();
 
-		auto modelMatrix = glm::mat4(1.0f);
-		modelMatrix = translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-		modelMatrix = scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
-
-		m_Renderer.Draw(m_Pipeline, modelMatrix);
+		m_Renderer.DrawScene();
 
 		m_Pipeline.UnBind();
 

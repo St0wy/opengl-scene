@@ -17,11 +17,11 @@
 //}
 //
 ////
-////void stw::Model::Draw(Pipeline& pipeline, const glm::mat4& modelMatrix) const
+////void stw::Model::DrawScene(Pipeline& pipeline, const glm::mat4& modelMatrix) const
 ////{
 ////	for (const auto& mesh : m_Meshes)
 ////	{
-////		mesh.Draw(pipeline, modelMatrix);
+////		mesh.DrawScene(pipeline, modelMatrix);
 ////	}
 ////}
 ////

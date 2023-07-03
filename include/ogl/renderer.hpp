@@ -1,25 +1,32 @@
 #pragma once
 
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 #include <GL/glew.h>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-#include <assimp/scene.h>
 
-#include "material.hpp"
-#include "uniform_buffer.hpp"
 #include "glm/gtc/bitfield.hpp"
-#include "texture_manager.hpp"
-#include "mesh.hpp"
+#include "material.hpp"
 #include "material_manager.hpp"
+#include "mesh.hpp"
+#include "scene_graph.hpp"
+#include "texture_manager.hpp"
+#include "uniform_buffer.hpp"
 
 namespace stw
 {
 class Pipeline;
 
 class Model;
+
+struct ProcessMeshResult
+{
+	stw::Mesh mesh;
+	std::size_t materialIndex;
+};
 
 class Renderer
 {
@@ -40,24 +47,23 @@ public:
 	void SetEnableDepthTest(bool enableDepthTest);
 	void SetDepthFunc(GLenum depthFunction);
 	void SetEnableCullFace(bool enableCullFace);
-	void SetCullFace(GLenum cullFace);
-	void SetFrontFace(GLenum frontFace);
-	void SetClearColor(const glm::vec4& clearColor);
+	[[maybe_unused]] void SetCullFace(GLenum cullFace);
+	[[maybe_unused]] void SetFrontFace(GLenum frontFace);
+	[[maybe_unused]] void SetClearColor(const glm::vec4& clearColor);
 	void SetProjectionMatrix(const glm::mat4& projection) const;
 	void SetViewMatrix(const glm::mat4& view) const;
 	void SetViewport(glm::ivec2 pos, glm::uvec2 size) const;
 
 	void Clear(GLbitfield mask);
 
-	void Draw(Pipeline& pipeline, const glm::mat4& modelMatrix);
+	void DrawScene();
 
 	std::optional<std::string> LoadModel(const std::filesystem::path& path, Pipeline& pipeline);
-	[[nodiscard]] TextureManager& GetTextureManager();
+	[[maybe_unused]] [[nodiscard]] TextureManager& GetTextureManager();
 
 	void Delete();
 
 private:
-
 	bool m_EnableMultisample = false;
 	bool m_EnableDepthTest = false;
 	bool m_EnableCullFace = false;
@@ -71,10 +77,10 @@ private:
 	TextureManager m_TextureManager;
 	MaterialManager m_MaterialManager;
 	std::vector<Mesh> m_Meshes;
+	SceneGraph m_SceneGraph;
 
 	static void SetOpenGlCapability(bool enabled, GLenum capability, bool& field);
 
-	void ProcessNode(const aiNode* node, const aiScene* scene, std::size_t materialIndexOffset);
-	static stw::Mesh ProcessMesh(aiMesh* assimpMesh, std::size_t materialIndexOffset);
+	static ProcessMeshResult ProcessMesh(aiMesh* assimpMesh, std::size_t materialIndexOffset);
 };
-}
+}// namespace stw

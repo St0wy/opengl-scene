@@ -2,13 +2,13 @@
 
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
-#include <spdlog/spdlog.h>
 #include <queue>
+#include <spdlog/spdlog.h>
 #include <unordered_set>
 
 #include "model.hpp"
-#include "utils.hpp"
 #include "timer.hpp"
+#include "utils.hpp"
 
 stw::Renderer::~Renderer()
 {
@@ -25,6 +25,7 @@ void stw::Renderer::Init()
 	m_MatricesUniformBuffer.Bind();
 	constexpr GLsizeiptr matricesSize = 2 * sizeof(glm::mat4);
 	m_MatricesUniformBuffer.Allocate(matricesSize);
+	m_SceneGraph.Init();
 }
 
 void stw::Renderer::SetEnableMultisample(const bool enableMultisample)
@@ -48,19 +49,19 @@ void stw::Renderer::SetEnableCullFace(const bool enableCullFace)
 	SetOpenGlCapability(enableCullFace, GL_CULL_FACE, m_EnableCullFace);
 }
 
-void stw::Renderer::SetCullFace(const GLenum cullFace)
+[[maybe_unused]] void stw::Renderer::SetCullFace(const GLenum cullFace)
 {
 	m_CullFace = cullFace;
 	GLCALL(glCullFace(cullFace));
 }
 
-void stw::Renderer::SetFrontFace(const GLenum frontFace)
+[[maybe_unused]] void stw::Renderer::SetFrontFace(const GLenum frontFace)
 {
 	m_FrontFace = frontFace;
 	GLCALL(glFrontFace(m_FrontFace));
 }
 
-void stw::Renderer::SetClearColor(const glm::vec4& clearColor)
+[[maybe_unused]] void stw::Renderer::SetClearColor(const glm::vec4& clearColor)
 {
 	m_ClearColor = clearColor;
 	GLCALL(glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a));
@@ -87,29 +88,24 @@ void stw::Renderer::SetViewport(const glm::ivec2 pos, const glm::uvec2 size) con
 	GLCALL(glViewport(pos.x, pos.y, static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y)));
 }
 
-void stw::Renderer::Clear(const GLbitfield mask) // NOLINT(readability-convert-member-functions-to-static)
-{
-	GLCALL(glClear(mask));
-}
+void stw::Renderer::Clear(const GLbitfield mask) { GLCALL(glClear(mask)); }
 
-void stw::Renderer::Draw(Pipeline& pipeline, const glm::mat4& modelMatrix)
+void stw::Renderer::DrawScene()
 {
-
-	for (const Mesh& mesh : m_Meshes)
-	{
+	m_SceneGraph.ForEach([&](std::size_t meshId, std::size_t materialId, const glm::mat4& transformMatrix) {
 		m_MatricesUniformBuffer.Bind();
-		const auto idx = mesh.GetMaterialIndex();
-		auto& material = m_MaterialManager[idx];
+		auto& material = m_MaterialManager[materialId];
 
 		BindMaterial(material, m_TextureManager);
-		mesh.Bind(pipeline, { &modelMatrix, 1 });
+		auto& mesh = m_Meshes[meshId];
+		mesh.Bind({ &transformMatrix, 1 });
 
 		const auto size = static_cast<GLsizei>(mesh.GetIndicesSize());
 		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, 1));
 
 		mesh.UnBind();
 		m_MatricesUniformBuffer.UnBind();
-	}
+	});
 }
 
 void stw::Renderer::Delete()
@@ -137,10 +133,7 @@ void stw::Renderer::SetOpenGlCapability(const bool enabled, const GLenum capabil
 	}
 }
 
-stw::TextureManager& stw::Renderer::GetTextureManager()
-{
-	return m_TextureManager;
-}
+[[maybe_unused]] stw::TextureManager& stw::Renderer::GetTextureManager() { return m_TextureManager; }
 
 std::optional<std::string> stw::Renderer::LoadModel(const std::filesystem::path& path, Pipeline& pipeline)
 {
@@ -152,9 +145,9 @@ std::optional<std::string> stw::Renderer::LoadModel(const std::filesystem::path&
 	Timer timer;
 	timer.Start();
 
-	const aiScene* scene = importer.ReadFile(pathString.c_str(), assimpImportFlags);
+	const aiScene* assimpScene = importer.ReadFile(pathString.c_str(), assimpImportFlags);
 
-	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	if (!assimpScene || assimpScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !assimpScene->mRootNode)
 	{
 		return { importer.GetErrorString() };
 	}
@@ -162,27 +155,33 @@ std::optional<std::string> stw::Renderer::LoadModel(const std::filesystem::path&
 	spdlog::info("Imported model {} in {:0.0f} ms", pathString, timer.GetElapsedTime().GetInMilliseconds());
 
 	auto workingDirectory = path.parent_path();
-	const std::size_t materialIndexOffset = m_MaterialManager
-		.LoadMaterialsFromAssimpScene(scene, workingDirectory, m_TextureManager, pipeline);
+	const std::size_t materialIndexOffset =
+		m_MaterialManager.LoadMaterialsFromAssimpScene(assimpScene, workingDirectory, m_TextureManager, pipeline);
 
-	m_Meshes.reserve(m_Meshes.size() + scene->mNumMeshes);
+	m_Meshes.reserve(m_Meshes.size() + assimpScene->mNumMeshes);
 
-	std::queue<aiNode*> nodes;
-	nodes.push(scene->mRootNode);
-	while (!nodes.empty())
+	std::queue<aiNode*> assimpNodes;
+	assimpNodes.push(assimpScene->mRootNode);
+	while (!assimpNodes.empty())
 	{
-		aiNode* currentNode = nodes.front();
-		nodes.pop();
+		aiNode* currentAssimpNode = assimpNodes.front();
+		assimpNodes.pop();
 
-		for (std::size_t i = 0; i < currentNode->mNumMeshes; ++i)
+		for (std::size_t i = 0; i < currentAssimpNode->mNumMeshes; ++i)
 		{
-			aiMesh* mesh = scene->mMeshes[currentNode->mMeshes[i]];
-			m_Meshes.push_back(ProcessMesh(mesh, materialIndexOffset));
+			aiMesh* assimpMesh = assimpScene->mMeshes[currentAssimpNode->mMeshes[i]];
+			auto [mesh, meshMaterialIndex] = ProcessMesh(assimpMesh, materialIndexOffset);
+
+			m_Meshes.push_back(std::move(mesh));
+
+			// TODO: Take in account parents and children (right now there's only one level of nodes)
+			glm::mat4 transformMatrix = ConvertMatAssimpToGlm(currentAssimpNode->mTransformation);
+			m_SceneGraph.AddElementToRoot(m_Meshes.size() - 1, meshMaterialIndex, transformMatrix);
 		}
 
-		for (std::size_t i = 0; i < currentNode->mNumChildren; ++i)
+		for (std::size_t i = 0; i < currentAssimpNode->mNumChildren; ++i)
 		{
-			nodes.push(currentNode->mChildren[i]);
+			assimpNodes.push(currentAssimpNode->mChildren[i]);
 		}
 	}
 
@@ -191,7 +190,7 @@ std::optional<std::string> stw::Renderer::LoadModel(const std::filesystem::path&
 	return {};
 }
 
-stw::Mesh stw::Renderer::ProcessMesh(aiMesh* assimpMesh, std::size_t materialIndexOffset)
+stw::ProcessMeshResult stw::Renderer::ProcessMesh(aiMesh* assimpMesh, std::size_t materialIndexOffset)
 {
 	std::vector<Vertex> vertices{};
 	vertices.reserve(assimpMesh->mNumVertices);
@@ -209,8 +208,18 @@ stw::Mesh stw::Renderer::ProcessMesh(aiMesh* assimpMesh, std::size_t materialInd
 			textureCoords.y = meshTextureCoords.y;
 		}
 
-		Vertex vertex{{ meshVertex.x, meshVertex.y, meshVertex.z, }, { meshNormal.x, meshNormal.y, meshNormal.z, },
-					  textureCoords, { meshTangent.x, meshTangent.y, meshTangent.z }};
+		Vertex vertex{ {
+						   meshVertex.x,
+						   meshVertex.y,
+						   meshVertex.z,
+					   },
+			{
+				meshNormal.x,
+				meshNormal.y,
+				meshNormal.z,
+			},
+			textureCoords,
+			{ meshTangent.x, meshTangent.y, meshTangent.z } };
 		vertices.push_back(vertex);
 	}
 
@@ -226,7 +235,8 @@ stw::Mesh stw::Renderer::ProcessMesh(aiMesh* assimpMesh, std::size_t materialInd
 	}
 
 	Mesh mesh;
-	mesh.Init(std::move(vertices), std::move(indices), materialIndexOffset + assimpMesh->mMaterialIndex - 1);
+	std::size_t materialIndex = materialIndexOffset + assimpMesh->mMaterialIndex - 1;
+	mesh.Init(std::move(vertices), std::move(indices));
 
-	return mesh;
+	return { std::move(mesh), materialIndex };
 }

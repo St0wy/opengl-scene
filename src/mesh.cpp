@@ -1,17 +1,16 @@
 #include "mesh.hpp"
 
-#include <span>
 #include <GL/glew.h>
+#include <span>
 #include <spdlog/spdlog.h>
-#include <glm/mat4x4.hpp>
 
 #include "utils.hpp"
 
 stw::Mesh::Mesh(Mesh&& other) noexcept
-	: m_Vertices(std::move(other.m_Vertices)), m_Indices(std::move(other.m_Indices)), m_MaterialIndex(other
-	.m_MaterialIndex), m_VertexArray(std::move(other.m_VertexArray)), m_VertexBuffer(std::move(other
-	.m_VertexBuffer)), m_ModelMatrixBuffer(std::move(other.m_ModelMatrixBuffer)), m_IndexBuffer(std::move(other
-	.m_IndexBuffer)), m_IsInitialized(other.m_IsInitialized)
+	: m_Vertices(std::move(other.m_Vertices)), m_Indices(std::move(other.m_Indices)),
+	  m_VertexArray(std::move(other.m_VertexArray)), m_VertexBuffer(std::move(other.m_VertexBuffer)),
+	  m_ModelMatrixBuffer(std::move(other.m_ModelMatrixBuffer)), m_IndexBuffer(std::move(other.m_IndexBuffer)),
+	  m_IsInitialized(other.m_IsInitialized)
 {
 	other.m_IsInitialized = false;
 }
@@ -26,8 +25,7 @@ stw::Mesh::~Mesh()
 
 stw::Mesh& stw::Mesh::operator=(Mesh&& other) noexcept
 {
-	if (this == &other)
-		return *this;
+	if (this == &other) return *this;
 
 	m_Vertices = std::move(other.m_Vertices);
 	m_Indices = std::move(other.m_Indices);
@@ -35,18 +33,16 @@ stw::Mesh& stw::Mesh::operator=(Mesh&& other) noexcept
 	m_VertexBuffer = std::move(other.m_VertexBuffer);
 	m_ModelMatrixBuffer = std::move(other.m_ModelMatrixBuffer);
 	m_IndexBuffer = std::move(other.m_IndexBuffer);
-	m_MaterialIndex = other.m_MaterialIndex;
 	m_IsInitialized = other.m_IsInitialized;
 	other.m_IsInitialized = false;
 
 	return *this;
 }
 
-void stw::Mesh::Init(std::vector<Vertex> vertices, std::vector<u32> indices, std::size_t materialIndex)
+void stw::Mesh::Init(std::vector<Vertex> vertices, std::vector<u32> indices)
 {
 	m_Vertices = std::move(vertices);
 	m_Indices = std::move(indices);
-	m_MaterialIndex = materialIndex;
 	SetupMesh();
 
 	m_IsInitialized = true;
@@ -67,12 +63,9 @@ void stw::Mesh::Delete()
 	m_IsInitialized = false;
 }
 
-std::size_t stw::Mesh::GetIndicesSize() const
-{
-	return m_Indices.size();
-}
+std::size_t stw::Mesh::GetIndicesSize() const { return m_Indices.size(); }
 
-void stw::Mesh::Bind(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
+void stw::Mesh::Bind(const std::span<const glm::mat4> modelMatrices) const
 {
 	m_VertexArray.Bind();
 	m_ModelMatrixBuffer.SetData(modelMatrices);
@@ -86,18 +79,18 @@ void stw::Mesh::UnBind() const
 }
 
 //
-//void stw::Mesh::Draw(Pipeline& pipeline, const glm::mat4& modelMatrix) const
+// void stw::Mesh::DrawScene(Pipeline& pipeline, const glm::mat4& modelMatrix) const
 //{
 //	DrawInstanced(pipeline, std::span{&modelMatrix, 1});
 //}
 //
-//void stw::Mesh::DrawNoSpecular(Pipeline& pipeline, const glm::mat4& modelMatrix) const
+// void stw::Mesh::DrawNoSpecular(Pipeline& pipeline, const glm::mat4& modelMatrix) const
 //{
 //	std::array matrices{modelMatrix};
 //	DrawNoSpecularInstanced(pipeline, {matrices});
 //}
 //
-//void stw::Mesh::DrawInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
+// void stw::Mesh::DrawInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
 //{
 //	u32 diffuseTextureCount = 0;
 //	u32 specularTextureCount = 0;
@@ -136,7 +129,7 @@ void stw::Mesh::UnBind() const
 //	glActiveTexture(GL_TEXTURE0);
 //}
 //
-//void stw::Mesh::DrawNoSpecularInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
+// void stw::Mesh::DrawNoSpecularInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
 //{
 //	u32 diffuseTextureCount = 0;
 //	u32 normalTextureCount = 0;
@@ -170,7 +163,7 @@ void stw::Mesh::UnBind() const
 //	glActiveTexture(GL_TEXTURE0);
 //}
 //
-//void stw::Mesh::DrawMeshOnlyInstanced(const std::span<const glm::mat4> modelMatrices) const
+// void stw::Mesh::DrawMeshOnlyInstanced(const std::span<const glm::mat4> modelMatrices) const
 //{
 //	m_VertexArray.Bind();
 //

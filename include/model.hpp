@@ -20,7 +20,7 @@
 //
 //	void AddMesh(Mesh mesh);
 //	[[nodiscard]] std::span<const Mesh> GetMeshes() const;
-//	//void Draw(Pipeline& pipeline, const glm::mat4&) const;
+//	//void DrawScene(Pipeline& pipeline, const glm::mat4&) const;
 //	//void DrawNoSpecular(Pipeline& pipeline, const glm::mat4& modelMatrix) const;
 //	//void DrawInstanced(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
 //	//void DrawNoSpecularInstanced(Pipeline& pipeline, std::span<const glm::mat4> modelMatrices) const;
