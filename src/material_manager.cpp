@@ -19,7 +19,10 @@ std::size_t stw::MaterialManager::LoadMaterialsFromAssimpScene(const aiScene* as
 		const auto specularCount = material->GetTextureCount(aiTextureType_SPECULAR);
 		const auto normalCount = material->GetTextureCount(aiTextureType_NORMALS);
 
-		if (diffuseCount == 0) continue;
+		if (diffuseCount == 0)
+		{
+			continue;
+		}
 
 		if (specularCount == 0 && normalCount == 0)
 		{
@@ -57,8 +60,8 @@ void stw::MaterialManager::LoadNormalNoSpecular(const aiMaterial* material,
 	aiColor3D specular;
 	if (material->Get(AI_MATKEY_COLOR_SPECULAR, specular) != AI_SUCCESS)
 	{
-		spdlog::error("Could not read specular from material");
-		return;
+		spdlog::warn("Could not read specular from material");
+		specular = aiColor3D{ 0.5f, 0.5f, 0.5f };
 	}
 
 	aiString relativePath;
@@ -89,14 +92,23 @@ void stw::MaterialManager::LoadNoNormalNoSpecular(aiMaterial* material,
 	aiColor3D specular;
 	if (material->Get(AI_MATKEY_COLOR_SPECULAR, specular) != AI_SUCCESS)
 	{
-		spdlog::error("Could not read specular from material");
-		return;
+		spdlog::warn("Could not read specular from material");
+		specular = aiColor3D{ 0.5f, 0.5f, 0.5f };
 	}
 
 	aiString relativePath;
-	material->GetTexture(aiTextureType_DIFFUSE, 0, &relativePath);
+	auto result = material->GetTexture(aiTextureType_DIFFUSE, 0, &relativePath);
+
 	std::filesystem::path diffusePath = workingDirectory / relativePath.C_Str();
-	std::size_t diffuseIndex = textureManager.LoadTextureFromPath(diffusePath, TextureType::Diffuse).value();
+
+	auto loadTextureResult = textureManager.LoadTextureFromPath(diffusePath, TextureType::Diffuse);
+
+	if (!loadTextureResult.has_value())
+	{
+		spdlog::error("Could not load texture : {}", diffusePath.string());
+	}
+
+	std::size_t diffuseIndex = loadTextureResult.value();
 
 	m_Materials.emplace_back(MaterialNoNormalNoSpecular{
 		{ pipeline },

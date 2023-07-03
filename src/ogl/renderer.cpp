@@ -170,6 +170,12 @@ std::optional<std::string> stw::Renderer::LoadModel(const std::filesystem::path&
 		for (std::size_t i = 0; i < currentAssimpNode->mNumMeshes; ++i)
 		{
 			aiMesh* assimpMesh = assimpScene->mMeshes[currentAssimpNode->mMeshes[i]];
+
+			if (assimpMesh->mMaterialIndex == 0)
+			{
+				continue;
+			}
+
 			auto [mesh, meshMaterialIndex] = ProcessMesh(assimpMesh, materialIndexOffset);
 
 			m_Meshes.push_back(std::move(mesh));

@@ -21,7 +21,6 @@ void stw::BindMaterial(const Material& materialVariant, TextureManager& textureM
 		textureManager.GetTexture(material.normalMapIndex).Bind();
 
 		GLCALL(glActiveTexture(GL_TEXTURE0));
-		pipeline.UnBind();
 	};
 
 	const auto noNormalNoSpecular = [&textureManager](const MaterialNoNormalNoSpecular& material) {
@@ -35,7 +34,6 @@ void stw::BindMaterial(const Material& materialVariant, TextureManager& textureM
 		textureManager.GetTexture(material.diffuseMapIndex).Bind();
 
 		GLCALL(glActiveTexture(GL_TEXTURE0));
-		pipeline.UnBind();
 	};
 
 	const auto normalSpecular = [&textureManager](const MaterialNormalSpecular& material) {
@@ -56,7 +54,6 @@ void stw::BindMaterial(const Material& materialVariant, TextureManager& textureM
 		textureManager.GetTexture(material.specularMapIndex).Bind();
 
 		GLCALL(glActiveTexture(GL_TEXTURE0));
-		pipeline.UnBind();
 	};
 
 	const auto noNormalSpecular = [&textureManager](const MaterialNoNormalSpecular& material) {

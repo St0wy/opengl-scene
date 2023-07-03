@@ -35,6 +35,7 @@ void stw::SceneGraph::AddElementToRoot(std::size_t meshId, std::size_t materialI
 }
 std::span<const stw::SceneGraphElement> stw::SceneGraph::GetElements() const { return m_Elements; }
 std::span<const stw::SceneGraphNode> stw::SceneGraph::GetNodes() const { return m_Nodes; }
+
 std::vector<stw::SceneGraphElement>& stw::SceneGraph::GetElements() { return m_Elements; }
 std::vector<stw::SceneGraphNode>& stw::SceneGraph::GetNodes() { return m_Nodes; }
 
@@ -58,6 +59,7 @@ void stw::SceneGraph::ForEach(const std::function<void(std::size_t, std::size_t,
 		}
 	}
 }
+
 void stw::SceneGraph::Init()
 {
 	m_Elements.emplace_back(0, 0, glm::mat4{ 1.0f }, glm::mat4{ 1.0f });

@@ -65,9 +65,11 @@ file(
 	"data/*.obj"
 	"data/*.mtl"
 	"data/*.fbx"
+	"data/*.gltf"
+	"data/*.bin"
 )
 
-# Copy every data filde
+# Copy every data file
 foreach(DATA ${DATA_FILES})
 	get_filename_component(FILE_NAME ${DATA} NAME)
 	get_filename_component(PATH_NAME ${DATA} DIRECTORY)
