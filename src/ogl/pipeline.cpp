@@ -7,7 +7,7 @@
 #include <glm/matrix.hpp>
 #include <spdlog/spdlog.h>
 
-#include "shader.hpp"
+#include "ogl/shader.hpp"
 #include "utils.hpp"
 
 constexpr std::size_t LogSize = 512;

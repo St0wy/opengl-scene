@@ -1,4 +1,4 @@
-#include "shader.hpp"
+#include "ogl/shader.hpp"
 
 #include <fstream>
 #include <sstream>

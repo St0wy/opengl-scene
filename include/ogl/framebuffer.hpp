@@ -6,6 +6,10 @@
 
 namespace stw
 {
+struct RenderTarget{
+
+};
+
 class Framebuffer
 {
 public:
