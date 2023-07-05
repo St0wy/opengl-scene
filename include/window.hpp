@@ -5,28 +5,28 @@
 #pragma once
 #define SDL_MAIN_HANDLED
 #include <cassert>
+#include <GL/glew.h>
 #include <memory>
 #include <SDL.h>
-#include <GL/glew.h>
 #include <spdlog/spdlog.h>
 
 #include "number_types.hpp"
+#include "scenes/scene.hpp"
 #include "timer.hpp"
 #include "utils.hpp"
-#include "scenes/scene.hpp"
 
 namespace stw
 {
-template <Derived<Scene> T>
+template<Derived<Scene> T>
 class Window
 {
 public:
 	explicit Window(std::string_view windowName, i32 windowWidth = 1280, i32 windowHeight = 720);
-	Window(Window&& other) = default;
+	Window(Window&& other) noexcept = default;
 	Window(const Window& other) = delete;
 	~Window();
 
-	Window& operator=(Window&& other) = default;
+	Window& operator=(Window&& other) noexcept = default;
 	Window& operator=(const Window& other) = delete;
 
 	void Loop();
@@ -42,7 +42,7 @@ private:
 	std::string m_WindowName{};
 };
 
-template <Derived<Scene> T>
+template<Derived<Scene> T>
 Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 windowHeight)
 	: m_Scene(std::make_unique<T>()), m_WindowName(windowName)
 {
@@ -85,7 +85,7 @@ Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 window
 	m_Scene->OnResize(windowWidth, windowHeight);
 }
 
-template <Derived<Scene> T>
+template<Derived<Scene> T>
 Window<T>::~Window()
 {
 	spdlog::info("Closing window");
@@ -97,7 +97,7 @@ Window<T>::~Window()
 	SDL_Quit();
 }
 
-template <Derived<Scene> T>
+template<Derived<Scene> T>
 void Window<T>::Loop()
 {
 	Timer timer;
@@ -138,7 +138,7 @@ void Window<T>::Loop()
 	}
 }
 
-template <Derived<Scene> T>
+template<Derived<Scene> T>
 bool Window<T>::HandleEvents()
 {
 	SDL_Event event;
@@ -148,14 +148,12 @@ bool Window<T>::HandleEvents()
 		{
 		case SDL_QUIT:
 			return false;
-		case SDL_WINDOWEVENT:
-		{
+		case SDL_WINDOWEVENT: {
 			switch (event.window.event)
 			{
 			case SDL_WINDOWEVENT_CLOSE:
 				return false;
-			case SDL_WINDOWEVENT_RESIZED:
-			{
+			case SDL_WINDOWEVENT_RESIZED: {
 				const GLsizei windowWidth = event.window.data1;
 				const GLsizei windowHeight = event.window.data2;
 				m_Scene->OnResize(windowWidth, windowHeight);
@@ -190,4 +188,4 @@ bool Window<T>::HandleEvents()
 
 	return true;
 }
-} // namespace stw
+}// namespace stw
