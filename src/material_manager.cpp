@@ -57,7 +57,7 @@ void stw::MaterialManager::LoadNormalNoSpecular(const aiMaterial* material,
 		return;
 	}
 
-	if (shininess == 0.0f)
+	if (shininess < 1.0f)
 	{
 		shininess = 1.0f;
 	}
@@ -94,7 +94,7 @@ void stw::MaterialManager::LoadNoNormalNoSpecular(aiMaterial* material,
 		return;
 	}
 
-	if (shininess == 0.0f)
+	if (shininess < 1.0f)
 	{
 		shininess = 1.0f;
 	}
@@ -145,7 +145,7 @@ void stw::MaterialManager::LoadNoNormalSpecular(aiMaterial* material,
 		return;
 	}
 
-	if (shininess == 0.0f)
+	if (shininess < 1.0f)
 	{
 		shininess = 1.0f;
 	}
@@ -175,7 +175,7 @@ void stw::MaterialManager::LoadNormalSpecular(aiMaterial* material,
 		return;
 	}
 
-	if (shininess == 0.0f)
+	if (shininess < 1.0f)
 	{
 		shininess = 1.0f;
 	}
