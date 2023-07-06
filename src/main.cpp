@@ -6,7 +6,7 @@
 int main(int, char*[])
 {
 #ifndef NDEBUG
-//	spdlog::set_level(spdlog::level::debug);
+	spdlog::set_level(spdlog::level::debug);
 #endif
 
 	stw::Window<stw::ShadowMappingScene> window("OpenGL Scene");

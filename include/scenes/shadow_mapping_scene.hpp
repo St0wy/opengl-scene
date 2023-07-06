@@ -43,7 +43,8 @@ public:
 			glDebugMessageCallback(messageCallback, nullptr);
 		}
 
-		m_Camera.SetMovementSpeed(20.0f);
+		m_Camera.SetMovementSpeed(4.0f);
+		m_Camera.SetYaw(180.0f);
 
 		m_Renderer.Init();
 		m_Renderer.SetEnableMultisample(true);
@@ -187,7 +188,7 @@ public:
 
 private:
 	Pipeline m_Pipeline{};
-	Camera m_Camera{ glm::vec3{ 0.0f, 1.0f, 10.0f } };
+	Camera m_Camera{ glm::vec3{ 5.0f, 2.0f, -6.0f } };
 	Renderer m_Renderer{};
 };
 }// namespace stw

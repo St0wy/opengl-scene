@@ -80,12 +80,12 @@ void main()
 
 	for (uint i = 0u; i < pointLightsCount; i++)
 	{
-		result += ComputePointLight(pointLights[i], norm, FragPos, viewDir);
+//		result += ComputePointLight(pointLights[i], norm, FragPos, viewDir);
 	}
 
 	for (uint i = 0u; i < spotLightsCount; i++)
 	{
-		result += ComputeSpotLight(spotLights[i], norm, FragPos, viewDir);
+//		result += ComputeSpotLight(spotLights[i], norm, FragPos, viewDir);
 	}
 
 	FragColor = vec4(result, 1.0);

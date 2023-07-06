@@ -1,30 +1,17 @@
 #include "camera.hpp"
 
 #include <algorithm>
-#include <glm/geometric.hpp>
-#include <glm/trigonometric.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/geometric.hpp>
+#include <glm/trigonometric.hpp>
 
-bool stw::CameraMovementState::HasMovement() const
-{
-	return forward || backward || left || right || up || down;
-}
+bool stw::CameraMovementState::HasMovement() const { return forward || backward || left || right || up || down; }
 
 stw::Camera::Camera(glm::vec3 position, glm::vec3 up, f32 yaw, f32 pitch, f32 aspectRatio)
-	: m_Position(position),
-	m_Front(glm::vec3(0.0f, 0.0f, -1.0f)),
-	m_Up(up),
-	m_Right(glm::vec3(1.0f, 0.0f, 0.0f)),
-	m_WorldUp(up),
-	m_Yaw(yaw),
-	m_Pitch(pitch),
-	m_MovementSpeed(DefaultSpeed),
-	m_MouseSensitivity(DefaultSensitivity),
-	m_FovY(DefaultFovY),
-	m_AspectRatio(aspectRatio),
-	m_ViewMatrix(),
-	m_ProjectionMatrix()
+	: m_Position(position), m_Front(glm::vec3(0.0f, 0.0f, -1.0f)), m_Up(up), m_Right(glm::vec3(1.0f, 0.0f, 0.0f)),
+	  m_WorldUp(up), m_Yaw(yaw), m_Pitch(pitch), m_MovementSpeed(DefaultSpeed), m_MouseSensitivity(DefaultSensitivity),
+	  m_FovY(DefaultFovY), m_AspectRatio(aspectRatio), m_ViewMatrix(), m_ProjectionMatrix()
 
 {
 	UpdateCameraVectors();
@@ -32,15 +19,9 @@ stw::Camera::Camera(glm::vec3 position, glm::vec3 up, f32 yaw, f32 pitch, f32 as
 	UpdateProjectionMatrix();
 }
 
-glm::mat4 stw::Camera::GetViewMatrix() const
-{
-	return m_ViewMatrix;
-}
+glm::mat4 stw::Camera::GetViewMatrix() const { return m_ViewMatrix; }
 
-glm::mat4 stw::Camera::GetProjectionMatrix() const
-{
-	return m_ProjectionMatrix;
-}
+glm::mat4 stw::Camera::GetProjectionMatrix() const { return m_ProjectionMatrix; }
 
 void stw::Camera::ProcessMovement(const CameraMovementState& cameraMovementState, const f32 deltaTime)
 {
@@ -106,30 +87,15 @@ void stw::Camera::ProcessMouseScroll(const f32 yOffset)
 	UpdateProjectionMatrix();
 }
 
-float stw::Camera::FovY() const
-{
-	return m_FovY;
-}
+float stw::Camera::FovY() const { return m_FovY; }
 
-glm::vec3 stw::Camera::Position() const
-{
-	return m_Position;
-}
+glm::vec3 stw::Camera::Position() const { return m_Position; }
 
-glm::vec3 stw::Camera::Front() const
-{
-	return m_Front;
-}
+glm::vec3 stw::Camera::Front() const { return m_Front; }
 
-void stw::Camera::SetAspectRatio(const f32 aspectRatio)
-{
-	m_AspectRatio = aspectRatio;
-}
+void stw::Camera::SetAspectRatio(const f32 aspectRatio) { m_AspectRatio = aspectRatio; }
 
-void stw::Camera::SetMovementSpeed(const f32 speed)
-{
-	m_MovementSpeed = speed;
-}
+void stw::Camera::SetMovementSpeed(const f32 speed) { m_MovementSpeed = speed; }
 
 void stw::Camera::IncrementMovementSpeed(const f32 speedDelta)
 {
@@ -149,12 +115,15 @@ void stw::Camera::UpdateCameraVectors()
 	m_Up = normalize(cross(m_Right, m_Front));
 }
 
-void stw::Camera::UpdateViewMatrix()
-{
-	m_ViewMatrix = lookAt(m_Position, m_Position + m_Front, m_Up);
-}
+void stw::Camera::UpdateViewMatrix() { m_ViewMatrix = lookAt(m_Position, m_Position + m_Front, m_Up); }
 
 void stw::Camera::UpdateProjectionMatrix()
 {
 	m_ProjectionMatrix = glm::perspective(glm::radians(m_FovY), m_AspectRatio, NearPlane, FarPlane);
+}
+void stw::Camera::SetYaw(f32 yaw)
+{
+	m_Yaw = yaw;
+	UpdateCameraVectors();
+	UpdateViewMatrix();
 }

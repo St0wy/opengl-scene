@@ -57,6 +57,11 @@ void stw::MaterialManager::LoadNormalNoSpecular(const aiMaterial* material,
 		return;
 	}
 
+	if (shininess == 0.0f)
+	{
+		shininess = 1.0f;
+	}
+
 	aiColor3D specular;
 	if (material->Get(AI_MATKEY_COLOR_SPECULAR, specular) != AI_SUCCESS)
 	{
@@ -82,11 +87,16 @@ void stw::MaterialManager::LoadNoNormalNoSpecular(aiMaterial* material,
 	stw::TextureManager& textureManager,
 	stw::Pipeline& pipeline)
 {
-	f32 shininess = 0.0f;
+	f32 shininess = 1.0f;
 	if (material->Get(AI_MATKEY_SHININESS, shininess) != AI_SUCCESS)
 	{
 		spdlog::error("Could not read shininess from material");
 		return;
+	}
+
+	if (shininess == 0.0f)
+	{
+		shininess = 1.0f;
 	}
 
 	aiColor3D specular;
@@ -98,6 +108,11 @@ void stw::MaterialManager::LoadNoNormalNoSpecular(aiMaterial* material,
 
 	aiString relativePath;
 	auto result = material->GetTexture(aiTextureType_DIFFUSE, 0, &relativePath);
+
+	if (result != aiReturn_SUCCESS)
+	{
+		spdlog::error("Error when loading texture");
+	}
 
 	std::filesystem::path diffusePath = workingDirectory / relativePath.C_Str();
 
@@ -123,11 +138,16 @@ void stw::MaterialManager::LoadNoNormalSpecular(aiMaterial* material,
 	stw::TextureManager& textureManager,
 	stw::Pipeline& pipeline)
 {
-	f32 shininess = 0.0f;
+	f32 shininess = 1.0f;
 	if (material->Get(AI_MATKEY_SHININESS, shininess) != AI_SUCCESS)
 	{
 		spdlog::error("Could not read shininess from material");
 		return;
+	}
+
+	if (shininess == 0.0f)
+	{
+		shininess = 1.0f;
 	}
 
 	aiString relativePath;
@@ -153,6 +173,11 @@ void stw::MaterialManager::LoadNormalSpecular(aiMaterial* material,
 	{
 		spdlog::error("Could not read shininess from material");
 		return;
+	}
+
+	if (shininess == 0.0f)
+	{
+		shininess = 1.0f;
 	}
 
 	aiString relativePath;

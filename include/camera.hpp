@@ -34,6 +34,7 @@ public:
 	[[nodiscard]] glm::vec3 Front() const;
 	void SetAspectRatio(f32 aspectRatio);
 	void SetMovementSpeed(f32 speed);
+	void SetYaw(f32 yaw);
 	void IncrementMovementSpeed(f32 speedDelta);
 
 	[[nodiscard]] glm::mat4 GetViewMatrix() const;
