@@ -41,6 +41,7 @@ std::vector<stw::SceneGraphNode>& stw::SceneGraph::GetNodes() { return m_Nodes; 
 
 void stw::SceneGraph::ForEach(const std::function<void(std::size_t, std::size_t, const glm::mat4&)>& function)
 {
+	// TODO : Handle instancing
 	std::optional<std::size_t> nextNode = m_Nodes[0].childId;
 	while (nextNode.has_value())
 	{

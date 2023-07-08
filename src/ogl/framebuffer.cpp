@@ -7,7 +7,7 @@
 
 stw::Framebuffer::~Framebuffer()
 {
-	if (m_Fbo == 0)
+	if (m_Fbo != 0)
 	{
 		spdlog::error("Destructor called on framebuffer that is not deleted");
 	}
@@ -123,8 +123,7 @@ void stw::Framebuffer::HandleColorAttachments(const stw::FramebufferDescription&
 
 	if (m_ColorAttachmentsCount == 0)
 	{
-		constexpr GLenum v = GL_NONE;
-		GLCALL(glDrawBuffers(1, &v));
+		GLCALL(glDrawBuffer(GL_NONE));
 		GLCALL(glReadBuffer(GL_NONE));
 	}
 	else
@@ -178,6 +177,7 @@ void stw::Framebuffer::Delete()
 	GLCALL(glDeleteFramebuffers(1, &m_Fbo));
 	m_Fbo = 0;
 }
+std::optional<GLuint> stw::Framebuffer::GetDepthStencilAttachment() const { return m_DepthStencilAttachment; }
 
 std::expected<stw::AttachmentType, std::string> stw::FramebufferColorAttachment::GetAttachmentType() const
 {

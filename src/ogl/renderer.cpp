@@ -26,6 +26,17 @@ void stw::Renderer::Init()
 	constexpr GLsizeiptr matricesSize = 2 * sizeof(glm::mat4);
 	m_MatricesUniformBuffer.Allocate(matricesSize);
 	m_SceneGraph.Init();
+
+	m_DepthPipeline.InitFromPath("shaders/shadow_map/depth.vert", "shaders/shadow_map/depth.frag");
+
+	FramebufferDepthStencilAttachment depthStencilAttachment{};
+	depthStencilAttachment.isRenderbufferObject = false;
+	depthStencilAttachment.hasStencil = false;
+	FramebufferDescription framebufferDescription{};
+	framebufferDescription.depthStencilAttachment = depthStencilAttachment;
+	framebufferDescription.framebufferSize = ShadowMapSize;
+
+	m_DepthMapFramebuffer.Init(framebufferDescription);
 }
 
 void stw::Renderer::SetEnableMultisample(const bool enableMultisample)
@@ -83,8 +94,9 @@ void stw::Renderer::SetViewMatrix(const glm::mat4& view) const
 	m_MatricesUniformBuffer.UnBind();
 }
 
-void stw::Renderer::SetViewport(const glm::ivec2 pos, const glm::uvec2 size) const
+void stw::Renderer::SetViewport(const glm::ivec2 pos, const glm::uvec2 size)
 {
+	m_ViewportSize = size;
 	GLCALL(glViewport(pos.x, pos.y, static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y)));
 }
 
@@ -92,6 +104,42 @@ void stw::Renderer::Clear(const GLbitfield mask) { GLCALL(glClear(mask)); }
 
 void stw::Renderer::DrawScene()
 {
+	glm::mat4 lightSpaceMatrix{ 1.0f };
+	if (m_DirectionalLight.has_value())
+	{
+		constexpr float lightNearPlane = 1.0f;
+		constexpr float lightFarPlane = 15.0f;
+		constexpr glm::vec3 lightPosition = glm::vec3{ 0.0f, 6.0f, 0.0f };
+		const glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
+		const glm::mat4 lightView =
+			glm::lookAt(lightPosition, lightPosition + m_DirectionalLight.value().direction, glm::vec3{ 0.0f, 1.0f, 0.0f });
+		lightSpaceMatrix = lightProjection * lightView;
+
+		m_DepthPipeline.Bind();
+		m_DepthPipeline.SetMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+		GLCALL(glViewport(0, 0, ShadowMapSize.x, ShadowMapSize.y));
+		m_DepthMapFramebuffer.Bind();
+		Clear(GL_DEPTH_BUFFER_BIT);
+
+		// Render meshes on light depth buffer
+		m_SceneGraph.ForEach([&](std::size_t meshId, std::size_t, const glm::mat4& transformMatrix) {
+			m_MatricesUniformBuffer.Bind();
+			auto& mesh = m_Meshes[meshId];
+			mesh.Bind({ &transformMatrix, 1 });
+
+			const auto size = static_cast<GLsizei>(mesh.GetIndicesSize());
+			GLCALL(glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, 1));
+
+			mesh.UnBind();
+			m_MatricesUniformBuffer.UnBind();
+		});
+
+		m_DepthMapFramebuffer.UnBind();
+	}
+
+	GLCALL(glViewport(0, 0, m_ViewportSize.x, m_ViewportSize.y));
+
 	m_SceneGraph.ForEach([&](std::size_t meshId, std::size_t materialId, const glm::mat4& transformMatrix) {
 		m_MatricesUniformBuffer.Bind();
 		auto& material = m_MaterialManager[materialId];
@@ -101,7 +149,14 @@ void stw::Renderer::DrawScene()
 
 		if (pipelineResult)
 		{
-			BindLights(pipelineResult.value());
+			Pipeline& pipeline = pipelineResult.value();
+			pipeline.Bind();
+			BindLights(pipeline);
+			pipeline.SetMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+			// TODO : Change this so it doesn't have to be changed for each material
+			GLCALL(glActiveTexture(GL_TEXTURE1));
+			GLCALL(glBindTexture(GL_TEXTURE_2D, m_DepthMapFramebuffer.GetDepthStencilAttachment().value()));
 		}
 
 		auto& mesh = m_Meshes[meshId];
@@ -125,6 +180,9 @@ void stw::Renderer::Delete()
 	{
 		mesh.Delete();
 	}
+
+	m_DepthPipeline.Delete();
+	m_DepthMapFramebuffer.Delete();
 }
 
 void stw::Renderer::SetOpenGlCapability(const bool enabled, const GLenum capability, bool& field)

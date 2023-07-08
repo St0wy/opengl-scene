@@ -100,7 +100,7 @@ void stw::Camera::SetMovementSpeed(const f32 speed) { m_MovementSpeed = speed; }
 void stw::Camera::IncrementMovementSpeed(const f32 speedDelta)
 {
 	m_MovementSpeed += speedDelta;
-	m_MovementSpeed = std::clamp(m_MovementSpeed, 0.1f, 10.0f);
+	m_MovementSpeed = std::clamp(m_MovementSpeed, 0.1f, 1000.0f);
 }
 
 void stw::Camera::UpdateCameraVectors()

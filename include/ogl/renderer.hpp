@@ -13,6 +13,7 @@
 #include "material.hpp"
 #include "material_manager.hpp"
 #include "mesh.hpp"
+#include "ogl/framebuffer.hpp"
 #include "scene_graph.hpp"
 #include "texture_manager.hpp"
 #include "uniform_buffer.hpp"
@@ -86,7 +87,7 @@ public:
 	[[maybe_unused]] void SetClearColor(const glm::vec4& clearColor);
 	void SetProjectionMatrix(const glm::mat4& projection) const;
 	void SetViewMatrix(const glm::mat4& view) const;
-	void SetViewport(glm::ivec2 pos, glm::uvec2 size) const;
+	void SetViewport(glm::ivec2 pos, glm::uvec2 size);
 
 	void SetDirectionalLight(const DirectionalLight& directionalLight);
 	void RemoveDirectionalLight();
@@ -111,6 +112,7 @@ public:
 private:
 	static constexpr u32 MaxPointLights = 8;
 	static constexpr u32 MaxSpotLights = 8;
+	static constexpr glm::uvec2 ShadowMapSize = { 2048, 2048 };
 
 	bool m_EnableMultisample = false;
 	bool m_EnableDepthTest = false;
@@ -119,6 +121,7 @@ private:
 	GLenum m_DepthFunction = GL_LESS;
 	GLenum m_CullFace = GL_BACK;
 	GLenum m_FrontFace = GL_CCW;
+	glm::uvec2 m_ViewportSize{};
 	glm::vec4 m_ClearColor{ 0.0f, 0.0f, 0.0f, 1.0f };
 	UniformBuffer m_MatricesUniformBuffer;
 
@@ -126,6 +129,9 @@ private:
 	MaterialManager m_MaterialManager;
 	std::vector<Mesh> m_Meshes;
 	SceneGraph m_SceneGraph;
+
+	Pipeline m_DepthPipeline;
+	Framebuffer m_DepthMapFramebuffer;
 
 	std::optional<DirectionalLight> m_DirectionalLight = {};
 
@@ -138,7 +144,6 @@ private:
 	static void SetOpenGlCapability(bool enabled, GLenum capability, bool& field);
 
 	static ProcessMeshResult ProcessMesh(aiMesh* assimpMesh, std::size_t materialIndexOffset);
-
 	void BindLights(Pipeline& pipeline);
 };
 }// namespace stw

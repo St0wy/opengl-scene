@@ -52,9 +52,12 @@ public:
 		m_Renderer.SetDepthFunc(GL_LEQUAL);
 		m_Renderer.SetClearColor(glm::vec4{ 0.0431372549f, 0.7450980392f, 0.9176470588f, 1.0f });
 
-		m_Renderer.SetEnableCullFace(true);
+		m_Renderer.SetEnableCullFace(false);
 
-		m_Pipeline.InitFromPath("shaders/mesh/mesh.vert", "shaders/mesh/mesh_no_specular.frag");
+		m_Pipeline.InitFromPath(
+			"shaders/shadow_map/shadow_map_no_normals.vert", "shaders/shadow_map/shadow_map_no_normals.frag");
+		m_Pipeline.Bind();
+		m_Pipeline.SetInt("shadowMap", 1);
 
 		UpdateProjection();
 
@@ -64,9 +67,9 @@ public:
 			spdlog::error("Error on model loading : {}", result.value());
 		}
 
-		constexpr DirectionalLight directionalLight{
-			{ -0.2f, -1.0f, -0.3f }, glm::vec3{ 0.4f }, glm::vec3{ 0.8f }, glm::vec3{ 0.6f }
-		};
+		glm::vec3 direction{ 0.0f, -1.0f, 0.5f };
+		direction = glm::normalize(direction);
+		const DirectionalLight directionalLight{ direction, glm::vec3{ 0.1f }, glm::vec3{ 0.8f }, glm::vec3{ 0.6f } };
 		m_Renderer.SetDirectionalLight(directionalLight);
 	}
 
