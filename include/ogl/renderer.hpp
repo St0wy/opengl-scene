@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -21,6 +22,39 @@ namespace stw
 class Pipeline;
 
 class Model;
+
+struct DirectionalLight
+{
+	glm::vec3 direction;
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
+};
+
+struct PointLight
+{
+	glm::vec3 position;
+	f32 constant;
+	f32 linear;
+	f32 quadratic;
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
+};
+
+struct SpotLight
+{
+	glm::vec3 position;
+	glm::vec3 direction;
+	f32 cutOff;
+	f32 outerCutOff;
+	f32 constant;
+	f32 linear;
+	f32 quadratic;
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
+};
 
 struct ProcessMeshResult
 {
@@ -54,6 +88,17 @@ public:
 	void SetViewMatrix(const glm::mat4& view) const;
 	void SetViewport(glm::ivec2 pos, glm::uvec2 size) const;
 
+	void SetDirectionalLight(const DirectionalLight& directionalLight);
+	void RemoveDirectionalLight();
+
+	void PushPointLight(const PointLight& pointLight);
+	void PopPointLight();
+	void SetPointLight(usize index, const PointLight& pointLight);
+
+	void PushSpotLight(const SpotLight& spotLight);
+	void PopSpotLight();
+	void SetSpotLight(usize index, const SpotLight& spotLight);
+
 	void Clear(GLbitfield mask);
 
 	void DrawScene();
@@ -64,6 +109,9 @@ public:
 	void Delete();
 
 private:
+	static constexpr u32 MaxPointLights = 8;
+	static constexpr u32 MaxSpotLights = 8;
+
 	bool m_EnableMultisample = false;
 	bool m_EnableDepthTest = false;
 	bool m_EnableCullFace = false;
@@ -79,8 +127,18 @@ private:
 	std::vector<Mesh> m_Meshes;
 	SceneGraph m_SceneGraph;
 
+	std::optional<DirectionalLight> m_DirectionalLight = {};
+
+	u32 m_PointLightsCount = 0;
+	std::array<PointLight, MaxPointLights> m_PointLights = {};
+
+	u32 m_SpotLightsCount = 0;
+	std::array<SpotLight, MaxSpotLights> m_SpotLights = {};
+
 	static void SetOpenGlCapability(bool enabled, GLenum capability, bool& field);
 
 	static ProcessMeshResult ProcessMesh(aiMesh* assimpMesh, std::size_t materialIndexOffset);
+
+	void BindLights(Pipeline& pipeline);
 };
 }// namespace stw

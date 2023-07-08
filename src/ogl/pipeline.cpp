@@ -67,65 +67,6 @@ void stw::Pipeline::SetMat4(const std::string_view name, const glm::mat4& mat)
 	GLCALL(glUniformMatrix4fv(location, 1, GL_FALSE, &mat[0][0]));
 }
 
-void stw::Pipeline::SetPointLightsCount(const u32 count)
-{
-	ASSERT_MESSAGE(count <= MaxPointLights, "Count is above max lights.");
-	SetUnsignedInt("pointLightsCount", count);
-	m_PointLightsCount = count;
-}
-
-void stw::Pipeline::SetSpotLightsCount(const u32 count)
-{
-	ASSERT_MESSAGE(count <= MaxSpotLights, "Count is above max lights.");
-	SetUnsignedInt("spotLightsCount", count);
-	m_SpotLightsCount = count;
-}
-
-void stw::Pipeline::SetPointLight(std::string_view name, u32 index, const stw::PointLight& pointLight)
-{
-	ASSERT_MESSAGE(index < m_PointLightsCount, "Index should be bellow the light count.");
-
-	const auto indexedName = fmt::format("{}[{}]", name, index);
-
-	// const auto viewSpaceLightPosition = glm::vec3(view * glm::vec4(pointLight.position, 1.0f));
-	SetVec3(fmt::format("{}.position", indexedName), pointLight.position);
-
-	SetVec3(fmt::format("{}.ambient", indexedName), pointLight.ambient);
-	SetVec3(fmt::format("{}.diffuse", indexedName), pointLight.diffuse);
-	SetVec3(fmt::format("{}.specular", indexedName), pointLight.specular);
-
-	SetFloat(fmt::format("{}.constant", indexedName), pointLight.constant);
-	SetFloat(fmt::format("{}.linear", indexedName), pointLight.linear);
-	SetFloat(fmt::format("{}.quadratic", indexedName), pointLight.quadratic);
-}
-
-void stw::Pipeline::SetDirectionalLight(std::string_view name, const DirectionalLight& directionalLight)
-{
-	const auto indexedName = fmt::format("{}", name);
-	SetVec3(fmt::format("{}.direction", indexedName), directionalLight.direction);
-	SetVec3(fmt::format("{}.ambient", indexedName), directionalLight.ambient);
-	SetVec3(fmt::format("{}.diffuse", indexedName), directionalLight.diffuse);
-	SetVec3(fmt::format("{}.specular", indexedName), directionalLight.specular);
-}
-
-void stw::Pipeline::SetSpotLight(std::string_view name, u32 index, const SpotLight& spotLight)
-{
-	ASSERT_MESSAGE(index < m_SpotLightsCount, "Index should be bellow the light count.");
-
-	const auto indexedName = fmt::format("{}[{}]", name, index);
-
-	SetVec3(fmt::format("{}.position", indexedName), spotLight.position);
-	SetVec3(fmt::format("{}.direction", indexedName), spotLight.direction);
-	SetVec3(fmt::format("{}.ambient", indexedName), spotLight.ambient);
-	SetVec3(fmt::format("{}.diffuse", indexedName), spotLight.diffuse);
-	SetVec3(fmt::format("{}.specular", indexedName), spotLight.specular);
-	SetFloat(fmt::format("{}.constant", indexedName), spotLight.constant);
-	SetFloat(fmt::format("{}.linear", indexedName), spotLight.linear);
-	SetFloat(fmt::format("{}.quadratic", indexedName), spotLight.quadratic);
-	SetFloat(fmt::format("{}.cutOff", indexedName), spotLight.cutOff);
-	SetFloat(fmt::format("{}.outerCutOff", indexedName), spotLight.outerCutOff);
-}
-
 GLint stw::Pipeline::GetUniformLocation(const std::string_view name)
 {
 	if (const auto search = m_UniformsLocation.find(name); search != m_UniformsLocation.end())
@@ -180,7 +121,6 @@ void stw::Pipeline::InitFromPathSingleFile(const std::filesystem::path& shaderFi
 		spdlog::error("Could not load vertex from shader file {}", shaderFile.string());
 		return;
 	}
-
 
 	if (!fragment.has_value())
 	{

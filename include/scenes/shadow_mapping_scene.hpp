@@ -40,7 +40,7 @@ public:
 					severity,
 					std::string_view(message, length));
 			};
-			glDebugMessageCallback(messageCallback, nullptr);
+			GLCALL(glDebugMessageCallback(messageCallback, nullptr));
 		}
 
 		m_Camera.SetMovementSpeed(4.0f);
@@ -63,40 +63,17 @@ public:
 		{
 			spdlog::error("Error on model loading : {}", result.value());
 		}
+
+		constexpr DirectionalLight directionalLight{
+			{ -0.2f, -1.0f, -0.3f }, glm::vec3{ 0.4f }, glm::vec3{ 0.8f }, glm::vec3{ 0.6f }
+		};
+		m_Renderer.SetDirectionalLight(directionalLight);
 	}
 
 	void SetupPipeline(Pipeline& pipeline)
 	{
 		pipeline.Bind();
 		pipeline.SetVec3("viewPos", m_Camera.Position());
-
-		// Setup lights
-		//		const PointLight pointLight{
-		//			{ 0.0f, 3.0f, 2.0f }, 0.01f, 0.02f, 0.02f, glm::vec3{ 0.2f }, glm::vec3{ 0.032f }, glm::vec3{ 0.2f }
-		//		};
-		//		pipeline.SetPointLightsCount(1);
-		//		pipeline.SetPointLight("pointLights", 0, pointLight);
-
-		const DirectionalLight directionalLight{
-			{ -0.2f, -1.0f, -0.3f }, glm::vec3{ 0.4f }, glm::vec3{ 0.8f }, glm::vec3{ 0.6f }
-		};
-		pipeline.SetDirectionalLight("directionalLight", directionalLight);
-
-		//		SpotLight spotLight{
-		//			m_Camera.Position(),
-		//			m_Camera.Front(),
-		//			glm::cos(glm::radians(12.5f)),
-		//			glm::cos(glm::radians(15.0f)),
-		//			0.001f,
-		//			0.09f,
-		//			0.01f,
-		//			{ 0.2f, 0.2f, 0.2f },
-		//			glm::vec3{ 0.2f },
-		//			glm::vec3{ 0.3f },
-		//		};
-		//		pipeline.SetSpotLightsCount(1);
-		//		pipeline.SetSpotLight("spotLights", 0, spotLight);
-
 		pipeline.UnBind();
 	}
 

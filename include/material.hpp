@@ -14,37 +14,37 @@ struct InvalidMaterial
 
 struct MaterialBase
 {
-	Pipeline& pipeline;
+	std::reference_wrapper<Pipeline> pipeline;
 };
 
 struct MaterialNoNormalNoSpecular : MaterialBase
 {
-	glm::vec3 specular;
-	f32 shininess;
-	std::size_t diffuseMapIndex;
+	glm::vec3 specular{};
+	f32 shininess{};
+	std::size_t diffuseMapIndex{};
 };
 
 struct MaterialNoNormalSpecular : MaterialBase
 {
-	f32 shininess;
-	std::size_t diffuseMapIndex;
-	std::size_t specularMapIndex;
+	f32 shininess{};
+	std::size_t diffuseMapIndex{};
+	std::size_t specularMapIndex{};
 };
 
 struct MaterialNormalNoSpecular : MaterialBase
 {
-	glm::vec3 specular;
-	f32 shininess;
-	std::size_t diffuseMapIndex;
-	std::size_t normalMapIndex;
+	glm::vec3 specular{};
+	f32 shininess{};
+	std::size_t diffuseMapIndex{};
+	std::size_t normalMapIndex{};
 };
 
 struct MaterialNormalSpecular : MaterialBase
 {
-	f32 shininess;
-	std::size_t diffuseMapIndex;
-	std::size_t specularMapIndex;
-	std::size_t normalMapIndex;
+	f32 shininess{};
+	std::size_t diffuseMapIndex{};
+	std::size_t specularMapIndex{};
+	std::size_t normalMapIndex{};
 };
 
 using Material = std::variant<InvalidMaterial,
@@ -54,4 +54,6 @@ using Material = std::variant<InvalidMaterial,
 	MaterialNoNormalSpecular>;
 
 void BindMaterial(const Material& materialVariant, TextureManager& textureManager);
+
+std::optional<std::reference_wrapper<Pipeline>> GetPipelineFromMaterial(const Material& materialVariant);
 }// namespace stw

@@ -7,7 +7,7 @@
 void stw::BindMaterial(const Material& materialVariant, TextureManager& textureManager)
 {
 	const auto normalNoSpecular = [&textureManager](const MaterialNormalNoSpecular& material) {
-		auto& pipeline = material.pipeline;
+		Pipeline& pipeline = material.pipeline;
 		pipeline.Bind();
 		pipeline.SetFloat("material.shininess", material.shininess);
 		pipeline.SetVec3("material.specular", material.specular);
@@ -24,7 +24,7 @@ void stw::BindMaterial(const Material& materialVariant, TextureManager& textureM
 	};
 
 	const auto noNormalNoSpecular = [&textureManager](const MaterialNoNormalNoSpecular& material) {
-		auto& pipeline = material.pipeline;
+		Pipeline& pipeline = material.pipeline;
 		pipeline.Bind();
 		pipeline.SetFloat("material.shininess", material.shininess);
 		pipeline.SetVec3("material.specular", material.specular);
@@ -37,7 +37,7 @@ void stw::BindMaterial(const Material& materialVariant, TextureManager& textureM
 	};
 
 	const auto normalSpecular = [&textureManager](const MaterialNormalSpecular& material) {
-		auto& pipeline = material.pipeline;
+		Pipeline& pipeline = material.pipeline;
 		pipeline.Bind();
 		pipeline.SetFloat("material.shininess", material.shininess);
 
@@ -57,7 +57,7 @@ void stw::BindMaterial(const Material& materialVariant, TextureManager& textureM
 	};
 
 	const auto noNormalSpecular = [&textureManager](const MaterialNoNormalSpecular& material) {
-		auto& pipeline = material.pipeline;
+		Pipeline& pipeline = material.pipeline;
 		pipeline.Bind();
 		pipeline.SetFloat("material.shininess", material.shininess);
 
@@ -77,5 +77,37 @@ void stw::BindMaterial(const Material& materialVariant, TextureManager& textureM
 	};
 
 	std::visit(
+		Overloaded{ invalid, normalNoSpecular, noNormalNoSpecular, normalSpecular, noNormalSpecular }, materialVariant);
+}
+
+std::optional<std::reference_wrapper<stw::Pipeline>> stw::GetPipelineFromMaterial(const Material& materialVariant)
+{
+	constexpr auto normalNoSpecular =
+		[](const MaterialNormalNoSpecular& material) -> std::optional<std::reference_wrapper<stw::Pipeline>> {
+		return material.pipeline;
+	};
+
+	constexpr auto noNormalNoSpecular =
+		[](const MaterialNoNormalNoSpecular& material) -> std::optional<std::reference_wrapper<stw::Pipeline>> {
+		return material.pipeline;
+	};
+
+	constexpr auto normalSpecular =
+		[](const MaterialNormalSpecular& material) -> std::optional<std::reference_wrapper<stw::Pipeline>> {
+		return material.pipeline;
+	};
+
+	constexpr auto noNormalSpecular =
+		[](const MaterialNoNormalSpecular& material) -> std::optional<std::reference_wrapper<stw::Pipeline>> {
+		return material.pipeline;
+	};
+
+	constexpr auto invalid =
+		[](const InvalidMaterial& material) -> std::optional<std::reference_wrapper<stw::Pipeline>> {
+		spdlog::error("Invalid material when getting pipeline... {} {}", __FILE__, __LINE__);
+		return std::nullopt;
+	};
+
+	return std::visit(
 		Overloaded{ invalid, normalNoSpecular, noNormalNoSpecular, normalSpecular, noNormalSpecular }, materialVariant);
 }

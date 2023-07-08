@@ -97,6 +97,13 @@ void stw::Renderer::DrawScene()
 		auto& material = m_MaterialManager[materialId];
 
 		BindMaterial(material, m_TextureManager);
+		auto pipelineResult = GetPipelineFromMaterial(material);
+
+		if (pipelineResult)
+		{
+			BindLights(pipelineResult.value());
+		}
+
 		auto& mesh = m_Meshes[meshId];
 		mesh.Bind({ &transformMatrix, 1 });
 
@@ -245,4 +252,118 @@ stw::ProcessMeshResult stw::Renderer::ProcessMesh(aiMesh* assimpMesh, std::size_
 	mesh.Init(std::move(vertices), std::move(indices));
 
 	return { std::move(mesh), materialIndex };
+}
+
+void stw::Renderer::SetDirectionalLight(const stw::DirectionalLight& directionalLight)
+{
+	m_DirectionalLight.emplace(directionalLight);
+}
+
+void stw::Renderer::RemoveDirectionalLight() { m_DirectionalLight.reset(); }
+
+void stw::Renderer::PushPointLight(const stw::PointLight& pointLight)
+{
+	if (m_PointLightsCount == MaxPointLights)
+	{
+		spdlog::warn("Pushing one too many point light");
+		return;
+	}
+
+	m_PointLights[m_PointLightsCount] = pointLight;
+	m_PointLightsCount++;
+}
+
+void stw::Renderer::PopPointLight()
+{
+	if (m_PointLightsCount == 0)
+	{
+		spdlog::warn("Popping on too many point light");
+	}
+
+	m_PointLightsCount--;
+}
+
+void stw::Renderer::SetPointLight(usize index, const stw::PointLight& pointLight)
+{
+	if (index >= m_PointLightsCount)
+	{
+		spdlog::error("Invalid point light index");
+	}
+
+	m_PointLights[index] = pointLight;
+}
+
+void stw::Renderer::PushSpotLight(const stw::SpotLight& spotLight)
+{
+	if (m_SpotLightsCount == MaxSpotLights)
+	{
+		spdlog::warn("Pushing one too many spot light");
+		return;
+	}
+
+	m_SpotLights[m_SpotLightsCount] = spotLight;
+	m_SpotLightsCount++;
+}
+
+void stw::Renderer::PopSpotLight()
+{
+	if (m_SpotLightsCount == 0)
+	{
+		spdlog::warn("Popping on too many spot light");
+	}
+
+	m_SpotLightsCount--;
+}
+
+void stw::Renderer::SetSpotLight(usize index, const stw::SpotLight& spotLight)
+{
+	if (index >= m_SpotLightsCount)
+	{
+		spdlog::error("Invalid spot light index");
+	}
+
+	m_SpotLights[index] = spotLight;
+}
+
+void stw::Renderer::BindLights(stw::Pipeline& pipeline)
+{
+	if (m_DirectionalLight.has_value())
+	{
+		auto& directionalLight = m_DirectionalLight.value();
+		pipeline.SetVec3("directionalLight.direction", directionalLight.direction);
+		pipeline.SetVec3("directionalLight.ambient", directionalLight.ambient);
+		pipeline.SetVec3("directionalLight.diffuse", directionalLight.diffuse);
+		pipeline.SetVec3("directionalLight.specular", directionalLight.specular);
+	}
+
+	for (usize i = 0; i < m_PointLightsCount; i++)
+	{
+		const auto indexedName = fmt::format("pointLights[{}]", i);
+
+		auto& pointLight = m_PointLights[m_PointLightsCount];
+		pipeline.SetVec3(fmt::format("{}.position", indexedName), pointLight.position);
+		pipeline.SetVec3(fmt::format("{}.ambient", indexedName), pointLight.ambient);
+		pipeline.SetVec3(fmt::format("{}.diffuse", indexedName), pointLight.diffuse);
+		pipeline.SetVec3(fmt::format("{}.specular", indexedName), pointLight.specular);
+		pipeline.SetFloat(fmt::format("{}.constant", indexedName), pointLight.constant);
+		pipeline.SetFloat(fmt::format("{}.linear", indexedName), pointLight.linear);
+		pipeline.SetFloat(fmt::format("{}.quadratic", indexedName), pointLight.quadratic);
+	}
+
+	for (usize i = 0; i < m_SpotLightsCount; i++)
+	{
+		const auto indexedName = fmt::format("spotLights[{}]", i);
+
+		auto& spotLight = m_SpotLights[m_SpotLightsCount];
+		pipeline.SetVec3(fmt::format("{}.position", indexedName), spotLight.position);
+		pipeline.SetVec3(fmt::format("{}.direction", indexedName), spotLight.direction);
+		pipeline.SetVec3(fmt::format("{}.ambient", indexedName), spotLight.ambient);
+		pipeline.SetVec3(fmt::format("{}.diffuse", indexedName), spotLight.diffuse);
+		pipeline.SetVec3(fmt::format("{}.specular", indexedName), spotLight.specular);
+		pipeline.SetFloat(fmt::format("{}.constant", indexedName), spotLight.constant);
+		pipeline.SetFloat(fmt::format("{}.linear", indexedName), spotLight.linear);
+		pipeline.SetFloat(fmt::format("{}.quadratic", indexedName), spotLight.quadratic);
+		pipeline.SetFloat(fmt::format("{}.cutOff", indexedName), spotLight.cutOff);
+		pipeline.SetFloat(fmt::format("{}.outerCutOff", indexedName), spotLight.outerCutOff);
+	}
 }
