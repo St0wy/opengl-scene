@@ -155,7 +155,7 @@ void stw::Renderer::DrawScene()
 			pipeline.SetMat4("lightSpaceMatrix", lightSpaceMatrix);
 
 			// TODO : Change this so it doesn't have to be changed for each material
-			GLCALL(glActiveTexture(GL_TEXTURE1));
+			GLCALL(glActiveTexture(GL_TEXTURE3));
 			GLCALL(glBindTexture(GL_TEXTURE_2D, m_DepthMapFramebuffer.GetDepthStencilAttachment().value()));
 		}
 

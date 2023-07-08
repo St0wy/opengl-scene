@@ -56,13 +56,14 @@ layout (location = 3) in vec3 aTangent;
 layout (location = 4) in mat4 modelMatrix;
 
 out vec2 TexCoords;
-out vec3 TangentViewPos;
+out vec4 FragPosLightSpace;
 
+out vec3 TangentFragPos;
 out vec3 TangentPointLightsPos[MAX_POINT_LIGHTS];
 out vec3 TangentSpotLightsPos[MAX_SPOT_LIGHTS];
 out vec3 TangentSpotLightsDir[MAX_SPOT_LIGHTS];
 
-out vec3 TangentFragPos;
+out vec3 TangentViewPos;
 
 layout (std140, binding = 0) uniform Matrices
 {
@@ -79,10 +80,12 @@ uniform uint spotLightsCount;
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 
 uniform vec3 viewPos;
+uniform mat4 lightSpaceMatrix;
 
 void main()
 {
 	TexCoords = aTexCoords;
+
 	vec3 fragPos = vec3(modelMatrix * vec4(aPos, 1.0));
 
 	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
@@ -107,5 +110,8 @@ void main()
 	TangentViewPos = TBN * viewPos;
 	TangentFragPos = TBN * fragPos;
 
-	gl_Position = projection * view * modelMatrix * vec4(aPos, 1.0);
+	FragPosLightSpace = lightSpaceMatrix * vec4(fragPos, 1.0);
+
+	gl_Position = projection * view *  vec4(fragPos, 1.0);
+//	gl_Position = lightSpaceMatrix *  vec4(fragPos, 1.0);
 }

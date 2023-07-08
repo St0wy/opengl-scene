@@ -52,22 +52,22 @@ public:
 		m_Renderer.SetDepthFunc(GL_LEQUAL);
 		m_Renderer.SetClearColor(glm::vec4{ 0.0431372549f, 0.7450980392f, 0.9176470588f, 1.0f });
 
-		m_Renderer.SetEnableCullFace(false);
+		m_Renderer.SetEnableCullFace(true);
 
 		m_Pipeline.InitFromPath(
-			"shaders/shadow_map/shadow_map_no_normals.vert", "shaders/shadow_map/shadow_map_no_normals.frag");
+			"shaders/shadow_map/shadow_map.vert", "shaders/shadow_map/shadow_map.frag");
 		m_Pipeline.Bind();
-		m_Pipeline.SetInt("shadowMap", 1);
+		m_Pipeline.SetInt("shadowMap", 3);
 
 		UpdateProjection();
 
-		auto result = m_Renderer.LoadModel("./data/bobomb/bobomb.obj", m_Pipeline);
+		auto result = m_Renderer.LoadModel("./data/backpack/backpack.obj", m_Pipeline);
 		if (result.has_value())
 		{
 			spdlog::error("Error on model loading : {}", result.value());
 		}
 
-		glm::vec3 direction{ 0.0f, -1.0f, 0.5f };
+		glm::vec3 direction{ 0.0f, -1.0f, -0.5f };
 		direction = glm::normalize(direction);
 		const DirectionalLight directionalLight{ direction, glm::vec3{ 0.1f }, glm::vec3{ 0.8f }, glm::vec3{ 0.6f } };
 		m_Renderer.SetDirectionalLight(directionalLight);

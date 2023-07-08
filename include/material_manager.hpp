@@ -16,6 +16,7 @@ namespace stw
 class MaterialManager
 {
 public:
+	static constexpr float DefaultShininess = 64.0f;
 	std::size_t
 	LoadMaterialsFromAssimpScene(const aiScene* assimpScene, const std::filesystem::path& workingDirectory, TextureManager& textureManager, Pipeline& pipeline);
 	Material& operator[](std::size_t index);

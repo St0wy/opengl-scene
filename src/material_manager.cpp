@@ -96,7 +96,7 @@ void stw::MaterialManager::LoadNoNormalNoSpecular(aiMaterial* material,
 
 	if (shininess < 1.0f)
 	{
-		shininess = 1.0f;
+		shininess = DefaultShininess;
 	}
 
 	aiColor3D specular;
@@ -138,7 +138,7 @@ void stw::MaterialManager::LoadNoNormalSpecular(aiMaterial* material,
 	stw::TextureManager& textureManager,
 	stw::Pipeline& pipeline)
 {
-	f32 shininess = 1.0f;
+	f32 shininess = 0.0f;
 	if (material->Get(AI_MATKEY_SHININESS, shininess) != AI_SUCCESS)
 	{
 		spdlog::error("Could not read shininess from material");
@@ -147,7 +147,7 @@ void stw::MaterialManager::LoadNoNormalSpecular(aiMaterial* material,
 
 	if (shininess < 1.0f)
 	{
-		shininess = 1.0f;
+		shininess = DefaultShininess;
 	}
 
 	aiString relativePath;
@@ -177,7 +177,7 @@ void stw::MaterialManager::LoadNormalSpecular(aiMaterial* material,
 
 	if (shininess < 1.0f)
 	{
-		shininess = 1.0f;
+		shininess = DefaultShininess;
 	}
 
 	aiString relativePath;

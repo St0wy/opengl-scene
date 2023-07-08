@@ -112,7 +112,7 @@ public:
 private:
 	static constexpr u32 MaxPointLights = 8;
 	static constexpr u32 MaxSpotLights = 8;
-	static constexpr glm::uvec2 ShadowMapSize = { 2048, 2048 };
+	static constexpr glm::uvec2 ShadowMapSize = { 4096, 4096 };
 
 	bool m_EnableMultisample = false;
 	bool m_EnableDepthTest = false;
