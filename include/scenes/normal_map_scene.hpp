@@ -22,7 +22,7 @@ namespace stw
 class NormalMapScene final : public Scene
 {
 public:
-	void Init() override
+	void Init(glm::uvec2 screenSize) override
 	{
 		if (GLEW_VERSION_4_3)
 		{
@@ -45,7 +45,7 @@ public:
 
 		m_Camera.SetMovementSpeed(20.0f);
 
-		m_Renderer.Init();
+		m_Renderer.Init(glm::uvec2());
 		m_Renderer.SetEnableMultisample(true);
 		m_Renderer.SetEnableDepthTest(true);
 		m_Renderer.SetDepthFunc(GL_LEQUAL);

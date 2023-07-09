@@ -13,7 +13,7 @@ public:
 	VertexArray(VertexArray&& other) noexcept;
 	~VertexArray();
 	VertexArray& operator=(const VertexArray&) = delete;
-	VertexArray& operator=(VertexArray&&) = default;
+	VertexArray& operator=(VertexArray&&) noexcept ;
 
 	void Init();
 

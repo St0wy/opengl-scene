@@ -81,8 +81,7 @@ Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 window
 		assert(false);
 	}
 
-	m_Scene->Init();
-	m_Scene->OnResize(windowWidth, windowHeight);
+	m_Scene->Init({ windowWidth, windowHeight });
 }
 
 template<Derived<Scene> T>

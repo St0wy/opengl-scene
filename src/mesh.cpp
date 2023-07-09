@@ -78,103 +78,6 @@ void stw::Mesh::UnBind() const
 	GLCALL(glActiveTexture(GL_TEXTURE0));
 }
 
-//
-// void stw::Mesh::DrawScene(Pipeline& pipeline, const glm::mat4& modelMatrix) const
-//{
-//	DrawInstanced(pipeline, std::span{&modelMatrix, 1});
-//}
-//
-// void stw::Mesh::DrawNoSpecular(Pipeline& pipeline, const glm::mat4& modelMatrix) const
-//{
-//	std::array matrices{modelMatrix};
-//	DrawNoSpecularInstanced(pipeline, {matrices});
-//}
-//
-// void stw::Mesh::DrawInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
-//{
-//	u32 diffuseTextureCount = 0;
-//	u32 specularTextureCount = 0;
-//	u32 normalTextureCount = 0;
-//	for (std::size_t i = 0; i < m_Textures.size(); i++)
-//	{
-//		const auto id = GetTextureFromId(static_cast<i32>(i));
-//		glActiveTexture(id);
-//
-//		u32 number;
-//		switch (m_Textures[i].textureType)
-//		{
-//		case TextureType::Diffuse:
-//			diffuseTextureCount++;
-//			number = diffuseTextureCount;
-//			break;
-//		case TextureType::Specular:
-//			specularTextureCount++;
-//			number = specularTextureCount;
-//			break;
-//		case TextureType::Normal:
-//			normalTextureCount++;
-//			number = normalTextureCount;
-//			break;
-//		default:
-//			break;
-//		}
-//
-//		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
-//		glBindTexture(GL_TEXTURE_2D, m_Textures[i].textureId);
-//	}
-//	glActiveTexture(GL_TEXTURE0);
-//
-//	DrawMeshOnlyInstanced(modelMatrices);
-//
-//	glActiveTexture(GL_TEXTURE0);
-//}
-//
-// void stw::Mesh::DrawNoSpecularInstanced(Pipeline& pipeline, const std::span<const glm::mat4> modelMatrices) const
-//{
-//	u32 diffuseTextureCount = 0;
-//	u32 normalTextureCount = 0;
-//	for (std::size_t i = 0; i < m_Textures.size(); i++)
-//	{
-//		const auto id = GetTextureFromId(static_cast<i32>(i));
-//		glActiveTexture(id);
-//
-//		u32 number;
-//		switch (m_Textures[i].textureType)
-//		{
-//		case TextureType::Diffuse:
-//			diffuseTextureCount++;
-//			number = diffuseTextureCount;
-//			break;
-//		case TextureType::Normal:
-//			normalTextureCount++;
-//			number = normalTextureCount;
-//			break;
-//		default:
-//			break;
-//		}
-//
-//		pipeline.SetInt(fmt::format("material.{}{}", ToString(m_Textures[i].textureType), number), static_cast<i32>(i));
-//		m_Textures[i].Bind();
-//	}
-//	glActiveTexture(GL_TEXTURE0);
-//
-//	DrawMeshOnlyInstanced(modelMatrices);
-//
-//	glActiveTexture(GL_TEXTURE0);
-//}
-//
-// void stw::Mesh::DrawMeshOnlyInstanced(const std::span<const glm::mat4> modelMatrices) const
-//{
-//	m_VertexArray.Bind();
-//
-//	m_ModelMatrixBuffer.SetData(modelMatrices);
-//	const auto size = static_cast<GLsizei>(m_Indices.size());
-//	const auto elemCount = static_cast<GLsizei>(modelMatrices.size());
-//	glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, elemCount);
-//
-//	m_VertexArray.UnBind();
-//}
-
 void stw::Mesh::SetupMesh()
 {
 	m_VertexArray.Init();
@@ -199,3 +102,20 @@ void stw::Mesh::SetupMesh()
 
 	m_VertexArray.AddBuffer(m_ModelMatrixBuffer, modelMatrixLayout);
 }
+stw::Mesh stw::Mesh::CreateQuad()
+{
+	std::vector<Vertex> vertices = {
+		Vertex{ glm::vec3{ -1.0f, 1.0f, 0.0f }, glm::vec3{}, glm::vec2{ 0.0f, 1.0f }, glm::vec3{} },
+		Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{}, glm::vec2{ 0.0f, 0.0f }, glm::vec3{} },
+		Vertex{ glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{}, glm::vec2{ 1.0f, 1.0f }, glm::vec3{} },
+		Vertex{ glm::vec3{ 1.0f, -1.0f, 0.0f }, glm::vec3{}, glm::vec2{ 1.0f, 0.0f }, glm::vec3{} },
+	};
+	std::vector<u32> indices = { 0, 1, 2, 1, 3, 2 };
+
+	Mesh mesh;
+	mesh.Init(std::move(vertices), std::move(indices));
+
+	return mesh;
+}
+
+const stw::VertexArray& stw::Mesh::GetVertexArray() const { return m_VertexArray; }

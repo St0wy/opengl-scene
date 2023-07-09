@@ -107,8 +107,8 @@ void main()
 		result += ComputeSpotLight(spotLights[i], TangentSpotLightsPos[i], TangentSpotLightsDir[i], normal, TangentFragPos, viewDir);
 	}
 
-	float gamma = 2.2;
-	result = pow(result, vec3(1.0 / gamma));
+//	float gamma = 2.2;
+//	result = pow(result, vec3(1.0 / gamma));
 	FragColor = vec4(result, 1.0);
 }
 

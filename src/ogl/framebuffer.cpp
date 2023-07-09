@@ -179,6 +179,8 @@ void stw::Framebuffer::Delete()
 }
 std::optional<GLuint> stw::Framebuffer::GetDepthStencilAttachment() const { return m_DepthStencilAttachment; }
 
+GLuint stw::Framebuffer::GetColorAttachment(usize index) const { return m_ColorAttachments[index]; }
+
 std::expected<stw::AttachmentType, std::string> stw::FramebufferColorAttachment::GetAttachmentType() const
 {
 	GLint glInternalFormat{};

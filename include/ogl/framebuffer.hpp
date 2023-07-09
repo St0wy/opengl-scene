@@ -75,6 +75,7 @@ public:
 	void Init(const FramebufferDescription& description);
 	void Bind() const;
 	[[nodiscard]] std::optional<GLuint> GetDepthStencilAttachment() const;
+	[[nodiscard]] GLuint GetColorAttachment(usize index) const;
 	void UnBind() const;
 	void Delete();
 

@@ -76,7 +76,7 @@ public:
 	Renderer& operator=(const Renderer&) = delete;
 	Renderer& operator=(Renderer&&) = delete;
 
-	void Init();
+	void Init(glm::uvec2 screenSize);
 
 	void SetEnableMultisample(bool enableMultisample);
 	void SetEnableDepthTest(bool enableDepthTest);
@@ -132,6 +132,9 @@ private:
 
 	Pipeline m_DepthPipeline;
 	Framebuffer m_DepthMapFramebuffer;
+	Framebuffer m_HdrFramebuffer;
+	Pipeline m_HdrPipeline;
+	Mesh m_RenderQuad{};
 
 	std::optional<DirectionalLight> m_DirectionalLight = {};
 
@@ -145,5 +148,6 @@ private:
 
 	static ProcessMeshResult ProcessMesh(aiMesh* assimpMesh, std::size_t materialIndexOffset);
 	void BindLights(Pipeline& pipeline);
+	void RenderShadowMap(const glm::mat4& lightSpaceMatrix);
 };
 }// namespace stw
