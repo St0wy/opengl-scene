@@ -111,8 +111,8 @@ void stw::Renderer::DrawScene()
 		constexpr float lightFarPlane = 15.0f;
 		constexpr glm::vec3 lightPosition = glm::vec3{ 0.0f, 6.0f, 0.0f };
 		const glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
-		const glm::mat4 lightView =
-			glm::lookAt(lightPosition, lightPosition + m_DirectionalLight.value().direction, glm::vec3{ 0.0f, 1.0f, 0.0f });
+		const glm::mat4 lightView = glm::lookAt(
+			lightPosition, lightPosition + m_DirectionalLight.value().direction, glm::vec3{ 0.0f, 1.0f, 0.0f });
 		lightSpaceMatrix = lightProjection * lightView;
 
 		m_DepthPipeline.Bind();
@@ -154,8 +154,10 @@ void stw::Renderer::DrawScene()
 			BindLights(pipeline);
 			pipeline.SetMat4("lightSpaceMatrix", lightSpaceMatrix);
 
-			// TODO : Change this so it doesn't have to be changed for each material
-			GLCALL(glActiveTexture(GL_TEXTURE3));
+			// We assume that the shadow map is the last texture
+			auto shadowMapTextureId = static_cast<i32>(pipeline.GetTextureCount() - 1);
+			auto textureEnum = GetTextureFromId(shadowMapTextureId);
+			GLCALL(glActiveTexture(textureEnum));
 			GLCALL(glBindTexture(GL_TEXTURE_2D, m_DepthMapFramebuffer.GetDepthStencilAttachment().value()));
 		}
 

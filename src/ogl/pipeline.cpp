@@ -4,6 +4,7 @@
 
 #include "ogl/pipeline.hpp"
 
+#include <array>
 #include <glm/matrix.hpp>
 #include <spdlog/spdlog.h>
 
@@ -182,6 +183,8 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 	GLCALL(glDeleteShader(m_VertexShaderId));
 
 	m_IsInitialized = true;
+
+	m_TexturesCount = GetTextureCountFromOpengl();
 }
 
 void stw::Pipeline::Delete()
@@ -198,3 +201,36 @@ void stw::Pipeline::Delete()
 }
 
 GLuint stw::Pipeline::Id() const { return m_ProgramId; }
+
+usize stw::Pipeline::GetTextureCountFromOpengl() const
+{
+	usize textureCount = 0;
+	GLint numActiveUniforms = 0;
+	glGetProgramInterfaceiv(m_ProgramId, GL_UNIFORM, GL_ACTIVE_RESOURCES, &numActiveUniforms);
+
+	std::vector<GLenum> properties;
+	properties.push_back(GL_NAME_LENGTH);
+	properties.push_back(GL_TYPE);
+	properties.push_back(GL_ARRAY_SIZE);
+	std::vector<GLint> values(properties.size());
+	for (int attrib = 0; attrib < numActiveUniforms; ++attrib)
+	{
+		glGetProgramResourceiv(m_ProgramId,
+			GL_UNIFORM,
+			attrib,
+			static_cast<GLsizei>(properties.size()),
+			&properties[0],
+			static_cast<GLsizei>(values.size()),
+			nullptr,
+			&values[0]);
+
+		if (values[1] == GL_SAMPLER_2D)
+		{
+			textureCount++;
+		}
+	}
+
+	return textureCount;
+}
+
+usize stw::Pipeline::GetTextureCount() const { return m_TexturesCount; }

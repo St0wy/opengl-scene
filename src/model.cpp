@@ -168,7 +168,7 @@
 //	const TextureType textureType) const
 //{
 //	const aiTextureType assimpType = ToAssimpTextureType(textureType);
-//	const auto textureCount = material->GetTextureCount(assimpType);
+//	const auto textureCount = material->GetTextureCountFromOpengl(assimpType);
 //	std::vector<Texture> textures{};
 //
 //	for (std::size_t i = 0; i < textureCount; i++)

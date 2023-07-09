@@ -42,6 +42,8 @@ public:
 	void SetVec3(std::string_view name, glm::vec3 value);
 	void SetMat3(std::string_view name, const glm::mat3& mat);
 	void SetMat4(std::string_view name, const glm::mat4& mat);
+
+	[[nodiscard]] usize GetTextureCount() const;
 private:
 	std::unordered_map<std::string_view, GLint> m_UniformsLocation{};
 	bool m_IsInitialized = false;
@@ -49,7 +51,9 @@ private:
 	GLuint m_ProgramId{};
 	GLuint m_VertexShaderId{};
 	GLuint m_FragmentShaderId{};
+	usize m_TexturesCount{};
 
 	GLint GetUniformLocation(std::string_view name);
+	usize GetTextureCountFromOpengl() const;
 };
 }
