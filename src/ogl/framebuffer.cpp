@@ -36,7 +36,7 @@ void stw::Framebuffer::Init(const FramebufferDescription& description)
 
 		if (depthAttachmentInfo.isRenderbufferObject)
 		{
-			GLuint index;
+			GLuint index = 0;
 			GLCALL(glGenRenderbuffers(1, &index));
 			m_DepthStencilAttachment = index;
 
@@ -49,7 +49,7 @@ void stw::Framebuffer::Init(const FramebufferDescription& description)
 		}
 		else
 		{
-			GLuint index;
+			GLuint index = 0;
 			GLCALL(glCreateTextures(GL_TEXTURE_2D, 1, &index));
 			m_DepthStencilAttachment = index;
 
@@ -84,8 +84,8 @@ void stw::Framebuffer::HandleColorAttachments(const stw::FramebufferDescription&
 {
 	for (usize i = 0; i < m_ColorAttachmentsCount; i++)
 	{
-		GLuint& colorAttachmentId = m_ColorAttachments[i];
-		const FramebufferColorAttachment& colorAttachmentInfo = m_Description.colorAttachments[i];
+		GLuint& colorAttachmentId = m_ColorAttachments.at(i);
+		const FramebufferColorAttachment& colorAttachmentInfo = m_Description.colorAttachments.at(i);
 		const auto attachmentTypeResult = colorAttachmentInfo.GetAttachmentType();
 		if (!attachmentTypeResult)
 		{
@@ -129,7 +129,8 @@ void stw::Framebuffer::HandleColorAttachments(const stw::FramebufferDescription&
 	else
 	{
 		// If this assert fails, add more attachments bellow and increase the value accordingly
-		static_assert(FramebufferDescription::MaxColorAttachments == 16);
+		constexpr usize colorAttachmentsInArray = 16;
+		static_assert(FramebufferDescription::MaxColorAttachments == colorAttachmentsInArray);
 		static constexpr std::array<GLenum, FramebufferDescription::MaxColorAttachments> v = {
 			GL_COLOR_ATTACHMENT0,
 			GL_COLOR_ATTACHMENT1,
@@ -179,7 +180,7 @@ void stw::Framebuffer::Delete()
 }
 std::optional<GLuint> stw::Framebuffer::GetDepthStencilAttachment() const { return m_DepthStencilAttachment; }
 
-GLuint stw::Framebuffer::GetColorAttachment(usize index) const { return m_ColorAttachments[index]; }
+GLuint stw::Framebuffer::GetColorAttachment(usize index) const { return m_ColorAttachments.at(index); }
 
 std::expected<stw::AttachmentType, std::string> stw::FramebufferColorAttachment::GetAttachmentType() const
 {

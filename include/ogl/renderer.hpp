@@ -9,6 +9,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
+#include "bloom_framebuffer.hpp"
 #include "glm/gtc/bitfield.hpp"
 #include "material.hpp"
 #include "material_manager.hpp"
@@ -90,15 +91,15 @@ public:
 	void SetViewport(glm::ivec2 pos, glm::uvec2 size);
 
 	void SetDirectionalLight(const DirectionalLight& directionalLight);
-	void RemoveDirectionalLight();
+	[[maybe_unused]] void RemoveDirectionalLight();
 
-	void PushPointLight(const PointLight& pointLight);
-	void PopPointLight();
-	void SetPointLight(usize index, const PointLight& pointLight);
+	[[maybe_unused]] void PushPointLight(const PointLight& pointLight);
+	[[maybe_unused]] void PopPointLight();
+	[[maybe_unused]] void SetPointLight(usize index, const PointLight& pointLight);
 
-	void PushSpotLight(const SpotLight& spotLight);
-	void PopSpotLight();
-	void SetSpotLight(usize index, const SpotLight& spotLight);
+	[[maybe_unused]] void PushSpotLight(const SpotLight& spotLight);
+	[[maybe_unused]] void PopSpotLight();
+	[[maybe_unused]] void SetSpotLight(usize index, const SpotLight& spotLight);
 
 	void Clear(GLbitfield mask);
 
@@ -113,6 +114,8 @@ private:
 	static constexpr u32 MaxPointLights = 8;
 	static constexpr u32 MaxSpotLights = 8;
 	static constexpr glm::uvec2 ShadowMapSize = { 4096, 4096 };
+	static constexpr u32 MipChainLength = 5;
+	static constexpr f32 FilterRadius = 0.005f;
 
 	bool m_EnableMultisample = false;
 	bool m_EnableDepthTest = false;
@@ -136,6 +139,10 @@ private:
 	Pipeline m_HdrPipeline;
 	Mesh m_RenderQuad{};
 
+	BloomFramebuffer m_BloomFramebuffer;
+	Pipeline m_DownsamplePipeline;
+	Pipeline m_UpsamplePipeline;
+
 	std::optional<DirectionalLight> m_DirectionalLight = {};
 
 	u32 m_PointLightsCount = 0;
@@ -146,8 +153,12 @@ private:
 
 	static void SetOpenGlCapability(bool enabled, GLenum capability, bool& field);
 
-	static ProcessMeshResult ProcessMesh(aiMesh* assimpMesh, std::size_t materialIndexOffset);
+	static ProcessMeshResult ProcessMesh(const aiMesh* assimpMesh, std::size_t materialIndexOffset);
 	void BindLights(Pipeline& pipeline);
 	void RenderShadowMap(const glm::mat4& lightSpaceMatrix);
+	void RenderGeometryToHdrFramebuffer(const glm::mat4& lightSpaceMatrix);
+	void RenderBloomToBloomFramebuffer(GLuint hdrTexture, float filterRadius);
+	void RenderDownsample(GLuint hdrTexture);
+	void RenderUpsamples(float filterRadius);
 };
 }// namespace stw

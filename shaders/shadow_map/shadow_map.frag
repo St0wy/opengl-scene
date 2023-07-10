@@ -50,7 +50,7 @@ struct SpotLight
 	vec3 specular;
 };
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
 
 in vec2 TexCoords;
 in vec4 FragPosLightSpace;
@@ -107,8 +107,6 @@ void main()
 		result += ComputeSpotLight(spotLights[i], TangentSpotLightsPos[i], TangentSpotLightsDir[i], normal, TangentFragPos, viewDir);
 	}
 
-//	float gamma = 2.2;
-//	result = pow(result, vec3(1.0 / gamma));
 	FragColor = vec4(result, 1.0);
 }
 

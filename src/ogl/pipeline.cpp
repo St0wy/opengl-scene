@@ -95,6 +95,7 @@ stw::Pipeline::~Pipeline()
 
 void stw::Pipeline::InitFromPath(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath)
 {
+	// TODO : Cache already opened shaders
 	const auto vertexResult = OpenFile(vertexPath);
 
 	if (!vertexResult.has_value())
@@ -139,13 +140,13 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 	GLCALL(glShaderSource(m_VertexShaderId, 1, &vertexSourcePtr, nullptr));
 	GLCALL(glCompileShader(m_VertexShaderId));
 
-	GLint success;
+	GLint success = 0;
 	GLCALL(glGetShaderiv(m_VertexShaderId, GL_COMPILE_STATUS, &success));
 	if (!success)
 	{
-		char infoLog[LogSize];
-		glGetShaderInfoLog(m_VertexShaderId, LogSize, nullptr, infoLog);
-		spdlog::error("Error while loading vertex shader.\n{}", infoLog);
+		std::array<char, LogSize> infoLog{};
+		glGetShaderInfoLog(m_VertexShaderId, LogSize, nullptr, infoLog.data());
+		spdlog::error("Error while loading vertex shader.\n{}", infoLog.data());
 		return;
 	}
 
@@ -157,9 +158,9 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 	GLCALL(glGetShaderiv(m_FragmentShaderId, GL_COMPILE_STATUS, &success));
 	if (!success)
 	{
-		char infoLog[LogSize];
-		GLCALL(glGetShaderInfoLog(m_FragmentShaderId, LogSize, nullptr, infoLog));
-		spdlog::error("Error while loading fragment shader.\n{}", infoLog);
+		std::array<char, LogSize> infoLog{};
+		GLCALL(glGetShaderInfoLog(m_FragmentShaderId, LogSize, nullptr, infoLog.data()));
+		spdlog::error("Error while loading fragment shader.\n{}", infoLog.data());
 		return;
 	}
 
@@ -171,9 +172,9 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 	GLCALL(glGetProgramiv(m_ProgramId, GL_LINK_STATUS, &success));
 	if (!success)
 	{
-		char infoLog[LogSize];
-		GLCALL(glGetProgramInfoLog(m_ProgramId, LogSize, nullptr, infoLog));
-		spdlog::error("Error while linking shader program.\n{}", infoLog);
+		std::array<char, LogSize> infoLog{};
+		GLCALL(glGetProgramInfoLog(m_ProgramId, LogSize, nullptr, infoLog.data()));
+		spdlog::error("Error while linking shader program.\n{}", infoLog.data());
 		GLCALL(glDeleteShader(m_FragmentShaderId));
 		GLCALL(glDeleteShader(m_VertexShaderId));
 		return;
@@ -234,3 +235,10 @@ usize stw::Pipeline::GetTextureCountFromOpengl() const
 }
 
 usize stw::Pipeline::GetTextureCount() const { return m_TexturesCount; }
+
+void stw::Pipeline::SetVec2(std::string_view name, glm::vec2 value)
+{
+	const auto location = GetUniformLocation(name);
+
+	GLCALL(glUniform2f(location, value.x, value.y));
+}

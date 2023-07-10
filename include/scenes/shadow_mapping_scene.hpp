@@ -50,12 +50,11 @@ public:
 		m_Renderer.SetEnableMultisample(true);
 		m_Renderer.SetEnableDepthTest(true);
 		m_Renderer.SetDepthFunc(GL_LEQUAL);
-		m_Renderer.SetClearColor(glm::vec4{ 0.0431372549f, 0.7450980392f, 0.9176470588f, 1.0f });
+		m_Renderer.SetClearColor(glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
 
 		m_Renderer.SetEnableCullFace(true);
 
-		m_Pipeline.InitFromPath(
-			"shaders/shadow_map/shadow_map.vert", "shaders/shadow_map/shadow_map.frag");
+		m_Pipeline.InitFromPath("shaders/shadow_map/shadow_map.vert", "shaders/shadow_map/shadow_map.frag");
 		m_Pipeline.Bind();
 		m_Pipeline.SetInt("shadowMap", 3);
 
@@ -71,6 +70,16 @@ public:
 		direction = glm::normalize(direction);
 		const DirectionalLight directionalLight{ direction, glm::vec3{ 0.1f }, glm::vec3{ 0.8f }, glm::vec3{ 0.6f } };
 		m_Renderer.SetDirectionalLight(directionalLight);
+
+		const PointLight pointLight{ glm::vec3{ 0.0f, 2.0f, 0.0f },
+			0.1f,
+			0.2f,
+			0.3f,
+			glm::vec3{ 0.1f, 0.1f, 0.1f },
+			glm::vec3{ 20.0f , 20.0f, 20.0f},
+			glm::vec3{ 10.0f, 10.0f, 10.0f } };
+
+		m_Renderer.PushPointLight(pointLight);
 	}
 
 	void SetupPipeline(Pipeline& pipeline)
@@ -108,7 +117,10 @@ public:
 		m_Pipeline.UnBind();
 
 #pragma region Camera
-		const uint8_t* keyboardState = SDL_GetKeyboardState(nullptr);
+		i32 keyboardStateLength = 0;
+		const uint8_t* keyboardStatePtr = SDL_GetKeyboardState(&keyboardStateLength);
+		const std::span<const u8> keyboardState{ keyboardStatePtr, static_cast<usize>(keyboardStateLength) };
+
 		const CameraMovementState cameraMovementState{ .forward = static_cast<bool>(keyboardState[SDL_SCANCODE_W]),
 			.backward = static_cast<bool>(keyboardState[SDL_SCANCODE_S]),
 			.left = static_cast<bool>(keyboardState[SDL_SCANCODE_A]),
