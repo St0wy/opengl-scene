@@ -1,6 +1,5 @@
 #include "ogl/renderer.hpp"
 
-#include <algorithm>
 #include <exception>
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -52,6 +51,9 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 	m_DeferredShadingPipeline.SetInt("gNormal", 1);
 	m_DeferredShadingPipeline.SetInt("gBaseColorSpecular", 2);
 	m_DeferredShadingPipeline.SetInt("shadowMap", 3);
+
+	m_DebugLightsPipeline.InitFromPath("shaders/deferred/debug_light.vert", "shaders/deferred/debug_light.frag");
+	m_DebugCubeLight = Mesh::CreateCube();
 
 	{
 		FramebufferDepthStencilAttachment depthStencilAttachment{};
@@ -202,6 +204,8 @@ void stw::Renderer::DrawScene()
 
 	RenderLightsToHdrFramebuffer();
 
+	RenderDebugLights();
+
 	RenderBloomToBloomFramebuffer(m_HdrFramebuffer.GetColorAttachment(0), FilterRadius);
 
 	m_HdrPipeline.Bind();
@@ -217,46 +221,6 @@ void stw::Renderer::DrawScene()
 	m_RenderQuad.GetVertexArray().Bind();
 	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
 	GLCALL(glEnable(GL_DEPTH_TEST));
-}
-
-void stw::Renderer::RenderGeometryToHdrFramebuffer(const glm::mat4& lightSpaceMatrix)
-{
-	m_HdrFramebuffer.Bind();
-	GLCALL(glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a));
-	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
-	m_SceneGraph.ForEach(
-		[this, &lightSpaceMatrix](SceneGraphElementIndex elementIndex, std::span<const glm::mat4> transformMatrices) {
-			m_MatricesUniformBuffer.Bind();
-			auto& material = m_MaterialManager[elementIndex.materialId];
-
-			BindMaterial(material, m_TextureManager);
-			auto pipelineResult = GetPipelineFromMaterial(material);
-
-			if (pipelineResult)
-			{
-				Pipeline& pipeline = pipelineResult.value();
-				pipeline.Bind();
-				BindLights(pipeline);
-				pipeline.SetMat4("lightSpaceMatrix", lightSpaceMatrix);
-
-				// We assume that the shadow map is the last texture
-				auto shadowMapTextureId = static_cast<i32>(pipeline.GetTextureCount() - 1);
-				auto textureEnum = GetTextureFromId(shadowMapTextureId);
-				GLCALL(glActiveTexture(textureEnum));
-				GLCALL(glBindTexture(GL_TEXTURE_2D, m_LightDepthMapFramebuffer.GetDepthStencilAttachment().value()));
-			}
-
-			auto& mesh = m_Meshes[elementIndex.meshId];
-			mesh.Bind(transformMatrices);
-
-			const auto size = static_cast<GLsizei>(mesh.GetIndicesSize());
-			GLCALL(glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, transformMatrices.size()));
-
-			mesh.UnBind();
-			m_MatricesUniformBuffer.UnBind();
-		});
-	m_HdrFramebuffer.UnBind();
 }
 
 void stw::Renderer::RenderShadowMap(const glm::mat4& lightViewProjMatrix)
@@ -308,6 +272,8 @@ void stw::Renderer::Delete()
 	m_DeferredShadingPipeline.Delete();
 	m_GBufferPipeline.Delete();
 	m_GBufferFramebuffer.Delete();
+	m_DebugCubeLight.Delete();
+	m_DebugLightsPipeline.Delete();
 }
 
 void stw::Renderer::SetOpenGlCapability(const bool enabled, const GLenum capability, bool& field)
@@ -703,6 +669,45 @@ void stw::Renderer::RenderLightsToHdrFramebuffer()
 
 	m_DeferredShadingPipeline.UnBind();
 	m_HdrFramebuffer.UnBind();
+
+	// Copy depth stencil from gbuffer to hdr framebuffer
+	m_GBufferFramebuffer.BindRead();
+	m_HdrFramebuffer.BindWrite();
+	GLCALL(glBlitFramebuffer(0,
+		0,
+		m_ViewportSize.x,
+		m_ViewportSize.y,
+		0,
+		0,
+		m_ViewportSize.x,
+		m_ViewportSize.y,
+		GL_DEPTH_BUFFER_BIT,
+		GL_NEAREST));
+	m_HdrFramebuffer.UnBind();
+}
+
+void stw::Renderer::RenderDebugLights()
+{
+	constexpr f32 debugLightScale = 0.4f;
+	m_HdrFramebuffer.Bind();
+	m_DebugLightsPipeline.Bind();
+
+	for (usize i = 0; i < m_PointLightsCount; i++)
+	{
+		m_MatricesUniformBuffer.Bind();
+		const auto& pointLight = m_PointLights.at(i);
+
+		m_DebugLightsPipeline.SetVec3("lightColor", pointLight.color);
+
+		glm::mat4 model{ 1.0f };
+		model = glm::translate(model, pointLight.position);
+		model = glm::scale(model, glm::vec3{ debugLightScale });
+
+		m_DebugCubeLight.Bind({ &model, 1 });
+		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, m_DebugCubeLight.GetIndicesSize(), GL_UNSIGNED_INT, nullptr, 1));
+
+		m_MatricesUniformBuffer.UnBind();
+	}
 }
 
 stw::PointLight::PointLight(glm::vec3 position, f32 linear, f32 quadratic, glm::vec3 color)

@@ -75,6 +75,12 @@ struct ProcessMeshResult
 class Renderer
 {
 public:
+	static constexpr u32 MaxPointLights = 26;
+	static constexpr u32 MaxSpotLights = 1;
+	static constexpr glm::uvec2 ShadowMapSize = { 4096, 4096 };
+	static constexpr u32 MipChainLength = 5;
+	static constexpr f32 FilterRadius = 0.005f;
+
 	Renderer() = default;
 	Renderer(const Renderer&) = delete;
 	Renderer(Renderer&&) = delete;
@@ -122,12 +128,6 @@ public:
 	void Delete();
 
 private:
-	static constexpr u32 MaxPointLights = 32;
-	static constexpr u32 MaxSpotLights = 1;
-	static constexpr glm::uvec2 ShadowMapSize = { 4096, 4096 };
-	static constexpr u32 MipChainLength = 5;
-	static constexpr f32 FilterRadius = 0.005f;
-
 	bool m_EnableMultisample = false;
 	bool m_EnableDepthTest = false;
 	bool m_EnableCullFace = false;
@@ -159,6 +159,8 @@ private:
 	Framebuffer m_GBufferFramebuffer;
 	Pipeline m_GBufferPipeline;
 	Pipeline m_DeferredShadingPipeline;
+	Pipeline m_DebugLightsPipeline;
+	Mesh m_DebugCubeLight{};
 
 	std::optional<DirectionalLight> m_DirectionalLight = {};
 
@@ -173,11 +175,11 @@ private:
 	static ProcessMeshResult ProcessMesh(const aiMesh* assimpMesh, std::size_t materialIndexOffset);
 	void BindLights(Pipeline& pipeline);
 	void RenderShadowMap(const glm::mat4& lightViewProjMatrix);
-	void RenderGeometryToHdrFramebuffer(const glm::mat4& lightViewProjMatrix);
 	void RenderBloomToBloomFramebuffer(GLuint hdrTexture, float filterRadius);
 	void RenderDownsample(GLuint hdrTexture);
 	void RenderUpsamples(float filterRadius);
 	void RenderGBuffer();
 	void RenderLightsToHdrFramebuffer();
+	void RenderDebugLights();
 };
 }// namespace stw

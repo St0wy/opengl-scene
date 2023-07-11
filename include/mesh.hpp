@@ -34,6 +34,7 @@ public:
 	Mesh& operator=(Mesh&& other) noexcept;
 
 	static Mesh CreateQuad();
+	static Mesh CreateCube();
 
 	void Init(std::vector<Vertex> vertices, std::vector<u32> indices);
 	void Delete();

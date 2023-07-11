@@ -27,7 +27,7 @@ public:
 	void GenerateSceneDuplicateElement(const SceneGraphElement element)
 	{
 		constexpr usize elementCount = 500;
-		constexpr usize lightCount = 16;
+		constexpr usize lightCount = Renderer::MaxPointLights;
 		constexpr float maxPos = 30.0f;
 		constexpr float minPos = -maxPos;
 		constexpr float twoPi = 2.0f * std::numbers::pi;

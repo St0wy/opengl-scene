@@ -119,3 +119,37 @@ stw::Mesh stw::Mesh::CreateQuad()
 }
 
 const stw::VertexArray& stw::Mesh::GetVertexArray() const { return m_VertexArray; }
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cppcoreguidelines-avoid-magic-numbers"
+stw::Mesh stw::Mesh::CreateCube()
+{
+	constexpr f32 size = 1.0f;
+	std::vector<Vertex> vertices = {
+		{ glm::vec3(-size, -size, -size), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec3{} },
+		{ glm::vec3(-size, -size, size), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec3{} },
+		{ glm::vec3(-size, size, -size), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f), glm::vec3{} },
+		{ glm::vec3(-size, size, size), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::vec3{} },
+		{ glm::vec3(size, -size, -size), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec3{} },
+		{ glm::vec3(size, -size, size), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec3{} },
+		{ glm::vec3(size, size, -size), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f), glm::vec3{} },
+		{ glm::vec3(size, size, size), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::vec3{} }
+	};
+
+	// clang-format off
+	std::vector<u32> indices = {
+		0, 1, 2, 2, 1, 3, // Left face
+		5, 4, 6, 5, 6, 7, // Right face
+		2, 3, 6, 6, 3, 7, // Top face
+		0, 2, 4, 4, 2, 6, // Front face
+		1, 5, 3, 3, 5, 7, // Back face
+		0, 4, 1, 1, 4, 5  // Bottom face
+	};
+	// clang-format on
+
+	Mesh mesh;
+	mesh.Init(std::move(vertices), std::move(indices));
+
+	return mesh;
+}
+#pragma clang diagnostic pop

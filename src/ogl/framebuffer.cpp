@@ -189,6 +189,8 @@ void stw::Framebuffer::Resize(glm::uvec2 newSize)
 	Delete();
 	Init(descriptionCopy);
 }
+void stw::Framebuffer::BindRead() const { GLCALL(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_Fbo)); }
+void stw::Framebuffer::BindWrite() const { GLCALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Fbo)); }
 
 std::expected<stw::AttachmentType, std::string> stw::FramebufferColorAttachment::GetAttachmentType() const
 {
