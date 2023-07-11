@@ -7,7 +7,6 @@
 #include <spdlog/spdlog.h>
 #include <unordered_set>
 
-#include "model.hpp"
 #include "timer.hpp"
 #include "utils.hpp"
 
@@ -64,11 +63,6 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 		colorAttachment.format = FramebufferColorAttachment::Format::Rgb;
 		colorAttachment.size = FramebufferColorAttachment::Size::Sixteen;
 		colorAttachment.type = FramebufferColorAttachment::Type::Float;
-
-		//		FramebufferColorAttachment colorAttachment2{};
-		//		colorAttachment2.format = FramebufferColorAttachment::Format::Rgb;
-		//		colorAttachment2.size = FramebufferColorAttachment::Size::Sixteen;
-		//		colorAttachment2.type = FramebufferColorAttachment::Type::Float;
 
 		FramebufferDescription framebufferDescription{};
 		framebufferDescription.depthStencilAttachment = depthStencilAttachment;
@@ -130,17 +124,19 @@ void stw::Renderer::SetEnableCullFace(const bool enableCullFace)
 	GLCALL(glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a));
 }
 
-void stw::Renderer::SetProjectionMatrix(const glm::mat4& projection) const
+void stw::Renderer::SetProjectionMatrix(const glm::mat4& projection)
 {
 	assert(m_IsInitialized);
+	m_CameraProjectionMatrix = projection;
 	m_MatricesUniformBuffer.Bind();
 	m_MatricesUniformBuffer.SetSubData(0, sizeof(glm::mat4), value_ptr(projection));
 	m_MatricesUniformBuffer.UnBind();
 }
 
-void stw::Renderer::SetViewMatrix(const glm::mat4& view) const
+void stw::Renderer::SetViewMatrix(const glm::mat4& view)
 {
 	assert(m_IsInitialized);
+	m_CameraViewMatrix = view;
 	m_MatricesUniformBuffer.Bind();
 	m_MatricesUniformBuffer.SetSubData(sizeof(glm::mat4), sizeof(glm::mat4), value_ptr(view));
 	m_MatricesUniformBuffer.UnBind();
@@ -182,16 +178,16 @@ void stw::Renderer::DrawScene()
 	const glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
 	const glm::mat4 lightView =
 		glm::lookAt(lightPosition, lightPosition + m_DirectionalLight.value().direction, glm::vec3{ 0.0f, 1.0f, 0.0f });
-	const glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+	const glm::mat4 lightViewProjMatrix = lightProjection * lightView;
 
 	if (m_DirectionalLight.has_value())
 	{
-		RenderShadowMap(lightSpaceMatrix);
+		RenderShadowMap(lightViewProjMatrix);
 	}
 
 	GLCALL(glViewport(0, 0, m_ViewportSize.x, m_ViewportSize.y));
 
-	RenderGeometryToHdrFramebuffer(lightSpaceMatrix);
+	RenderGeometryToHdrFramebuffer(lightViewProjMatrix);
 
 	RenderBloomToBloomFramebuffer(m_HdrFramebuffer.GetColorAttachment(0), FilterRadius);
 
@@ -206,7 +202,6 @@ void stw::Renderer::DrawScene()
 	const GLuint bloomTexture = m_BloomFramebuffer.MipChain()[0].texture;
 	GLCALL(glBindTexture(GL_TEXTURE_2D, bloomTexture));
 
-
 	m_RenderQuad.GetVertexArray().Bind();
 	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
 	GLCALL(glEnable(GL_DEPTH_TEST));
@@ -215,38 +210,40 @@ void stw::Renderer::DrawScene()
 void stw::Renderer::RenderGeometryToHdrFramebuffer(const glm::mat4& lightSpaceMatrix)
 {
 	m_HdrFramebuffer.Bind();
-	glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	m_SceneGraph.ForEach([this, &lightSpaceMatrix](size_t meshId, size_t materialId, const glm::mat4& transformMatrix) {
-		m_MatricesUniformBuffer.Bind();
-		auto& material = m_MaterialManager[materialId];
+	GLCALL(glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a));
+	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-		BindMaterial(material, m_TextureManager);
-		auto pipelineResult = GetPipelineFromMaterial(material);
+	m_SceneGraph.ForEach(
+		[this, &lightSpaceMatrix](SceneGraphElementIndex elementIndex, std::span<const glm::mat4> transformMatrices) {
+			m_MatricesUniformBuffer.Bind();
+			auto& material = m_MaterialManager[elementIndex.materialId];
 
-		if (pipelineResult)
-		{
-			Pipeline& pipeline = pipelineResult.value();
-			pipeline.Bind();
-			BindLights(pipeline);
-			pipeline.SetMat4("lightSpaceMatrix", lightSpaceMatrix);
+			BindMaterial(material, m_TextureManager);
+			auto pipelineResult = GetPipelineFromMaterial(material);
 
-			// We assume that the shadow map is the last texture
-			auto shadowMapTextureId = static_cast<i32>(pipeline.GetTextureCount() - 1);
-			auto textureEnum = GetTextureFromId(shadowMapTextureId);
-			GLCALL(glActiveTexture(textureEnum));
-			GLCALL(glBindTexture(GL_TEXTURE_2D, m_DepthMapFramebuffer.GetDepthStencilAttachment().value()));
-		}
+			if (pipelineResult)
+			{
+				Pipeline& pipeline = pipelineResult.value();
+				pipeline.Bind();
+				BindLights(pipeline);
+				pipeline.SetMat4("lightSpaceMatrix", lightSpaceMatrix);
 
-		auto& mesh = m_Meshes[meshId];
-		mesh.Bind({ &transformMatrix, 1 });
+				// We assume that the shadow map is the last texture
+				auto shadowMapTextureId = static_cast<i32>(pipeline.GetTextureCount() - 1);
+				auto textureEnum = GetTextureFromId(shadowMapTextureId);
+				GLCALL(glActiveTexture(textureEnum));
+				GLCALL(glBindTexture(GL_TEXTURE_2D, m_DepthMapFramebuffer.GetDepthStencilAttachment().value()));
+			}
 
-		const auto size = static_cast<GLsizei>(mesh.GetIndicesSize());
-		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, 1));
+			auto& mesh = m_Meshes[elementIndex.meshId];
+			mesh.Bind(transformMatrices);
 
-		mesh.UnBind();
-		m_MatricesUniformBuffer.UnBind();
-	});
+			const auto size = static_cast<GLsizei>(mesh.GetIndicesSize());
+			GLCALL(glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, transformMatrices.size()));
+
+			mesh.UnBind();
+			m_MatricesUniformBuffer.UnBind();
+		});
 	m_HdrFramebuffer.UnBind();
 }
 
@@ -258,15 +255,14 @@ void stw::Renderer::RenderShadowMap(const glm::mat4& lightSpaceMatrix)
 	GLCALL(glViewport(0, 0, ShadowMapSize.x, ShadowMapSize.y));
 	m_DepthMapFramebuffer.Bind();
 	Clear(GL_DEPTH_BUFFER_BIT);
-
 	// Render meshes on light depth buffer
-	m_SceneGraph.ForEach([this](size_t meshId, size_t, const glm::mat4& transformMatrix) {
+	m_SceneGraph.ForEach([this](SceneGraphElementIndex elementIndex, std::span<const glm::mat4> transformMatrices) {
 		m_MatricesUniformBuffer.Bind();
-		auto& mesh = m_Meshes[meshId];
-		mesh.Bind({ &transformMatrix, 1 });
+		auto& mesh = m_Meshes[elementIndex.meshId];
+		mesh.Bind(transformMatrices);
 
-		const auto size = static_cast<GLsizei>(mesh.GetIndicesSize());
-		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, 1));
+		const auto indicesSize = static_cast<GLsizei>(mesh.GetIndicesSize());
+		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, indicesSize, GL_UNSIGNED_INT, nullptr, transformMatrices.size()));
 
 		mesh.UnBind();
 		m_MatricesUniformBuffer.UnBind();

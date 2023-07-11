@@ -86,8 +86,8 @@ public:
 	[[maybe_unused]] void SetCullFace(GLenum cullFace);
 	[[maybe_unused]] void SetFrontFace(GLenum frontFace);
 	[[maybe_unused]] void SetClearColor(const glm::vec4& clearColor);
-	void SetProjectionMatrix(const glm::mat4& projection) const;
-	void SetViewMatrix(const glm::mat4& view) const;
+	void SetProjectionMatrix(const glm::mat4& projection);
+	void SetViewMatrix(const glm::mat4& view);
 	void SetViewport(glm::ivec2 pos, glm::uvec2 size);
 
 	void SetDirectionalLight(const DirectionalLight& directionalLight);
@@ -127,6 +127,8 @@ private:
 	glm::uvec2 m_ViewportSize{};
 	glm::vec4 m_ClearColor{ 0.0f, 0.0f, 0.0f, 1.0f };
 	UniformBuffer m_MatricesUniformBuffer;
+	glm::mat4 m_CameraViewMatrix;
+	glm::mat4 m_CameraProjectionMatrix;
 
 	TextureManager m_TextureManager;
 	MaterialManager m_MaterialManager;

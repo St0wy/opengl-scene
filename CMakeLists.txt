@@ -20,7 +20,6 @@ add_executable(
 	"include/camera.hpp"
 	"include/material.hpp"
 	"include/mesh.hpp"
-	"include/model.hpp"
 	"include/number_types.hpp"
 	"include/ogl/framebuffer.hpp"
 	"include/ogl/index_buffer.hpp"
@@ -41,7 +40,6 @@ add_executable(
 	"src/main.cpp"
 	"src/material.cpp"
 	"src/mesh.cpp"
-	"src/model.cpp"
 	"src/ogl/framebuffer.cpp"
 	"src/ogl/index_buffer.cpp"
 	"src/ogl/pipeline.cpp"
@@ -62,7 +60,7 @@ add_executable(
 	"src/texture_manager.cpp"
 	"include/bloom_framebuffer.hpp"
 	"src/bloom_framebuffer.cpp"
-)
+	include/scenes/deferred_shading_scene.hpp)
 
 target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_system_libraries(

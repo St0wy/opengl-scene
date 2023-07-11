@@ -5,6 +5,7 @@
 
 #include <queue>
 #include <spdlog/spdlog.h>
+#include <unordered_map>
 
 void stw::SceneGraph::AddElementToRoot(std::size_t meshId, std::size_t materialId, const glm::mat4& transformMatrix)
 {
@@ -33,22 +34,58 @@ void stw::SceneGraph::AddElementToRoot(std::size_t meshId, std::size_t materialI
 		m_Nodes[currentNodeIndex].siblingId.emplace(newNodeIndex);
 	}
 }
-std::span<const stw::SceneGraphElement> stw::SceneGraph::GetElements() const { return m_Elements; }
-std::span<const stw::SceneGraphNode> stw::SceneGraph::GetNodes() const { return m_Nodes; }
+[[maybe_unused]] std::span<const stw::SceneGraphElement> stw::SceneGraph::GetElements() const { return m_Elements; }
+[[maybe_unused]] std::span<const stw::SceneGraphNode> stw::SceneGraph::GetNodes() const { return m_Nodes; }
 
-std::vector<stw::SceneGraphElement>& stw::SceneGraph::GetElements() { return m_Elements; }
-std::vector<stw::SceneGraphNode>& stw::SceneGraph::GetNodes() { return m_Nodes; }
+[[maybe_unused]] std::vector<stw::SceneGraphElement>& stw::SceneGraph::GetElements() { return m_Elements; }
+[[maybe_unused]] std::vector<stw::SceneGraphNode>& stw::SceneGraph::GetNodes() { return m_Nodes; }
 
-void stw::SceneGraph::ForEach(const std::function<void(std::size_t, std::size_t, const glm::mat4&)>& function)
+void stw::SceneGraph::ForEach(const std::function<void(SceneGraphElementIndex, std::span<const glm::mat4>)>& function)
 {
-	// TODO : Handle instancing
+	std::unordered_map<SceneGraphElementIndex, std::vector<glm::mat4>> instancingMap{};
+
 	std::optional<std::size_t> nextNode = m_Nodes[0].childId;
 	while (nextNode.has_value())
 	{
 		auto& node = m_Nodes[nextNode.value()];
 		auto& element = m_Elements[node.elementId];
-		glm::mat4 transform = element.parentTransformMatrix * element.localTransformMatrix;
-		function(element.meshId, element.materialId, transform);
+		const glm::mat4 transform = element.parentTransformMatrix * element.localTransformMatrix;
+
+		const SceneGraphElementIndex index{ element.meshId, element.materialId };
+		instancingMap[index].push_back(transform);
+
+		if (node.childId.has_value())
+		{
+			nextNode = node.childId;
+		}
+		else
+		{
+			nextNode = node.siblingId;
+		}
+	}
+
+	for (const auto& [elementIndex, transforms] : instancingMap)
+	{
+		function(elementIndex, transforms);
+	}
+}
+
+void stw::SceneGraph::Init()
+{
+	m_Elements.emplace_back(0, 0, glm::mat4{ 1.0f }, glm::mat4{ 1.0f });
+	m_Nodes.emplace_back(m_Elements.size() - 1, std::nullopt, std::nullopt, std::nullopt);
+}
+
+[[maybe_unused]] void stw::SceneGraph::ForEachNoInstancing(
+	const std::function<void(SceneGraphElementIndex, const glm::mat4&)>& function)
+{
+	std::optional<std::size_t> nextNode = m_Nodes[0].childId;
+	while (nextNode.has_value())
+	{
+		auto& node = m_Nodes[nextNode.value()];
+		auto& element = m_Elements[node.elementId];
+		const glm::mat4 transform = element.parentTransformMatrix * element.localTransformMatrix;
+		function({ element.meshId, element.materialId }, transform);
 
 		if (node.childId.has_value())
 		{
@@ -61,8 +98,7 @@ void stw::SceneGraph::ForEach(const std::function<void(std::size_t, std::size_t,
 	}
 }
 
-void stw::SceneGraph::Init()
+bool stw::SceneGraphElementIndex::operator==(const stw::SceneGraphElementIndex& other) const
 {
-	m_Elements.emplace_back(0, 0, glm::mat4{ 1.0f }, glm::mat4{ 1.0f });
-	m_Nodes.emplace_back(m_Elements.size() - 1, std::nullopt, std::nullopt, std::nullopt);
+	return meshId == other.meshId && materialId == other.materialId;
 }
