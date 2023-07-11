@@ -6,7 +6,9 @@
 
 #include <GL/glew.h>
 #include <glm/ext.hpp>
+#include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
+#include <numbers>
 #include <random>
 #include <variant>
 
@@ -22,6 +24,50 @@ namespace stw
 class DeferredShadingScene final : public Scene
 {
 public:
+	void GenerateSceneDuplicateElement(const SceneGraphElement element)
+	{
+		constexpr usize elementCount = 500;
+		constexpr usize lightCount = 16;
+		constexpr float maxPos = 30.0f;
+		constexpr float minPos = -maxPos;
+		constexpr float twoPi = 2.0f * std::numbers::pi;
+		constexpr float minScale = 0.6f;
+		constexpr float maxScale = 1.2f;
+
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<float> distPos(minPos, maxPos);
+		std::uniform_real_distribution<float> distHeightElem(-1.0f, 1.0f);
+		std::uniform_real_distribution<float> distRotate(0.0f, twoPi);
+		std::uniform_real_distribution<float> distScale(minScale, maxScale);
+		std::uniform_real_distribution<float> distHeightLight(1.0f, 2.0f);
+		std::uniform_real_distribution<float> distColor(0.0f, 10.0f);
+
+		SceneGraph& sceneGraph = m_Renderer.GetSceneGraph();
+		for (usize i = 0; i < elementCount; i++)
+		{
+			glm::mat4 transform{ 1.0f };
+			transform = glm::translate(transform, glm::vec3{ distPos(gen), distHeightElem(gen), distPos(gen) });
+			transform = glm::rotate(transform, distRotate(gen), glm::vec3{ 1.0f, 0.0f, 0.0f });
+			transform = glm::rotate(transform, distRotate(gen), glm::vec3{ 0.0f, 1.0f, 0.0f });
+			transform = glm::rotate(transform, distRotate(gen), glm::vec3{ 0.0f, 0.0f, 1.0f });
+			transform = glm::scale(transform, glm::vec3{ distScale(gen) });
+			sceneGraph.AddElementToRoot(element.meshId, element.materialId, transform);
+		}
+
+		for (usize i = 0; i < lightCount; i++)
+		{
+
+			const PointLight pointLight{
+				glm::vec3{ distPos(gen), distHeightLight(gen), distPos(gen) },
+				0.1f,
+				0.2f,
+				glm::vec3(distColor(gen), distColor(gen), distColor(gen)),
+			};
+			m_Renderer.PushPointLight(pointLight);
+		}
+	}
+
 	void Init(glm::uvec2 screenSize) override
 	{
 		if (GLEW_VERSION_4_3)
@@ -44,10 +90,9 @@ public:
 		}
 
 		m_Camera.SetMovementSpeed(4.0f);
-		m_Camera.SetYaw(180.0f);
 
 		m_Renderer.Init(screenSize);
-		m_Renderer.SetEnableMultisample(true);
+		//		m_Renderer.SetEnableMultisample(true);
 		m_Renderer.SetEnableDepthTest(true);
 		m_Renderer.SetDepthFunc(GL_LEQUAL);
 		m_Renderer.SetClearColor(glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
@@ -60,26 +105,21 @@ public:
 
 		UpdateProjection();
 
-		auto result = m_Renderer.LoadModel("./data/backpack/backpack.obj", m_Pipeline);
-		if (result.has_value())
+		auto result = m_Renderer.LoadModel("./data/sphere/myHonestSphere.obj", m_Pipeline);
+		if (!result.has_value())
 		{
-			spdlog::error("Error on model loading : {}", result.value());
+			spdlog::error("Error on model loading : {}", result.error());
 		}
+
+		SceneGraph& sceneGraph = m_Renderer.GetSceneGraph();
+		const SceneGraphNode& node = result.value()[0];
+		const SceneGraphElement& element = sceneGraph.GetElements()[node.elementId];
+		GenerateSceneDuplicateElement(element);
 
 		glm::vec3 direction{ 0.0f, -1.0f, -0.5f };
 		direction = glm::normalize(direction);
-		const DirectionalLight directionalLight{ direction, glm::vec3{ 0.1f }, glm::vec3{ 0.8f }, glm::vec3{ 0.6f } };
+		const DirectionalLight directionalLight{ direction, glm::vec3{ 0.1f } };
 		m_Renderer.SetDirectionalLight(directionalLight);
-
-		const PointLight pointLight{ glm::vec3{ 0.0f, 2.0f, 0.0f },
-			0.1f,
-			0.2f,
-			0.3f,
-			glm::vec3{ 0.1f, 0.1f, 0.1f },
-			glm::vec3{ 20.0f , 20.0f, 20.0f},
-			glm::vec3{ 10.0f, 10.0f, 10.0f } };
-
-		m_Renderer.PushPointLight(pointLight);
 	}
 
 	void SetupPipeline(Pipeline& pipeline)
@@ -170,6 +210,7 @@ public:
 	{
 		m_Renderer.SetViewport({ 0, 0 }, { windowWidth, windowHeight });
 		m_Camera.SetAspectRatio(static_cast<f32>(windowWidth) / static_cast<f32>(windowHeight));
+		UpdateProjection();
 	}
 
 	void Delete() override

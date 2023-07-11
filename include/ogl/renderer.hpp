@@ -25,37 +25,45 @@ class Pipeline;
 
 class Model;
 
+constexpr f32 MinLightIntensity = 5.0f;
+
 struct DirectionalLight
 {
 	glm::vec3 direction;
-	glm::vec3 ambient;
-	glm::vec3 diffuse;
-	glm::vec3 specular;
+	glm::vec3 color;
 };
 
 struct PointLight
 {
-	glm::vec3 position;
-	f32 constant;
-	f32 linear;
-	f32 quadratic;
-	glm::vec3 ambient;
-	glm::vec3 diffuse;
-	glm::vec3 specular;
+	PointLight() = default;
+	PointLight(glm::vec3 position, f32 linear, f32 quadratic, glm::vec3 color);
+	glm::vec3 position{};
+	f32 linear{};
+	f32 quadratic{};
+	f32 radius{};
+	glm::vec3 color{};
 };
 
 struct SpotLight
 {
-	glm::vec3 position;
-	glm::vec3 direction;
-	f32 cutOff;
-	f32 outerCutOff;
-	f32 constant;
-	f32 linear;
-	f32 quadratic;
-	glm::vec3 ambient;
-	glm::vec3 diffuse;
-	glm::vec3 specular;
+	SpotLight() = default;
+	SpotLight(glm::vec3 position,
+		glm::vec3 direction,
+		f32 cutOff,
+		f32 outerCutOff,
+		f32 linear,
+		f32 quadratic,
+		glm::vec3 color);
+
+	glm::vec3 position{};
+	glm::vec3 direction{};
+	f32 cutOff{};
+	f32 outerCutOff{};
+
+	f32 linear{};
+	f32 quadratic{};
+	f32 radius{};
+	glm::vec3 color{};
 };
 
 struct ProcessMeshResult
@@ -90,6 +98,8 @@ public:
 	void SetViewMatrix(const glm::mat4& view);
 	void SetViewport(glm::ivec2 pos, glm::uvec2 size);
 
+	SceneGraph& GetSceneGraph();
+
 	void SetDirectionalLight(const DirectionalLight& directionalLight);
 	[[maybe_unused]] void RemoveDirectionalLight();
 
@@ -105,14 +115,15 @@ public:
 
 	void DrawScene();
 
-	std::optional<std::string> LoadModel(const std::filesystem::path& path, Pipeline& pipeline);
+	std::expected<std::vector<std::reference_wrapper<const stw::SceneGraphNode>>, std::string> LoadModel(
+		const std::filesystem::path& path, Pipeline& pipeline);
 	[[maybe_unused]] [[nodiscard]] TextureManager& GetTextureManager();
 
 	void Delete();
 
 private:
-	static constexpr u32 MaxPointLights = 8;
-	static constexpr u32 MaxSpotLights = 8;
+	static constexpr u32 MaxPointLights = 32;
+	static constexpr u32 MaxSpotLights = 1;
 	static constexpr glm::uvec2 ShadowMapSize = { 4096, 4096 };
 	static constexpr u32 MipChainLength = 5;
 	static constexpr f32 FilterRadius = 0.005f;
@@ -127,8 +138,8 @@ private:
 	glm::uvec2 m_ViewportSize{};
 	glm::vec4 m_ClearColor{ 0.0f, 0.0f, 0.0f, 1.0f };
 	UniformBuffer m_MatricesUniformBuffer;
-	glm::mat4 m_CameraViewMatrix;
-	glm::mat4 m_CameraProjectionMatrix;
+	glm::mat4 m_CameraViewMatrix{};
+	glm::mat4 m_CameraProjectionMatrix{};
 
 	TextureManager m_TextureManager;
 	MaterialManager m_MaterialManager;
@@ -136,7 +147,7 @@ private:
 	SceneGraph m_SceneGraph;
 
 	Pipeline m_DepthPipeline;
-	Framebuffer m_DepthMapFramebuffer;
+	Framebuffer m_LightDepthMapFramebuffer;
 	Framebuffer m_HdrFramebuffer;
 	Pipeline m_HdrPipeline;
 	Mesh m_RenderQuad{};
@@ -145,22 +156,28 @@ private:
 	Pipeline m_DownsamplePipeline;
 	Pipeline m_UpsamplePipeline;
 
+	Framebuffer m_GBufferFramebuffer;
+	Pipeline m_GBufferPipeline;
+	Pipeline m_DeferredShadingPipeline;
+
 	std::optional<DirectionalLight> m_DirectionalLight = {};
 
 	u32 m_PointLightsCount = 0;
-	std::array<PointLight, MaxPointLights> m_PointLights = {};
+	std::array<PointLight, MaxPointLights> m_PointLights{};
 
 	u32 m_SpotLightsCount = 0;
-	std::array<SpotLight, MaxSpotLights> m_SpotLights = {};
+	std::array<SpotLight, MaxSpotLights> m_SpotLights{};
 
 	static void SetOpenGlCapability(bool enabled, GLenum capability, bool& field);
 
 	static ProcessMeshResult ProcessMesh(const aiMesh* assimpMesh, std::size_t materialIndexOffset);
 	void BindLights(Pipeline& pipeline);
-	void RenderShadowMap(const glm::mat4& lightSpaceMatrix);
-	void RenderGeometryToHdrFramebuffer(const glm::mat4& lightSpaceMatrix);
+	void RenderShadowMap(const glm::mat4& lightViewProjMatrix);
+	void RenderGeometryToHdrFramebuffer(const glm::mat4& lightViewProjMatrix);
 	void RenderBloomToBloomFramebuffer(GLuint hdrTexture, float filterRadius);
 	void RenderDownsample(GLuint hdrTexture);
 	void RenderUpsamples(float filterRadius);
+	void RenderGBuffer();
+	void RenderLightsToHdrFramebuffer();
 };
 }// namespace stw

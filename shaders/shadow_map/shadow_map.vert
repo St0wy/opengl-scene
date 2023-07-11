@@ -112,6 +112,6 @@ void main()
 
 	FragPosLightSpace = lightSpaceMatrix * vec4(fragPos, 1.0);
 
-	gl_Position = projection * view *  vec4(fragPos, 1.0);
+	gl_Position = projection * view * vec4(fragPos, 1.0);
 //	gl_Position = lightSpaceMatrix *  vec4(fragPos, 1.0);
 }

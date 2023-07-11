@@ -7,7 +7,8 @@
 #include <spdlog/spdlog.h>
 #include <unordered_map>
 
-void stw::SceneGraph::AddElementToRoot(std::size_t meshId, std::size_t materialId, const glm::mat4& transformMatrix)
+const stw::SceneGraphNode& stw::SceneGraph::AddElementToRoot(
+	std::size_t meshId, std::size_t materialId, const glm::mat4& transformMatrix)
 {
 	m_Elements.emplace_back(meshId, materialId, transformMatrix, m_Elements[0].localTransformMatrix);
 	const std::size_t elementIndex = m_Elements.size() - 1;
@@ -33,6 +34,8 @@ void stw::SceneGraph::AddElementToRoot(std::size_t meshId, std::size_t materialI
 
 		m_Nodes[currentNodeIndex].siblingId.emplace(newNodeIndex);
 	}
+
+	return m_Nodes.back();
 }
 [[maybe_unused]] std::span<const stw::SceneGraphElement> stw::SceneGraph::GetElements() const { return m_Elements; }
 [[maybe_unused]] std::span<const stw::SceneGraphNode> stw::SceneGraph::GetNodes() const { return m_Nodes; }
@@ -50,8 +53,8 @@ void stw::SceneGraph::ForEach(const std::function<void(SceneGraphElementIndex, s
 		auto& node = m_Nodes[nextNode.value()];
 		auto& element = m_Elements[node.elementId];
 		const glm::mat4 transform = element.parentTransformMatrix * element.localTransformMatrix;
-
 		const SceneGraphElementIndex index{ element.meshId, element.materialId };
+
 		instancingMap[index].push_back(transform);
 
 		if (node.childId.has_value())

@@ -78,6 +78,7 @@ public:
 	[[nodiscard]] GLuint GetColorAttachment(usize index) const;
 	void UnBind() const;
 	void Delete();
+	void Resize(glm::uvec2 newSize);
 
 private:
 	FramebufferDescription m_Description;

@@ -93,7 +93,11 @@ glm::vec3 stw::Camera::Position() const { return m_Position; }
 
 glm::vec3 stw::Camera::Front() const { return m_Front; }
 
-void stw::Camera::SetAspectRatio(const f32 aspectRatio) { m_AspectRatio = aspectRatio; }
+void stw::Camera::SetAspectRatio(const f32 aspectRatio)
+{
+	m_AspectRatio = aspectRatio;
+	UpdateProjectionMatrix();
+}
 
 void stw::Camera::SetMovementSpeed(const f32 speed) { m_MovementSpeed = speed; }
 
@@ -121,6 +125,7 @@ void stw::Camera::UpdateProjectionMatrix()
 {
 	m_ProjectionMatrix = glm::perspective(glm::radians(m_FovY), m_AspectRatio, NearPlane, FarPlane);
 }
+
 void stw::Camera::SetYaw(f32 yaw)
 {
 	m_Yaw = yaw;

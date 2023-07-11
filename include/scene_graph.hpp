@@ -45,7 +45,7 @@ public:
 	SceneGraph() = default;
 
 	void Init();
-	void AddElementToRoot(std::size_t meshId, std::size_t materialId, const glm::mat4& transformMatrix);
+	const SceneGraphNode& AddElementToRoot(std::size_t meshId, std::size_t materialId, const glm::mat4& transformMatrix);
 	[[maybe_unused]] [[nodiscard]] std::span<const SceneGraphElement> GetElements() const;
 	[[maybe_unused]] [[nodiscard]] std::span<const SceneGraphNode> GetNodes() const;
 	[[maybe_unused]] std::vector<SceneGraphElement>& GetElements();

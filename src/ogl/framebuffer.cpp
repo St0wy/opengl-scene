@@ -182,6 +182,14 @@ std::optional<GLuint> stw::Framebuffer::GetDepthStencilAttachment() const { retu
 
 GLuint stw::Framebuffer::GetColorAttachment(usize index) const { return m_ColorAttachments.at(index); }
 
+void stw::Framebuffer::Resize(glm::uvec2 newSize)
+{
+	auto descriptionCopy = m_Description;
+	descriptionCopy.framebufferSize = newSize;
+	Delete();
+	Init(descriptionCopy);
+}
+
 std::expected<stw::AttachmentType, std::string> stw::FramebufferColorAttachment::GetAttachmentType() const
 {
 	GLint glInternalFormat{};

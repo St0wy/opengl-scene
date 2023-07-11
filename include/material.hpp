@@ -54,6 +54,8 @@ using Material = std::variant<InvalidMaterial,
 	MaterialNoNormalSpecular>;
 
 void BindMaterial(const Material& materialVariant, TextureManager& textureManager);
+void BindMaterialForGBuffer(const Material& materialVariant, TextureManager& textureManager, Pipeline& gBufferPipeline);
+//void BindMaterialForDeferredRendering(const Material& materialVariant, Pipeline& deferredPipeline);
 
 std::optional<std::reference_wrapper<Pipeline>> GetPipelineFromMaterial(const Material& materialVariant);
 }// namespace stw
