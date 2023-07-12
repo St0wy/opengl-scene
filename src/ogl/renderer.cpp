@@ -329,7 +329,7 @@ std::expected<std::vector<std::reference_wrapper<const stw::SceneGraphNode>>, st
 
 	auto workingDirectory = path.parent_path();
 	const std::size_t materialIndexOffset =
-		m_MaterialManager.LoadMaterialsFromAssimpScene(assimpScene, workingDirectory, m_TextureManager, pipeline);
+		m_MaterialManager.LoadMaterialsFromAssimpScene(assimpScene, workingDirectory, m_TextureManager);
 
 	m_Meshes.reserve(m_Meshes.size() + assimpScene->mNumMeshes);
 

@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include <assimp/scene.h>
 #include <filesystem>
 #include <vector>
-#include <assimp/scene.h>
 
 #include "material.hpp"
 #include "texture_manager.hpp"
@@ -16,21 +16,19 @@ namespace stw
 class MaterialManager
 {
 public:
-	static constexpr float DefaultShininess = 64.0f;
-	std::size_t
-	LoadMaterialsFromAssimpScene(const aiScene* assimpScene, const std::filesystem::path& workingDirectory, TextureManager& textureManager, Pipeline& pipeline);
+	std::size_t LoadMaterialsFromAssimpScene(
+		const aiScene* assimpScene, const std::filesystem::path& workingDirectory, TextureManager& textureManager);
 	Material& operator[](std::size_t index);
 	const Material& operator[](std::size_t index) const;
+
 private:
-	void
-	LoadNoNormalNoSpecular(aiMaterial* material, const std::filesystem::path& workingDirectory, TextureManager& textureManager, Pipeline& pipeline);
-	void
-	LoadNormalNoSpecular(const aiMaterial* material, const std::filesystem::path& workingDirectory, TextureManager& textureManager, Pipeline& pipeline);
-	void
-	LoadNoNormalSpecular(aiMaterial* material, const std::filesystem::path& workingDirectory, TextureManager& textureManager, Pipeline& pipeline);
-	void
-	LoadNormalSpecular(aiMaterial* material, const std::filesystem::path& workingDirectory, TextureManager& textureManager, Pipeline& pipeline);
+	void LoadDiffuse(
+		const aiMaterial* material, const std::filesystem::path& workingDirectory, stw::TextureManager& textureManager);
+	void LoadDiffuseSpecular(
+		const aiMaterial* material, const std::filesystem::path& workingDirectory, stw::TextureManager& textureManager);
+	void LoadDiffuseSpecularNormal(
+		const aiMaterial* material, const std::filesystem::path& workingDirectory, stw::TextureManager& textureManager);
 
 	std::vector<Material> m_Materials;
 };
-}
+}// namespace stw
