@@ -60,7 +60,7 @@ public:
 
 		UpdateProjection();
 
-		auto result = m_Renderer.LoadModel("./data/backpack/backpack.obj", m_Pipeline);
+		auto result = m_Renderer.LoadModel("./data/backpack/backpack.obj");
 		if (result.has_value())
 		{
 			spdlog::error("Error on model loading : {}", result.value());
@@ -92,13 +92,13 @@ public:
 	void UpdateProjection() const
 	{
 		const auto projection = m_Camera.GetProjectionMatrix();
-		m_Renderer.SetProjectionMatrix(projection);
+		m_Renderer.UpdateProjectionMatrix();
 	}
 
 	void UpdateView()
 	{
 		const glm::mat4 view = m_Camera.GetViewMatrix();
-		m_Renderer.SetViewMatrix(view);
+		m_Renderer.UpdateViewMatrix();
 		m_Renderer.viewPosition = m_Camera.Position();
 	}
 

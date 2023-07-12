@@ -57,7 +57,7 @@ public:
 
 		UpdateProjection();
 
-		auto result = m_Renderer.LoadModel("./data/bobomb/bobomb.obj", m_Pipeline);
+		auto result = m_Renderer.LoadModel("./data/bobomb/bobomb.obj");
 		if (result.has_value())
 		{
 			spdlog::error("Error on model loading : {}", result.value());
@@ -67,7 +67,7 @@ public:
 	void SetupPipeline(Pipeline& pipeline)
 	{
 		pipeline.Bind();
-		pipeline.SetVec3("viewPos", m_Camera.Position());
+		pipeline.SetVec3("viewPos", m_Camera.GetPosition());
 
 		// Setup lights
 		//		const PointLight pointLight{
@@ -82,8 +82,8 @@ public:
 		m_Renderer.SetDirectionalLight(directionalLight);
 
 		//		SpotLight spotLight{
-		//			m_Camera.Position(),
-		//			m_Camera.Front(),
+		//			m_Camera.GetPosition(),
+		//			m_Camera.GetFront(),
 		//			glm::cos(glm::radians(12.5f)),
 		//			glm::cos(glm::radians(15.0f)),
 		//			0.001f,
@@ -102,14 +102,14 @@ public:
 	void UpdateProjection() const
 	{
 		const auto projection = m_Camera.GetProjectionMatrix();
-		m_Renderer.SetProjectionMatrix(projection);
+		m_Renderer.UpdateProjectionMatrix();
 	}
 
 	void UpdateView()
 	{
 		const glm::mat4 view = m_Camera.GetViewMatrix();
-		m_Renderer.SetViewMatrix(view);
-		m_Renderer.viewPosition = m_Camera.Position();
+		m_Renderer.UpdateViewMatrix();
+		m_Renderer.viewPosition = m_Camera.GetPosition();
 	}
 
 	void Update(const f32 deltaTime) override

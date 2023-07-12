@@ -27,7 +27,7 @@ public:
 	void GenerateSceneDuplicateElement(const SceneGraphElement element)
 	{
 		constexpr usize elementCount = 500;
-		constexpr usize lightCount = 64;
+		constexpr usize lightCount = 0;
 		constexpr float maxPos = 30.0f;
 		constexpr float minPos = -maxPos;
 		constexpr float twoPi = 2.0f * std::numbers::pi;
@@ -37,7 +37,7 @@ public:
 		std::random_device rd;
 		std::mt19937 gen(rd());
 		std::uniform_real_distribution<float> distPos(minPos, maxPos);
-		std::uniform_real_distribution<float> distHeightElem(-1.0f, 1.0f);
+		std::uniform_real_distribution<float> distHeightElem(-2.0f, 2.0f);
 		std::uniform_real_distribution<float> distRotate(0.0f, twoPi);
 		std::uniform_real_distribution<float> distScale(minScale, maxScale);
 		std::uniform_real_distribution<float> distHeightLight(1.0f, 2.0f);
@@ -99,13 +99,9 @@ public:
 
 		m_Renderer.SetEnableCullFace(true);
 
-		m_Pipeline.InitFromPath("shaders/shadow_map/shadow_map.vert", "shaders/shadow_map/shadow_map.frag");
-		m_Pipeline.Bind();
-		m_Pipeline.SetInt("shadowMap", 3);
-
 		UpdateProjection();
 
-		auto result = m_Renderer.LoadModel("./data/sphere/myHonestSphere.obj", m_Pipeline);
+		auto result = m_Renderer.LoadModel("./data/sphere/myHonestSphere.obj");
 		if (!result.has_value())
 		{
 			spdlog::error("Error on model loading : {}", result.error());
@@ -122,25 +118,9 @@ public:
 		m_Renderer.SetDirectionalLight(directionalLight);
 	}
 
-	void SetupPipeline(Pipeline& pipeline)
-	{
-		pipeline.Bind();
-		pipeline.SetVec3("viewPos", m_Camera.Position());
-		pipeline.UnBind();
-	}
+	void UpdateProjection() { m_Renderer.UpdateProjectionMatrix(); }
 
-	void UpdateProjection()
-	{
-		const auto projection = m_Camera.GetProjectionMatrix();
-		m_Renderer.SetProjectionMatrix(projection);
-	}
-
-	void UpdateView()
-	{
-		const glm::mat4 view = m_Camera.GetViewMatrix();
-		m_Renderer.SetViewMatrix(view);
-		m_Renderer.viewPosition = m_Camera.Position();
-	}
+	void UpdateView() { m_Renderer.UpdateViewMatrix(); }
 
 	void Update(const f32 deltaTime) override
 	{
@@ -148,13 +128,7 @@ public:
 
 		UpdateView();
 
-		SetupPipeline(m_Pipeline);
-
-		m_Pipeline.Bind();
-
 		m_Renderer.DrawScene();
-
-		m_Pipeline.UnBind();
 
 #pragma region Camera
 		i32 keyboardStateLength = 0;
@@ -213,15 +187,10 @@ public:
 		UpdateProjection();
 	}
 
-	void Delete() override
-	{
-		m_Pipeline.Delete();
-		m_Renderer.Delete();
-	}
+	void Delete() override { m_Renderer.Delete(); }
 
 private:
-	Pipeline m_Pipeline{};
 	Camera m_Camera{ glm::vec3{ 5.0f, 2.0f, -6.0f } };
-	Renderer m_Renderer{};
+	Renderer m_Renderer{ m_Camera };
 };
 }// namespace stw

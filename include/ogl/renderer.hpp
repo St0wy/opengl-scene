@@ -10,6 +10,7 @@
 #include <glm/vec4.hpp>
 
 #include "bloom_framebuffer.hpp"
+#include "camera.hpp"
 #include "glm/gtc/bitfield.hpp"
 #include "material.hpp"
 #include "material_manager.hpp"
@@ -58,12 +59,10 @@ public:
 	static constexpr u32 MipChainLength = 5;
 	static constexpr f32 FilterRadius = 0.005f;
 
-	Renderer() = default;
+	explicit Renderer(Camera& camera);
 	Renderer(const Renderer&) = delete;
 	Renderer(Renderer&&) = delete;
 	~Renderer();
-
-	glm::vec3 viewPosition{ 0.0f };
 
 	Renderer& operator=(const Renderer&) = delete;
 	Renderer& operator=(Renderer&&) = delete;
@@ -77,8 +76,8 @@ public:
 	[[maybe_unused]] void SetCullFace(GLenum cullFace);
 	[[maybe_unused]] void SetFrontFace(GLenum frontFace);
 	[[maybe_unused]] void SetClearColor(const glm::vec4& clearColor);
-	void SetProjectionMatrix(const glm::mat4& projection);
-	void SetViewMatrix(const glm::mat4& view);
+	void UpdateProjectionMatrix();
+	void UpdateViewMatrix();
 	void SetViewport(glm::ivec2 pos, glm::uvec2 size);
 
 	SceneGraph& GetSceneGraph();
@@ -95,7 +94,7 @@ public:
 	void DrawScene();
 
 	std::expected<std::vector<std::reference_wrapper<const stw::SceneGraphNode>>, std::string> LoadModel(
-		const std::filesystem::path& path, Pipeline& pipeline);
+		const std::filesystem::path& path);
 	[[maybe_unused]] [[nodiscard]] TextureManager& GetTextureManager();
 
 	void Delete();
@@ -111,8 +110,7 @@ private:
 	glm::uvec2 m_ViewportSize{};
 	glm::vec4 m_ClearColor{ 0.0f, 0.0f, 0.0f, 1.0f };
 	UniformBuffer m_MatricesUniformBuffer;
-	glm::mat4 m_CameraViewMatrix{};
-	glm::mat4 m_CameraProjectionMatrix{};
+	Camera& m_Camera;
 
 	TextureManager m_TextureManager;
 	MaterialManager m_MaterialManager;
@@ -153,5 +151,6 @@ private:
 	void RenderDebugLights();
 	void RenderPointLights();
 	void RenderDirectionalLight(const glm::mat4& lightViewProjMatrix);
+	std::optional<glm::mat4> ComputeLightViewProjMatrix();
 };
 }// namespace stw

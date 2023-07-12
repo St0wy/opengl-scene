@@ -87,11 +87,11 @@ void stw::Camera::ProcessMouseScroll(const f32 yOffset)
 	UpdateProjectionMatrix();
 }
 
-float stw::Camera::FovY() const { return m_FovY; }
+float stw::Camera::GetFovY() const { return m_FovY; }
 
-glm::vec3 stw::Camera::Position() const { return m_Position; }
+glm::vec3 stw::Camera::GetPosition() const { return m_Position; }
 
-glm::vec3 stw::Camera::Front() const { return m_Front; }
+glm::vec3 stw::Camera::GetFront() const { return m_Front; }
 
 void stw::Camera::SetAspectRatio(const f32 aspectRatio)
 {
@@ -131,4 +131,29 @@ void stw::Camera::SetYaw(f32 yaw)
 	m_Yaw = yaw;
 	UpdateCameraVectors();
 	UpdateViewMatrix();
+}
+
+std::array<glm::vec3, 8> stw::Camera::GetFrustumCorners() const
+{
+	const glm::mat4 inverse = glm::inverse(m_ProjectionMatrix * m_ViewMatrix);
+
+	usize count = 0;
+	std::array<glm::vec3, 8> frustumCorners{};
+	for (u32 x = 0; x < 2; ++x)
+	{
+		for (u32 y = 0; y < 2; ++y)
+		{
+			for (u32 z = 0; z < 2; ++z)
+			{
+				const glm::vec4 pt = inverse
+									 * glm::vec4(2.0f * static_cast<f32>(x) - 1.0f,
+										 2.0f * static_cast<f32>(y) - 1.0f,
+										 2.0f * static_cast<f32>(z) - 1.0f,
+										 1.0f);
+				frustumCorners.at(count++) = pt / pt.w;
+			}
+		}
+	}
+
+	return frustumCorners;
 }

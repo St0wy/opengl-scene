@@ -3,6 +3,7 @@
 #include <glm/fwd.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
+#include <array>
 
 #include "number_types.hpp"
 
@@ -29,9 +30,9 @@ public:
 		f32 pitch = DefaultPitch,
 		f32 aspectRatio = DefaultAspectRatio);
 
-	[[nodiscard]] f32 FovY() const;
-	[[nodiscard]] glm::vec3 Position() const;
-	[[nodiscard]] glm::vec3 Front() const;
+	[[nodiscard]] f32 GetFovY() const;
+	[[nodiscard]] glm::vec3 GetPosition() const;
+	[[nodiscard]] glm::vec3 GetFront() const;
 	void SetAspectRatio(f32 aspectRatio);
 	void SetMovementSpeed(f32 speed);
 	void SetYaw(f32 yaw);
@@ -43,6 +44,7 @@ public:
 	void ProcessMovement(const CameraMovementState& cameraMovementState, f32 deltaTime);
 	void ProcessMouseMovement(f32 xOffset, f32 yOffset, bool constrainPitch = true);
 	void ProcessMouseScroll(f32 yOffset);
+	[[nodiscard]] std::array<glm::vec3, 8> GetFrustumCorners() const;
 
 private:
 	static constexpr f32 DefaultYaw = -90.0f;
@@ -54,8 +56,8 @@ private:
 	static constexpr f32 MaxFovY = 120.0f;
 	static constexpr f32 MaxPitchAngle = 89.0f;
 	static constexpr f32 DefaultAspectRatio = 16.0f / 9.0f;
-	static constexpr f32 NearPlane = 0.001f;
-	static constexpr f32 FarPlane = 1000.0f;
+	static constexpr f32 NearPlane = 0.1f;
+	static constexpr f32 FarPlane = 70.0f;
 
 	glm::vec3 m_Position;
 	glm::vec3 m_Front;
@@ -75,4 +77,4 @@ private:
 	void UpdateViewMatrix();
 	void UpdateProjectionMatrix();
 };
-}
+}// namespace stw

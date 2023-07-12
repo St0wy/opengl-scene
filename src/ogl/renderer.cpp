@@ -175,21 +175,19 @@ void stw::Renderer::SetEnableCullFace(const bool enableCullFace)
 	GLCALL(glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a));
 }
 
-void stw::Renderer::SetProjectionMatrix(const glm::mat4& projection)
+void stw::Renderer::UpdateProjectionMatrix()
 {
 	assert(m_IsInitialized);
-	m_CameraProjectionMatrix = projection;
 	m_MatricesUniformBuffer.Bind();
-	m_MatricesUniformBuffer.SetSubData(0, sizeof(glm::mat4), value_ptr(projection));
+	m_MatricesUniformBuffer.SetSubData(0, sizeof(glm::mat4), value_ptr(m_Camera.GetProjectionMatrix()));
 	m_MatricesUniformBuffer.UnBind();
 }
 
-void stw::Renderer::SetViewMatrix(const glm::mat4& view)
+void stw::Renderer::UpdateViewMatrix()
 {
 	assert(m_IsInitialized);
-	m_CameraViewMatrix = view;
 	m_MatricesUniformBuffer.Bind();
-	m_MatricesUniformBuffer.SetSubData(sizeof(glm::mat4), sizeof(glm::mat4), value_ptr(view));
+	m_MatricesUniformBuffer.SetSubData(sizeof(glm::mat4), sizeof(glm::mat4), value_ptr(m_Camera.GetViewMatrix()));
 	m_MatricesUniformBuffer.UnBind();
 }
 
@@ -308,7 +306,7 @@ void stw::Renderer::SetOpenGlCapability(const bool enabled, const GLenum capabil
 [[maybe_unused]] stw::TextureManager& stw::Renderer::GetTextureManager() { return m_TextureManager; }
 
 std::expected<std::vector<std::reference_wrapper<const stw::SceneGraphNode>>, std::string> stw::Renderer::LoadModel(
-	const std::filesystem::path& path, Pipeline& pipeline)
+	const std::filesystem::path& path)
 {
 	Assimp::Importer importer;
 	constexpr u32 assimpImportFlags = aiProcessPreset_TargetRealtime_Fast;
@@ -569,17 +567,11 @@ void stw::Renderer::RenderGBuffer()
 
 void stw::Renderer::RenderLightsToHdrFramebuffer()
 {
-	constexpr float lightNearPlane = 1.0f;
-	constexpr float lightFarPlane = 15.0f;
-	constexpr glm::vec3 lightPosition = glm::vec3{ 0.0f, 10.0f, 0.0f };
-	const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, lightNearPlane, lightFarPlane);
-	const glm::mat4 lightView =
-		glm::lookAt(lightPosition, lightPosition + m_DirectionalLight.value().direction, glm::vec3{ 0.0f, 1.0f, 0.0f });
-	const glm::mat4 lightViewProjMatrix = lightProjection * lightView;
+	const auto lightViewProjMatrix = ComputeLightViewProjMatrix();
 
 	if (m_DirectionalLight.has_value())
 	{
-		RenderShadowMap(lightViewProjMatrix);
+		RenderShadowMap(lightViewProjMatrix.value());
 	}
 
 	GLCALL(glViewport(0, 0, m_ViewportSize.x, m_ViewportSize.y));
@@ -600,7 +592,10 @@ void stw::Renderer::RenderLightsToHdrFramebuffer()
 	RenderPointLights();
 	GLCALL(glCullFace(GL_BACK));
 
-	RenderDirectionalLight(lightViewProjMatrix);
+	if (m_DirectionalLight.has_value())
+	{
+		RenderDirectionalLight(lightViewProjMatrix.value());
+	}
 
 	GLCALL(glDepthMask(GL_TRUE));
 	GLCALL(glEnable(GL_DEPTH_TEST));
@@ -626,10 +621,10 @@ void stw::Renderer::RenderLightsToHdrFramebuffer()
 void stw::Renderer::RenderPointLights()
 {
 	m_PointLightPipeline.Bind();
-	m_PointLightPipeline.SetVec3("viewPos", viewPosition);
+	m_PointLightPipeline.SetVec3("viewPos", m_Camera.GetPosition());
 	m_PointLightPipeline.SetVec2("screenSize", m_ViewportSize);
 
-	// Position
+	// GetPosition
 	GLCALL(glActiveTexture(GL_TEXTURE0));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0)));
 
@@ -659,6 +654,7 @@ void stw::Renderer::RenderPointLights()
 
 		m_DebugSphereLight.GetVertexArray().Bind();
 		GLCALL(glDrawElements(GL_TRIANGLES, m_DebugSphereLight.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+		m_DebugSphereLight.GetVertexArray().UnBind();
 		m_MatricesUniformBuffer.UnBind();
 	}
 	m_PointLightPipeline.UnBind();
@@ -685,6 +681,7 @@ void stw::Renderer::RenderDebugLights()
 
 		m_DebugSphereLight.Bind({ &model, 1 });
 		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, m_DebugSphereLight.GetIndicesSize(), GL_UNSIGNED_INT, nullptr, 1));
+		m_DebugSphereLight.UnBind();
 
 		m_MatricesUniformBuffer.UnBind();
 	}
@@ -692,16 +689,11 @@ void stw::Renderer::RenderDebugLights()
 
 void stw::Renderer::RenderDirectionalLight(const glm::mat4& lightViewProjMatrix)
 {
-	if (!m_DirectionalLight.has_value())
-	{
-		return;
-	}
-
 	m_DirectionalLightPipeline.Bind();
-	m_DirectionalLightPipeline.SetVec3("viewPos", viewPosition);
+	m_DirectionalLightPipeline.SetVec3("viewPos", m_Camera.GetPosition());
 	m_DirectionalLightPipeline.SetMat4("lightViewProjMatrix", lightViewProjMatrix);
 
-	// Position
+	// GetPosition
 	GLCALL(glActiveTexture(GL_TEXTURE0));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0)));
 
@@ -727,6 +719,68 @@ void stw::Renderer::RenderDirectionalLight(const glm::mat4& lightViewProjMatrix)
 	m_RenderQuad.GetVertexArray().UnBind();
 
 	m_DirectionalLightPipeline.UnBind();
+}
+
+stw::Renderer::Renderer(stw::Camera& camera) : m_Camera(camera) {}
+
+std::optional<glm::mat4> stw::Renderer::ComputeLightViewProjMatrix()
+{
+	if (!m_DirectionalLight)
+	{
+		return std::nullopt;
+	}
+
+	const auto frustumCorners = m_Camera.GetFrustumCorners();
+
+	glm::vec3 center{ 1.0f };
+	for (const auto& vec : frustumCorners)
+	{
+		center += vec;
+	}
+	center /= frustumCorners.size();
+
+	const glm::mat4 lightView =
+		glm::lookAt(center - m_DirectionalLight.value().direction, center, glm::vec3{ 0.0f, 1.0f, 0.0f });
+
+	f32 minX = (std::numeric_limits<float>::max)();
+	f32 maxX = std::numeric_limits<float>::lowest();
+	f32 minY = (std::numeric_limits<float>::max)();
+	f32 maxY = std::numeric_limits<float>::lowest();
+	f32 minZ = (std::numeric_limits<float>::max)();
+	f32 maxZ = std::numeric_limits<float>::lowest();
+	for (const auto& v : frustumCorners)
+	{
+		const auto trf = lightView * glm::vec4{ v, 1.0f };
+		minX = (std::min)(minX, trf.x);
+		maxX = (std::max)(maxX, trf.x);
+		minY = (std::min)(minY, trf.y);
+		maxY = (std::max)(maxY, trf.y);
+		minZ = (std::min)(minZ, trf.z);
+		maxZ = (std::max)(maxZ, trf.z);
+	}
+
+	// Tune this parameter according to the scene
+//	constexpr float zMultiplier = 10.0f;
+//	if (minZ < 0)
+//	{
+//		minZ *= zMultiplier;
+//	}
+//	else
+//	{
+//		minZ /= zMultiplier;
+//	}
+//	if (maxZ < 0)
+//	{
+//		maxZ /= zMultiplier;
+//	}
+//	else
+//	{
+//		maxZ *= zMultiplier;
+//	}
+
+	const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+
+	return lightProjection * lightView;
 }
 
 stw::PointLight::PointLight(glm::vec3 position, f32 linear, f32 quadratic, glm::vec3 color)
