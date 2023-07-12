@@ -6,6 +6,7 @@
 #include <queue>
 #include <spdlog/spdlog.h>
 #include <unordered_set>
+#include <xmemory>
 
 #include "timer.hpp"
 #include "utils.hpp"
@@ -28,32 +29,41 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 	m_SceneGraph.Init();
 
 	m_DepthPipeline.InitFromPath("shaders/shadow_map/depth.vert", "shaders/shadow_map/depth.frag");
-	m_HdrPipeline.InitFromPath("shaders/hdr/quad.vert", "shaders/hdr/hdr.frag");
+	m_HdrPipeline.InitFromPath("shaders/quad.vert", "shaders/hdr/hdr.frag");
 	m_HdrPipeline.Bind();
 	m_HdrPipeline.SetInt("hdrBuffer", 0);
 	m_HdrPipeline.SetInt("bloomBuffer", 1);
 	m_HdrPipeline.UnBind();
 
-	m_DownsamplePipeline.InitFromPath("shaders/hdr/quad.vert", "shaders/bloom/downsample.frag");
+	m_DownsamplePipeline.InitFromPath("shaders/quad.vert", "shaders/bloom/downsample.frag");
 	m_DownsamplePipeline.Bind();
 	m_DownsamplePipeline.SetInt("srcTexture", 0);
 	m_DownsamplePipeline.UnBind();
 
-	m_UpsamplePipeline.InitFromPath("shaders/hdr/quad.vert", "shaders/bloom/upsample.frag");
+	m_UpsamplePipeline.InitFromPath("shaders/quad.vert", "shaders/bloom/upsample.frag");
 	m_UpsamplePipeline.Bind();
 	m_UpsamplePipeline.SetInt("srcTexture", 0);
 	m_UpsamplePipeline.UnBind();
 
 	m_GBufferPipeline.InitFromPath("shaders/deferred/gbuffer.vert", "shaders/deferred/gbuffer.frag");
-	m_DeferredShadingPipeline.InitFromPath("shaders/hdr/quad.vert", "shaders/deferred/deferred_shading.frag");
-	m_DeferredShadingPipeline.Bind();
-	m_DeferredShadingPipeline.SetInt("gPosition", 0);
-	m_DeferredShadingPipeline.SetInt("gNormal", 1);
-	m_DeferredShadingPipeline.SetInt("gBaseColorSpecular", 2);
-	m_DeferredShadingPipeline.SetInt("shadowMap", 3);
+
+	m_PointLightPipeline.InitFromPath("shaders/deferred/light_pass.vert", "shaders/deferred/point_light_pass.frag");
+	m_PointLightPipeline.Bind();
+	m_PointLightPipeline.SetInt("gPosition", 0);
+	m_PointLightPipeline.SetInt("gNormal", 1);
+	m_PointLightPipeline.SetInt("gBaseColorSpecular", 2);
+	m_PointLightPipeline.UnBind();
+
+	m_DirectionalLightPipeline.InitFromPath("shaders/quad.vert", "shaders/deferred/directional_light_pass.frag");
+	m_DirectionalLightPipeline.Bind();
+	m_DirectionalLightPipeline.SetInt("gPosition", 0);
+	m_DirectionalLightPipeline.SetInt("gNormal", 1);
+	m_DirectionalLightPipeline.SetInt("gBaseColorSpecular", 2);
+	m_DirectionalLightPipeline.SetInt("shadowMap", 3);
+	m_DirectionalLightPipeline.UnBind();
 
 	m_DebugLightsPipeline.InitFromPath("shaders/deferred/debug_light.vert", "shaders/deferred/debug_light.frag");
-	m_DebugCubeLight = Mesh::CreateCube();
+	m_DebugSphereLight = Mesh::CreateUvSphere(1.0f, 20, 20);
 
 	{
 		FramebufferDepthStencilAttachment depthStencilAttachment{};
@@ -200,6 +210,10 @@ void stw::Renderer::Clear(const GLbitfield mask)// NOLINT(readability-convert-me
 
 void stw::Renderer::DrawScene()
 {
+	GLCALL(glDepthMask(GL_TRUE));
+	GLCALL(glEnable(GL_DEPTH_TEST));
+	GLCALL(glDisable(GL_BLEND));
+
 	RenderGBuffer();
 
 	RenderLightsToHdrFramebuffer();
@@ -220,6 +234,7 @@ void stw::Renderer::DrawScene()
 
 	m_RenderQuad.GetVertexArray().Bind();
 	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+	m_RenderQuad.GetVertexArray().UnBind();
 	GLCALL(glEnable(GL_DEPTH_TEST));
 }
 
@@ -269,11 +284,12 @@ void stw::Renderer::Delete()
 	m_DownsamplePipeline.Delete();
 	m_UpsamplePipeline.Delete();
 
-	m_DeferredShadingPipeline.Delete();
+	m_PointLightPipeline.Delete();
 	m_GBufferPipeline.Delete();
 	m_GBufferFramebuffer.Delete();
-	m_DebugCubeLight.Delete();
+	m_DebugSphereLight.Delete();
 	m_DebugLightsPipeline.Delete();
+	m_DirectionalLightPipeline.Delete();
 }
 
 void stw::Renderer::SetOpenGlCapability(const bool enabled, const GLenum capability, bool& field)
@@ -458,77 +474,6 @@ void stw::Renderer::SetDirectionalLight(const stw::DirectionalLight& directional
 	m_PointLights.at(index) = pointLight;
 }
 
-[[maybe_unused]] void stw::Renderer::PushSpotLight(const stw::SpotLight& spotLight)
-{
-	if (m_SpotLightsCount == MaxSpotLights)
-	{
-		spdlog::warn("Pushing one too many spot light");
-		return;
-	}
-
-	m_SpotLights.at(m_SpotLightsCount) = spotLight;
-	m_SpotLightsCount++;
-}
-
-[[maybe_unused]] void stw::Renderer::PopSpotLight()
-{
-	if (m_SpotLightsCount == 0)
-	{
-		spdlog::warn("Popping on too many spot light");
-	}
-
-	m_SpotLightsCount--;
-}
-
-[[maybe_unused]] void stw::Renderer::SetSpotLight(usize index, const stw::SpotLight& spotLight)
-{
-	if (index >= m_SpotLightsCount)
-	{
-		spdlog::error("Invalid spot light index");
-	}
-
-	m_SpotLights.at(index) = spotLight;
-}
-
-void stw::Renderer::BindLights(stw::Pipeline& pipeline)
-{
-	if (m_DirectionalLight.has_value())
-	{
-		auto& directionalLight = m_DirectionalLight.value();
-		pipeline.SetVec3("directionalLight.direction", directionalLight.direction);
-		pipeline.SetVec3("directionalLight.color", directionalLight.color);
-	}
-
-	pipeline.SetUnsignedInt("pointLightsCount", m_PointLightsCount);
-	for (usize i = 0; i < m_PointLightsCount; i++)
-	{
-		const auto indexedName = fmt::format("pointLights[{}]", i);
-
-		const PointLight& pointLight = m_PointLights.at(i);
-		pipeline.SetVec3(fmt::format("{}.position", indexedName), pointLight.position);
-		pipeline.SetFloat(fmt::format("{}.linear", indexedName), pointLight.linear);
-		pipeline.SetFloat(fmt::format("{}.quadratic", indexedName), pointLight.quadratic);
-		pipeline.SetFloat(fmt::format("{}.radius", indexedName), pointLight.radius);
-		pipeline.SetVec3(fmt::format("{}.color", indexedName), pointLight.color);
-	}
-
-	pipeline.SetUnsignedInt("spotLightsCount", m_SpotLightsCount);
-	for (usize i = 0; i < m_SpotLightsCount; i++)
-	{
-		const auto indexedName = fmt::format("spotLights[{}]", i);
-
-		const auto& spotLight = m_SpotLights.at(i);
-		pipeline.SetVec3(fmt::format("{}.position", indexedName), spotLight.position);
-		pipeline.SetVec3(fmt::format("{}.direction", indexedName), spotLight.direction);
-		pipeline.SetVec3(fmt::format("{}.color", indexedName), spotLight.color);
-		pipeline.SetFloat(fmt::format("{}.linear", indexedName), spotLight.linear);
-		pipeline.SetFloat(fmt::format("{}.quadratic", indexedName), spotLight.quadratic);
-		pipeline.SetFloat(fmt::format("{}.radius", indexedName), spotLight.radius);
-		pipeline.SetFloat(fmt::format("{}.cutOff", indexedName), spotLight.cutOff);
-		pipeline.SetFloat(fmt::format("{}.outerCutOff", indexedName), spotLight.outerCutOff);
-	}
-}
-
 void stw::Renderer::RenderBloomToBloomFramebuffer(GLuint hdrTexture, f32 filterRadius)
 {
 	m_BloomFramebuffer.Bind();
@@ -626,8 +571,8 @@ void stw::Renderer::RenderLightsToHdrFramebuffer()
 {
 	constexpr float lightNearPlane = 1.0f;
 	constexpr float lightFarPlane = 15.0f;
-	constexpr glm::vec3 lightPosition = glm::vec3{ 0.0f, 6.0f, 0.0f };
-	const glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
+	constexpr glm::vec3 lightPosition = glm::vec3{ 0.0f, 10.0f, 0.0f };
+	const glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, lightNearPlane, lightFarPlane);
 	const glm::mat4 lightView =
 		glm::lookAt(lightPosition, lightPosition + m_DirectionalLight.value().direction, glm::vec3{ 0.0f, 1.0f, 0.0f });
 	const glm::mat4 lightViewProjMatrix = lightProjection * lightView;
@@ -640,34 +585,26 @@ void stw::Renderer::RenderLightsToHdrFramebuffer()
 	GLCALL(glViewport(0, 0, m_ViewportSize.x, m_ViewportSize.y));
 
 	m_HdrFramebuffer.Bind();
-	m_DeferredShadingPipeline.Bind();
+	GLCALL(glDepthMask(GL_FALSE));
+	GLCALL(glDisable(GL_DEPTH_TEST));
+
+	GLCALL(glEnable(GL_BLEND));
+	GLCALL(glBlendEquation(GL_FUNC_ADD));
+	GLCALL(glBlendFunc(GL_ONE, GL_ONE));
+
+
 	GLCALL(glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a));
-	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	GLCALL(glClear(GL_COLOR_BUFFER_BIT));
 
-	// Position
-	GLCALL(glActiveTexture(GL_TEXTURE0));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0)));
+	GLCALL(glCullFace(GL_FRONT));
+	RenderPointLights();
+	GLCALL(glCullFace(GL_BACK));
 
-	// Normal
-	GLCALL(glActiveTexture(GL_TEXTURE1));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(1)));
+	RenderDirectionalLight(lightViewProjMatrix);
 
-	// Base Color + Specular
-	GLCALL(glActiveTexture(GL_TEXTURE2));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(2)));
-
-	// Shadow Map
-	GLCALL(glActiveTexture(GL_TEXTURE3));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_LightDepthMapFramebuffer.GetDepthStencilAttachment().value()));
-
-	BindLights(m_DeferredShadingPipeline);
-
-	// Render
-	m_RenderQuad.GetVertexArray().Bind();
-	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+	GLCALL(glDepthMask(GL_TRUE));
 	GLCALL(glEnable(GL_DEPTH_TEST));
-
-	m_DeferredShadingPipeline.UnBind();
+	GLCALL(glDisable(GL_BLEND));
 	m_HdrFramebuffer.UnBind();
 
 	// Copy depth stencil from gbuffer to hdr framebuffer
@@ -686,8 +623,51 @@ void stw::Renderer::RenderLightsToHdrFramebuffer()
 	m_HdrFramebuffer.UnBind();
 }
 
+void stw::Renderer::RenderPointLights()
+{
+	m_PointLightPipeline.Bind();
+	m_PointLightPipeline.SetVec3("viewPos", viewPosition);
+	m_PointLightPipeline.SetVec2("screenSize", m_ViewportSize);
+
+	// Position
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0)));
+
+	// Normal
+	GLCALL(glActiveTexture(GL_TEXTURE1));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(1)));
+
+	// Base Color + Specular
+	GLCALL(glActiveTexture(GL_TEXTURE2));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(2)));
+
+	for (usize i = 0; i < m_PointLightsCount; i++)
+	{
+		const PointLight& pointLight = m_PointLights.at(i);
+		m_PointLightPipeline.SetVec3("pointLight.position", pointLight.position);
+		m_PointLightPipeline.SetFloat("pointLight.linear", pointLight.linear);
+		m_PointLightPipeline.SetFloat("pointLight.quadratic", pointLight.quadratic);
+		m_PointLightPipeline.SetVec3("pointLight.color", pointLight.color);
+
+		// Render
+		glm::mat4 sphereModel{ 1.0f };
+		sphereModel = glm::translate(sphereModel, pointLight.position);
+		sphereModel = glm::scale(sphereModel, glm::vec3{ pointLight.radius });
+
+		m_PointLightPipeline.SetMat4("modelMatrix", sphereModel);
+		m_MatricesUniformBuffer.Bind();
+
+		m_DebugSphereLight.GetVertexArray().Bind();
+		GLCALL(glDrawElements(GL_TRIANGLES, m_DebugSphereLight.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+		m_MatricesUniformBuffer.UnBind();
+	}
+	m_PointLightPipeline.UnBind();
+}
+
 void stw::Renderer::RenderDebugLights()
 {
+	GLCALL(glDepthMask(GL_TRUE));
+	GLCALL(glEnable(GL_DEPTH_TEST));
 	constexpr f32 debugLightScale = 0.4f;
 	m_HdrFramebuffer.Bind();
 	m_DebugLightsPipeline.Bind();
@@ -703,25 +683,54 @@ void stw::Renderer::RenderDebugLights()
 		model = glm::translate(model, pointLight.position);
 		model = glm::scale(model, glm::vec3{ debugLightScale });
 
-		m_DebugCubeLight.Bind({ &model, 1 });
-		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, m_DebugCubeLight.GetIndicesSize(), GL_UNSIGNED_INT, nullptr, 1));
+		m_DebugSphereLight.Bind({ &model, 1 });
+		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, m_DebugSphereLight.GetIndicesSize(), GL_UNSIGNED_INT, nullptr, 1));
 
 		m_MatricesUniformBuffer.UnBind();
 	}
 }
 
+void stw::Renderer::RenderDirectionalLight(const glm::mat4& lightViewProjMatrix)
+{
+	if (!m_DirectionalLight.has_value())
+	{
+		return;
+	}
+
+	m_DirectionalLightPipeline.Bind();
+	m_DirectionalLightPipeline.SetVec3("viewPos", viewPosition);
+	m_DirectionalLightPipeline.SetMat4("lightViewProjMatrix", lightViewProjMatrix);
+
+	// Position
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0)));
+
+	// Normal
+	GLCALL(glActiveTexture(GL_TEXTURE1));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(1)));
+
+	// Base Color + Specular
+	GLCALL(glActiveTexture(GL_TEXTURE2));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(2)));
+
+	// Shadow map
+	GLCALL(glActiveTexture(GL_TEXTURE3));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_LightDepthMapFramebuffer.GetDepthStencilAttachment().value()));
+
+	const DirectionalLight& directionalLight = m_DirectionalLight.value();
+
+	m_DirectionalLightPipeline.SetVec3("directionalLight.direction", directionalLight.direction);
+	m_DirectionalLightPipeline.SetVec3("directionalLight.color", directionalLight.color);
+
+	m_RenderQuad.GetVertexArray().Bind();
+	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+	m_RenderQuad.GetVertexArray().UnBind();
+
+	m_DirectionalLightPipeline.UnBind();
+}
+
 stw::PointLight::PointLight(glm::vec3 position, f32 linear, f32 quadratic, glm::vec3 color)
 	: position(position), linear(linear), quadratic(quadratic), color(color)
-{
-	const f32 maxColor = std::fmax(std::fmax(color.r, color.g), color.b);
-	radius =
-		(-linear + std::sqrtf(linear * linear - 4.0f * quadratic * (1.0f - (256.0f / MinLightIntensity) * maxColor)))
-		/ (2 * quadratic);
-}
-stw::SpotLight::SpotLight(
-	glm::vec3 position, glm::vec3 direction, f32 cutOff, f32 outerCutOff, f32 linear, f32 quadratic, glm::vec3 color)
-	: position(position), direction(direction), cutOff(cutOff), outerCutOff(outerCutOff), linear(linear),
-	  quadratic(quadratic), color(color)
 {
 	const f32 maxColor = std::fmax(std::fmax(color.r, color.g), color.b);
 	radius =

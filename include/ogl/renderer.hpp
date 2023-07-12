@@ -44,28 +44,6 @@ struct PointLight
 	glm::vec3 color{};
 };
 
-struct SpotLight
-{
-	SpotLight() = default;
-	SpotLight(glm::vec3 position,
-		glm::vec3 direction,
-		f32 cutOff,
-		f32 outerCutOff,
-		f32 linear,
-		f32 quadratic,
-		glm::vec3 color);
-
-	glm::vec3 position{};
-	glm::vec3 direction{};
-	f32 cutOff{};
-	f32 outerCutOff{};
-
-	f32 linear{};
-	f32 quadratic{};
-	f32 radius{};
-	glm::vec3 color{};
-};
-
 struct ProcessMeshResult
 {
 	stw::Mesh mesh;
@@ -75,8 +53,7 @@ struct ProcessMeshResult
 class Renderer
 {
 public:
-	static constexpr u32 MaxPointLights = 26;
-	static constexpr u32 MaxSpotLights = 1;
+	static constexpr u32 MaxPointLights = 128;
 	static constexpr glm::uvec2 ShadowMapSize = { 4096, 4096 };
 	static constexpr u32 MipChainLength = 5;
 	static constexpr f32 FilterRadius = 0.005f;
@@ -112,10 +89,6 @@ public:
 	[[maybe_unused]] void PushPointLight(const PointLight& pointLight);
 	[[maybe_unused]] void PopPointLight();
 	[[maybe_unused]] void SetPointLight(usize index, const PointLight& pointLight);
-
-	[[maybe_unused]] void PushSpotLight(const SpotLight& spotLight);
-	[[maybe_unused]] void PopSpotLight();
-	[[maybe_unused]] void SetSpotLight(usize index, const SpotLight& spotLight);
 
 	void Clear(GLbitfield mask);
 
@@ -158,22 +131,19 @@ private:
 
 	Framebuffer m_GBufferFramebuffer;
 	Pipeline m_GBufferPipeline;
-	Pipeline m_DeferredShadingPipeline;
 	Pipeline m_DebugLightsPipeline;
-	Mesh m_DebugCubeLight{};
+	Mesh m_DebugSphereLight{};
+	Pipeline m_PointLightPipeline;
+	Pipeline m_DirectionalLightPipeline;
 
 	std::optional<DirectionalLight> m_DirectionalLight = {};
 
 	u32 m_PointLightsCount = 0;
 	std::array<PointLight, MaxPointLights> m_PointLights{};
 
-	u32 m_SpotLightsCount = 0;
-	std::array<SpotLight, MaxSpotLights> m_SpotLights{};
-
 	static void SetOpenGlCapability(bool enabled, GLenum capability, bool& field);
 
 	static ProcessMeshResult ProcessMesh(const aiMesh* assimpMesh, std::size_t materialIndexOffset);
-	void BindLights(Pipeline& pipeline);
 	void RenderShadowMap(const glm::mat4& lightViewProjMatrix);
 	void RenderBloomToBloomFramebuffer(GLuint hdrTexture, float filterRadius);
 	void RenderDownsample(GLuint hdrTexture);
@@ -181,5 +151,7 @@ private:
 	void RenderGBuffer();
 	void RenderLightsToHdrFramebuffer();
 	void RenderDebugLights();
+	void RenderPointLights();
+	void RenderDirectionalLight(const glm::mat4& lightViewProjMatrix);
 };
 }// namespace stw

@@ -61,8 +61,8 @@ Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 window
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+	//	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	//	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
 	m_Window = SDL_CreateWindow(m_WindowName.c_str(),
 		SDL_WINDOWPOS_UNDEFINED,
@@ -71,7 +71,7 @@ Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 window
 		windowHeight,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
 
-	m_GlRenderContext = SDL_GL_CreateContext(m_Window);
+	m_GlRenderContext = SDL_GL_CreateContext(m_Window);// NOLINT(cppcoreguidelines-prefer-member-initializer)
 	SDL_GL_SetSwapInterval(-1);
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 

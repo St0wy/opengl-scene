@@ -35,6 +35,7 @@ public:
 
 	static Mesh CreateQuad();
 	static Mesh CreateCube();
+	static Mesh CreateUvSphere(f32 radius, u32 latitudes, u32 longitudes);
 
 	void Init(std::vector<Vertex> vertices, std::vector<u32> indices);
 	void Delete();

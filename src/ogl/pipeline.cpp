@@ -52,7 +52,6 @@ void stw::Pipeline::SetFloat(const std::string_view name, const float value)
 void stw::Pipeline::SetVec3(const std::string_view name, const glm::vec3 value)
 {
 	const auto location = GetUniformLocation(name);
-
 	GLCALL(glUniform3f(location, value.x, value.y, value.z));
 }
 

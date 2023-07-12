@@ -1,6 +1,7 @@
 #include "mesh.hpp"
 
 #include <GL/glew.h>
+#include <numbers>
 #include <span>
 #include <spdlog/spdlog.h>
 
@@ -120,8 +121,6 @@ stw::Mesh stw::Mesh::CreateQuad()
 
 const stw::VertexArray& stw::Mesh::GetVertexArray() const { return m_VertexArray; }
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "cppcoreguidelines-avoid-magic-numbers"
 stw::Mesh stw::Mesh::CreateCube()
 {
 	constexpr f32 size = 1.0f;
@@ -152,4 +151,73 @@ stw::Mesh stw::Mesh::CreateCube()
 
 	return mesh;
 }
-#pragma clang diagnostic pop
+
+stw::Mesh stw::Mesh::CreateUvSphere(f32 radius, u32 latitudes, u32 longitudes)
+{
+	constexpr u32 minLatitudes = 3;
+	constexpr u32 minLongitudes = 2;
+	latitudes = std::max(latitudes, minLatitudes);
+	longitudes = std::max(longitudes, minLongitudes);
+
+	std::vector<Vertex> vertices;
+	std::vector<u32> indices;
+
+	const f32 inverseRadius = 1.0f / radius;
+	const f32 deltaLatitude = std::numbers::pi_v<float> / static_cast<float>(latitudes);
+	const f32 deltaLongitude = 2.0f * std::numbers::pi_v<float> / static_cast<float>(longitudes);
+
+	for (i32 i = 0; i <= latitudes; i++)
+	{
+		const f32 floatI = static_cast<f32>(i);
+		const f32 latitudeAngle = std::numbers::pi_v<float> / 2.0f - floatI * deltaLatitude;
+		const float xy = radius * std::cos(latitudeAngle);
+		const float z = radius * std::sin(latitudeAngle);
+
+		for (i32 j = 0; j <= longitudes; j++)
+		{
+			const f32 floatJ = static_cast<float>(j);
+			const f32 longitudeAngle = floatJ * deltaLongitude;
+
+			Vertex vertex{};
+			vertex.position.x = xy * std::cos(longitudeAngle);
+			vertex.position.y = xy * std::sin(longitudeAngle);
+			vertex.position.z = z;
+
+			vertex.texCoords.x = floatJ / static_cast<float>(longitudes);
+			vertex.texCoords.y = floatI / static_cast<float>(latitudes);
+
+			vertex.normal = vertex.position * inverseRadius;
+			vertices.push_back(vertex);
+		}
+	}
+
+	for (i32 i = 0; i < latitudes; i++)
+	{
+		u32 k1 = i * (longitudes + 1);
+		u32 k2 = k1 + longitudes + 1;
+
+		for (i32 j = 0; j < longitudes; ++j)
+		{
+			if (i != 0)
+			{
+				indices.push_back(k1);
+				indices.push_back(k2);
+				indices.push_back(k1 + 1);
+			}
+
+			if (i != (latitudes - 1))
+			{
+				indices.push_back(k1 + 1);
+				indices.push_back(k2);
+				indices.push_back(k2 + 1);
+			}
+			++k1;
+			++k2;
+		}
+	}
+
+	Mesh mesh;
+	mesh.Init(std::move(vertices), std::move(indices));
+
+	return mesh;
+}

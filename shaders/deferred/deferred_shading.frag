@@ -1,6 +1,6 @@
 #version 430
 
-#define MAX_POINT_LIGHTS 32
+#define MAX_POINT_LIGHTS 128
 #define MAX_SPOT_LIGHTS 1
 
 struct DirectionalLight

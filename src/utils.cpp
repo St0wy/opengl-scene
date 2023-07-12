@@ -6,8 +6,8 @@
 
 #include <filesystem>
 #include <fstream>
-#include <optional>
 #include <GL/glew.h>
+#include <optional>
 #include <spdlog/spdlog.h>
 
 #include "texture.hpp"
@@ -71,7 +71,7 @@ void ClearGlErrors()
 bool CheckGlError(std::string_view file, u32 line)
 {
 	bool hadErrors = false;
-	GLenum err;
+	GLenum err = GL_NO_ERROR;
 	while ((err = glGetError()) != GL_NO_ERROR)
 	{
 		hadErrors = true;
@@ -113,4 +113,4 @@ bool CheckGlError(std::string_view file, u32 line)
 
 	return hadErrors;
 }
-} // namespace stw
+}// namespace stw

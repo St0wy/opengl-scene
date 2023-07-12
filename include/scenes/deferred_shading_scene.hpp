@@ -41,7 +41,7 @@ public:
 		std::uniform_real_distribution<float> distRotate(0.0f, twoPi);
 		std::uniform_real_distribution<float> distScale(minScale, maxScale);
 		std::uniform_real_distribution<float> distHeightLight(1.0f, 2.0f);
-		std::uniform_real_distribution<float> distColor(0.0f, 10.0f);
+		std::uniform_real_distribution<float> distColor(0.0f, 2.0f);
 
 		SceneGraph& sceneGraph = m_Renderer.GetSceneGraph();
 		for (usize i = 0; i < elementCount; i++)
@@ -118,7 +118,7 @@ public:
 
 		glm::vec3 direction{ 0.0f, -1.0f, -0.5f };
 		direction = glm::normalize(direction);
-		const DirectionalLight directionalLight{ direction, glm::vec3{ 0.1f } };
+		const DirectionalLight directionalLight{ direction, glm::vec3{ 0.3f } };
 		m_Renderer.SetDirectionalLight(directionalLight);
 	}
 
