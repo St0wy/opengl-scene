@@ -75,7 +75,7 @@ float ComputeShadowIntensity(vec4 fragPosLightSpace, vec3 normal)
 	float bias = max(0.05 * (1.0 / dot(normal, lightDirection)), 0.005);
 
 	// Check whether current frag pos is in shadow
-	//	float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+	//		float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
 	// PCF (Percentage-Closer Filtering)
 	float shadow = 0.0;
 	vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
@@ -93,7 +93,6 @@ float ComputeShadowIntensity(vec4 fragPosLightSpace, vec3 normal)
 	if (projectionCoords.z > 1.0)
 	{
 		shadow = 0.0;
-		FragColor = vec4(1.0);
 	}
 
 	//	return closestDepth;

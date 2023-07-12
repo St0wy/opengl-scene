@@ -55,7 +55,7 @@ class Renderer
 {
 public:
 	static constexpr u32 MaxPointLights = 128;
-	static constexpr glm::uvec2 ShadowMapSize = { 4096, 4096 };
+	static constexpr u32 ShadowMapSize = 4096;
 	static constexpr u32 MipChainLength = 5;
 	static constexpr f32 FilterRadius = 0.005f;
 
@@ -134,7 +134,10 @@ private:
 	Pipeline m_PointLightPipeline;
 	Pipeline m_DirectionalLightPipeline;
 
-	std::optional<DirectionalLight> m_DirectionalLight = {};
+	std::optional<DirectionalLight> m_DirectionalLight{};
+	glm::mat4 m_LightViewProjMatrix{};
+	glm::vec3 m_OldCamViewPos{};
+	std::optional<glm::vec3> m_OldDirectionalLightPos{};
 
 	u32 m_PointLightsCount = 0;
 	std::array<PointLight, MaxPointLights> m_PointLights{};
@@ -151,6 +154,6 @@ private:
 	void RenderDebugLights();
 	void RenderPointLights();
 	void RenderDirectionalLight(const glm::mat4& lightViewProjMatrix);
-	std::optional<glm::mat4> ComputeLightViewProjMatrix();
+	std::optional<glm::mat4> GetLightViewProjMatrix();
 };
 }// namespace stw

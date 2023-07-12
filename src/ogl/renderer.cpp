@@ -71,7 +71,7 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 		depthStencilAttachment.hasStencil = false;
 		FramebufferDescription framebufferDescription{};
 		framebufferDescription.depthStencilAttachment = depthStencilAttachment;
-		framebufferDescription.framebufferSize = ShadowMapSize;
+		framebufferDescription.framebufferSize = glm::uvec2{ ShadowMapSize, ShadowMapSize };
 		m_LightDepthMapFramebuffer.Init(framebufferDescription);
 	}
 
@@ -238,10 +238,11 @@ void stw::Renderer::DrawScene()
 
 void stw::Renderer::RenderShadowMap(const glm::mat4& lightViewProjMatrix)
 {
+	GLCALL(glEnable(GL_DEPTH_CLAMP));
 	m_DepthPipeline.Bind();
 	m_DepthPipeline.SetMat4("lightViewProjMatrix", lightViewProjMatrix);
 
-	GLCALL(glViewport(0, 0, ShadowMapSize.x, ShadowMapSize.y));
+	GLCALL(glViewport(0, 0, ShadowMapSize, ShadowMapSize));
 	m_LightDepthMapFramebuffer.Bind();
 	Clear(GL_DEPTH_BUFFER_BIT);
 	// Render meshes on light depth buffer
@@ -259,6 +260,7 @@ void stw::Renderer::RenderShadowMap(const glm::mat4& lightViewProjMatrix)
 
 	m_DepthPipeline.UnBind();
 	m_LightDepthMapFramebuffer.UnBind();
+	GLCALL(glDisable(GL_DEPTH_CLAMP));
 }
 
 void stw::Renderer::Delete()
@@ -567,7 +569,7 @@ void stw::Renderer::RenderGBuffer()
 
 void stw::Renderer::RenderLightsToHdrFramebuffer()
 {
-	const auto lightViewProjMatrix = ComputeLightViewProjMatrix();
+	const auto lightViewProjMatrix = GetLightViewProjMatrix();
 
 	if (m_DirectionalLight.has_value())
 	{
@@ -723,24 +725,30 @@ void stw::Renderer::RenderDirectionalLight(const glm::mat4& lightViewProjMatrix)
 
 stw::Renderer::Renderer(stw::Camera& camera) : m_Camera(camera) {}
 
-std::optional<glm::mat4> stw::Renderer::ComputeLightViewProjMatrix()
+std::optional<glm::mat4> stw::Renderer::GetLightViewProjMatrix()
 {
+	constexpr glm::vec3 up{ 0.0f, 1.0f, 0.0f };
+
 	if (!m_DirectionalLight)
 	{
 		return std::nullopt;
 	}
 
-	const auto frustumCorners = m_Camera.GetFrustumCorners();
-
-	glm::vec3 center{ 1.0f };
-	for (const auto& vec : frustumCorners)
+	if (m_Camera.GetPosition() == m_OldCamViewPos)
 	{
-		center += vec;
+		return m_LightViewProjMatrix;
 	}
-	center /= frustumCorners.size();
+	m_OldCamViewPos = m_Camera.GetPosition();
 
-	const glm::mat4 lightView =
-		glm::lookAt(center - m_DirectionalLight.value().direction, center, glm::vec3{ 0.0f, 1.0f, 0.0f });
+	const auto& frustumCorners = m_Camera.GetFrustumCorners();
+
+	const glm::vec3 lightPosition = m_Camera.GetPosition() - m_DirectionalLight.value().direction;
+	const glm::mat4 lightView = glm::lookAt(lightPosition, m_Camera.GetPosition(), up);
+
+	if (!m_OldDirectionalLightPos)
+	{
+		m_OldDirectionalLightPos = lightPosition;
+	}
 
 	f32 minX = (std::numeric_limits<float>::max)();
 	f32 maxX = std::numeric_limits<float>::lowest();
@@ -759,28 +767,36 @@ std::optional<glm::mat4> stw::Renderer::ComputeLightViewProjMatrix()
 		maxZ = (std::max)(maxZ, trf.z);
 	}
 
-	// Tune this parameter according to the scene
-//	constexpr float zMultiplier = 10.0f;
-//	if (minZ < 0)
-//	{
-//		minZ *= zMultiplier;
-//	}
-//	else
-//	{
-//		minZ /= zMultiplier;
-//	}
-//	if (maxZ < 0)
-//	{
-//		maxZ /= zMultiplier;
-//	}
-//	else
-//	{
-//		maxZ *= zMultiplier;
-//	}
+	// We set the size of the shadow frustum to be the size of the biggest diagonal in the camera frustum It is
+	// increased by the factor of the size of the shadow map, to give room for the shadow frustum and view frustum to
+	// slip against each other
+	f32 diagLength = glm::distance(frustumCorners.front(), frustumCorners.back());
+	diagLength *= ShadowMapSize / static_cast<f32>(ShadowMapSize - 1);
+	const f32 worldSizeOfPixelInShadowMap = (diagLength / ShadowMapSize);
+	const glm::vec3 vecWorldSizeOfPixelInShadowMap{ worldSizeOfPixelInShadowMap, worldSizeOfPixelInShadowMap, 1.0f };
 
-	const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+	const f32 midX = minX + (maxX - minX) / 2.0f;
+	const f32 midY = minY + (maxY - minY) / 2.0f;
+	const f32 midZ = minZ + (maxZ - minZ) / 2.0f;
 
-	return lightProjection * lightView;
+	glm::vec3 minLightProj{ midX - diagLength, midY - diagLength, midZ - diagLength };
+	glm::vec3 maxLightProj{ midX + diagLength, midY + diagLength, midZ + diagLength };
+
+	// https://learn.microsoft.com/en-us/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps
+	minLightProj /= vecWorldSizeOfPixelInShadowMap;
+	minLightProj = glm::floor(minLightProj);
+	minLightProj *= vecWorldSizeOfPixelInShadowMap;
+
+	maxLightProj /= vecWorldSizeOfPixelInShadowMap;
+	maxLightProj = glm::floor(maxLightProj);
+	maxLightProj *= vecWorldSizeOfPixelInShadowMap;
+
+	m_OldDirectionalLightPos = lightPosition;
+	const glm::mat4 lightProjection =
+		glm::ortho(minLightProj.x, maxLightProj.x, minLightProj.y, maxLightProj.y, minLightProj.z, maxLightProj.z);
+
+	m_LightViewProjMatrix = lightProjection * lightView;
+	return m_LightViewProjMatrix;
 }
 
 stw::PointLight::PointLight(glm::vec3 position, f32 linear, f32 quadratic, glm::vec3 color)

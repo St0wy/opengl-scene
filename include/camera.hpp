@@ -1,9 +1,9 @@
 #pragma once
 
+#include <array>
 #include <glm/fwd.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
-#include <array>
 
 #include "number_types.hpp"
 
@@ -44,7 +44,7 @@ public:
 	void ProcessMovement(const CameraMovementState& cameraMovementState, f32 deltaTime);
 	void ProcessMouseMovement(f32 xOffset, f32 yOffset, bool constrainPitch = true);
 	void ProcessMouseScroll(f32 yOffset);
-	[[nodiscard]] std::array<glm::vec3, 8> GetFrustumCorners() const;
+	[[nodiscard]] const std::array<glm::vec3, 8>& GetFrustumCorners();
 
 private:
 	static constexpr f32 DefaultYaw = -90.0f;
@@ -57,7 +57,7 @@ private:
 	static constexpr f32 MaxPitchAngle = 89.0f;
 	static constexpr f32 DefaultAspectRatio = 16.0f / 9.0f;
 	static constexpr f32 NearPlane = 0.1f;
-	static constexpr f32 FarPlane = 70.0f;
+	static constexpr f32 FarPlane = 200.0f;
 
 	glm::vec3 m_Position;
 	glm::vec3 m_Front;
@@ -72,6 +72,7 @@ private:
 	f32 m_AspectRatio;
 	glm::mat4 m_ViewMatrix;
 	glm::mat4 m_ProjectionMatrix;
+	std::array<glm::vec3, 8> m_FrustumCorners{};
 
 	void UpdateCameraVectors();
 	void UpdateViewMatrix();
