@@ -11,6 +11,7 @@
 
 #include "bloom_framebuffer.hpp"
 #include "camera.hpp"
+#include "consts.hpp"
 #include "glm/gtc/bitfield.hpp"
 #include "material.hpp"
 #include "material_manager.hpp"
@@ -54,11 +55,6 @@ struct ProcessMeshResult
 class Renderer
 {
 public:
-	static constexpr u32 MaxPointLights = 128;
-	static constexpr u32 ShadowMapSize = 4096;
-	static constexpr u32 MipChainLength = 5;
-	static constexpr f32 FilterRadius = 0.005f;
-
 	explicit Renderer(Camera& camera);
 	Renderer(const Renderer&) = delete;
 	Renderer(Renderer&&) = delete;
@@ -118,7 +114,7 @@ private:
 	SceneGraph m_SceneGraph;
 
 	Pipeline m_DepthPipeline;
-	Framebuffer m_LightDepthMapFramebuffer;
+	std::array<Framebuffer, ShadowMapNumCascades> m_LightDepthMapFramebuffers;
 	Framebuffer m_HdrFramebuffer;
 	Pipeline m_HdrPipeline;
 	Mesh m_RenderQuad{};
@@ -135,9 +131,9 @@ private:
 	Pipeline m_DirectionalLightPipeline;
 
 	std::optional<DirectionalLight> m_DirectionalLight{};
-	glm::mat4 m_LightViewProjMatrix{};
+	std::array<glm::mat4, ShadowMapNumCascades> m_LightViewProjMatrices{};
 	glm::vec3 m_OldCamViewPos{};
-	std::optional<glm::vec3> m_OldDirectionalLightPos{};
+	std::array<f32, ShadowMapNumCascades> m_Intervals{};
 
 	u32 m_PointLightsCount = 0;
 	std::array<PointLight, MaxPointLights> m_PointLights{};
@@ -145,7 +141,7 @@ private:
 	static void SetOpenGlCapability(bool enabled, GLenum capability, bool& field);
 
 	static ProcessMeshResult ProcessMesh(const aiMesh* assimpMesh, std::size_t materialIndexOffset);
-	void RenderShadowMap(const glm::mat4& lightViewProjMatrix);
+	void RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrix);
 	void RenderBloomToBloomFramebuffer(GLuint hdrTexture, float filterRadius);
 	void RenderDownsample(GLuint hdrTexture);
 	void RenderUpsamples(float filterRadius);
@@ -153,7 +149,8 @@ private:
 	void RenderLightsToHdrFramebuffer();
 	void RenderDebugLights();
 	void RenderPointLights();
-	void RenderDirectionalLight(const glm::mat4& lightViewProjMatrix);
-	std::optional<glm::mat4> GetLightViewProjMatrix();
+	void RenderDirectionalLight(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices);
+	std::optional<std::array<glm::mat4, ShadowMapNumCascades>> GetLightViewProjMatrices();
+	glm::mat4 ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane);
 };
 }// namespace stw

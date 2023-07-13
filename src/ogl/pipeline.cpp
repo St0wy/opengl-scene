@@ -241,3 +241,9 @@ void stw::Pipeline::SetVec2(std::string_view name, glm::vec2 value)
 
 	GLCALL(glUniform2f(location, value.x, value.y));
 }
+void stw::Pipeline::SetVec4(std::string_view name, glm::vec4 value)
+{
+	const auto location = GetUniformLocation(name);
+
+	GLCALL(glUniform4f(location, value.x, value.y, value.z, value.w));
+}

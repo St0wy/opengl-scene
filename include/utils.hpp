@@ -3,12 +3,15 @@
 //
 
 #pragma once
+
+#include <array>
 #include <assimp/matrix4x4.h>
 #include <cassert>
 #include <filesystem>
 #include <GL/glew.h>
 #include <glm/mat4x4.hpp>
 
+#include "consts.hpp"
 #include "number_types.hpp"
 
 #define CHECK_GL_ERROR() stw::CheckGlError(__FILE__, __LINE__)
@@ -74,6 +77,8 @@ constexpr glm::mat4 ConvertMatAssimpToGlm(const aiMatrix4x4& assimpMatrix)
 	};
 	// clang-format on
 }
+
+std::array<f32, ShadowMapNumCascades> ComputeCascades();
 
 void ClearGlErrors();
 

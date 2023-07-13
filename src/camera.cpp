@@ -119,10 +119,7 @@ void stw::Camera::UpdateCameraVectors()
 	m_Up = normalize(cross(m_Right, m_Front));
 }
 
-void stw::Camera::UpdateViewMatrix()
-{
-	m_ViewMatrix = lookAt(m_Position, m_Position + m_Front, m_Up);
-}
+void stw::Camera::UpdateViewMatrix() { m_ViewMatrix = lookAt(m_Position, m_Position + m_Front, m_Up); }
 
 void stw::Camera::UpdateProjectionMatrix()
 {
@@ -136,11 +133,19 @@ void stw::Camera::SetYaw(f32 yaw)
 	UpdateViewMatrix();
 }
 
-const std::array<glm::vec3, 8>& stw::Camera::GetFrustumCorners()
+std::array<glm::vec3, 8> stw::Camera::GetFrustumCorners()
 {
-	const glm::mat4 inverse = glm::inverse(m_ProjectionMatrix * m_ViewMatrix);
+	return ComputeFrustumCorners(m_ProjectionMatrix, m_ViewMatrix);
+}
+
+f32 stw::Camera::GetAspectRatio() const { return m_AspectRatio; }
+
+std::array<glm::vec3, 8> stw::ComputeFrustumCorners(const glm::mat4& proj, const glm::mat4& view)
+{
+	const glm::mat4 inverse = glm::inverse(proj * view);
 
 	usize count = 0;
+	std::array<glm::vec3, 8> frustumCorners{};
 	for (u32 x = 0; x < 2; ++x)
 	{
 		for (u32 y = 0; y < 2; ++y)
@@ -152,10 +157,10 @@ const std::array<glm::vec3, 8>& stw::Camera::GetFrustumCorners()
 										 2.0f * static_cast<f32>(y) - 1.0f,
 										 2.0f * static_cast<f32>(z) - 1.0f,
 										 1.0f);
-				m_FrustumCorners.at(count++) = pt / pt.w;
+				frustumCorners.at(count++) = pt / pt.w;
 			}
 		}
 	}
 
-	return m_FrustumCorners;
+	return frustumCorners;
 }

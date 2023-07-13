@@ -3,10 +3,10 @@ project(opengl_scene)
 
 set(CMAKE_CXX_STANDARD 23)
 
-if(NOT CMAKE_BUILD_TYPE)
+if (NOT CMAKE_BUILD_TYPE)
 	message("Build Type not set, defaulting to Debug...")
 	set(CMAKE_BUILD_TYPE Debug)
-endif()
+endif ()
 
 include(cmake/data.cmake)
 include(cmake/SystemLink.cmake)
@@ -60,7 +60,7 @@ add_executable(
 	"src/texture_manager.cpp"
 	"include/bloom_framebuffer.hpp"
 	"src/bloom_framebuffer.cpp"
-	include/scenes/deferred_shading_scene.hpp)
+	include/scenes/deferred_shading_scene.hpp include/consts.hpp)
 
 target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_system_libraries(
@@ -81,6 +81,12 @@ add_dependencies(opengl_scene shader_target data_target)
 
 set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION true)
 add_sanitizers(opengl_scene)
+
+target_compile_options(opengl_scene PRIVATE
+	$<$<CXX_COMPILER_ID:Clang>:-fconstexpr-steps=100000000 -fconstexpr-depth=27>
+	$<$<CXX_COMPILER_ID:GNU>:-fconstexpr-steps=100000000 -fconstexpr-depth=27>
+	$<$<CXX_COMPILER_ID:MSVC>:>
+	)
 
 # if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release") message("Setting flags to have no console")
 # set_target_properties(opengl_scene PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup") endif()
