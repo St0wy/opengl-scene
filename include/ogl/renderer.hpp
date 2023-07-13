@@ -131,9 +131,13 @@ private:
 	Pipeline m_DirectionalLightPipeline;
 
 	std::optional<DirectionalLight> m_DirectionalLight{};
-	std::array<glm::mat4, ShadowMapNumCascades> m_LightViewProjMatrices{};
+	//	std::array<glm::mat4, ShadowMapNumCascades> m_LightViewProjMatrices{};
 	glm::vec3 m_OldCamViewPos{};
 	std::array<f32, ShadowMapNumCascades> m_Intervals{};
+
+	std::array<glm::vec3, SsaoKernelSize> m_SsaoKernel{};
+	std::array<glm::vec3, SsaoRandomTextureSize> m_SsaoRandomTexture{};
+	GLuint m_SsaoGlRandomTexture{};
 
 	u32 m_PointLightsCount = 0;
 	std::array<PointLight, MaxPointLights> m_PointLights{};

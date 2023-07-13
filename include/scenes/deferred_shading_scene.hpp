@@ -27,7 +27,7 @@ public:
 	void GenerateSceneDuplicateElement(const SceneGraphElement element)
 	{
 		constexpr usize elementCount = 500;
-		constexpr usize lightCount = 64;
+		constexpr usize lightCount = 32;
 		constexpr float maxPos = 30.0f;
 		constexpr float minPos = -maxPos;
 		constexpr float twoPi = 2.0f * std::numbers::pi;
@@ -43,7 +43,7 @@ public:
 		std::uniform_real_distribution<float> distHeightLight(1.0f, 2.0f);
 		std::uniform_real_distribution<float> distColor(0.0f, 2.0f);
 
-		SceneGraph& sceneGraph = m_Renderer.GetSceneGraph();
+		SceneGraph& sceneGraph = m_Renderer->GetSceneGraph();
 		for (usize i = 0; i < elementCount; i++)
 		{
 			glm::mat4 transform{ 1.0f };
@@ -64,7 +64,7 @@ public:
 				0.2f,
 				glm::vec3(distColor(gen), distColor(gen), distColor(gen)),
 			};
-			m_Renderer.PushPointLight(pointLight);
+			m_Renderer->PushPointLight(pointLight);
 		}
 	}
 
@@ -91,23 +91,24 @@ public:
 
 		m_Camera.SetMovementSpeed(4.0f);
 
-		m_Renderer.Init(screenSize);
-		//		m_Renderer.SetEnableMultisample(true);
-		m_Renderer.SetEnableDepthTest(true);
-		m_Renderer.SetDepthFunc(GL_LEQUAL);
-		m_Renderer.SetClearColor(glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
+		m_Renderer = std::make_unique<Renderer>(m_Camera);
+		m_Renderer->Init(screenSize);
+		//		m_Renderer->SetEnableMultisample(true);
+		m_Renderer->SetEnableDepthTest(true);
+		m_Renderer->SetDepthFunc(GL_LEQUAL);
+		m_Renderer->SetClearColor(glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
 
-		m_Renderer.SetEnableCullFace(true);
+		m_Renderer->SetEnableCullFace(true);
 
 		UpdateProjection();
 
-		auto result = m_Renderer.LoadModel("./data/sphere/myHonestSphere.obj");
+		auto result = m_Renderer->LoadModel("./data/sphere/myHonestSphere.obj");
 		if (!result.has_value())
 		{
 			spdlog::error("Error on model loading : {}", result.error());
 		}
 
-		SceneGraph& sceneGraph = m_Renderer.GetSceneGraph();
+		SceneGraph& sceneGraph = m_Renderer->GetSceneGraph();
 		const SceneGraphNode& node = result.value()[0];
 		const SceneGraphElement& element = sceneGraph.GetElements()[node.elementId];
 		GenerateSceneDuplicateElement(element);
@@ -115,20 +116,20 @@ public:
 		glm::vec3 direction{ 0.0f, -1.0f, -0.5f };
 		direction = glm::normalize(direction);
 		const DirectionalLight directionalLight{ direction, glm::vec3{ 0.3f } };
-		m_Renderer.SetDirectionalLight(directionalLight);
+		m_Renderer->SetDirectionalLight(directionalLight);
 	}
 
-	void UpdateProjection() { m_Renderer.UpdateProjectionMatrix(); }
+	void UpdateProjection() { m_Renderer->UpdateProjectionMatrix(); }
 
-	void UpdateView() { m_Renderer.UpdateViewMatrix(); }
+	void UpdateView() { m_Renderer->UpdateViewMatrix(); }
 
 	void Update(const f32 deltaTime) override
 	{
-		m_Renderer.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		m_Renderer->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		UpdateView();
 
-		m_Renderer.DrawScene();
+		m_Renderer->DrawScene();
 
 #pragma region Camera
 		i32 keyboardStateLength = 0;
@@ -182,15 +183,15 @@ public:
 
 	void OnResize(const i32 windowWidth, const i32 windowHeight) override
 	{
-		m_Renderer.SetViewport({ 0, 0 }, { windowWidth, windowHeight });
+		m_Renderer->SetViewport({ 0, 0 }, { windowWidth, windowHeight });
 		m_Camera.SetAspectRatio(static_cast<f32>(windowWidth) / static_cast<f32>(windowHeight));
 		UpdateProjection();
 	}
 
-	void Delete() override { m_Renderer.Delete(); }
+	void Delete() override { m_Renderer->Delete(); }
 
 private:
 	Camera m_Camera{ glm::vec3{ 5.0f, 2.0f, -6.0f } };
-	Renderer m_Renderer{ m_Camera };
+	std::unique_ptr<Renderer> m_Renderer{  };
 };
 }// namespace stw

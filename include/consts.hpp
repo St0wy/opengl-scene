@@ -13,6 +13,8 @@ static constexpr u32 ShadowMapSize = 4096;
 static constexpr u32 MipChainLength = 5;
 static constexpr f32 FilterRadius = 0.005f;
 static constexpr usize ShadowMapNumCascades = 4;
+static constexpr usize SsaoKernelSize = 64;
+static constexpr usize SsaoRandomTextureSize = 16;
 
 static constexpr f32 DefaultYaw = -90.0f;
 static constexpr f32 DefaultPitch = 0.0f;

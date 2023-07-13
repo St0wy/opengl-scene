@@ -8,6 +8,7 @@
 #include <fstream>
 #include <GL/glew.h>
 #include <optional>
+#include <random>
 #include <spdlog/spdlog.h>
 
 #include "texture.hpp"
@@ -117,15 +118,51 @@ bool CheckGlError(std::string_view file, u32 line)
 std::array<f32, ShadowMapNumCascades> ComputeCascades()
 {
 	return { FarPlane / 50.0f, FarPlane / 25.0f, FarPlane / 10.0f, FarPlane / 2.0f };
-//		std::array<f32, ShadowMapNumCascades> intervals{};
-//		for (usize i = 0; i < intervals.size(); i++)
-//		{
-//			const f32 far = NearPlane * std::pow(FarPlane / NearPlane, static_cast<f32>(i + 1) / ShadowMapNumCascades);
-//
-//			spdlog::debug("far : {}", far);
-//			intervals.at(i) = far;
-//		}
+	//		std::array<f32, ShadowMapNumCascades> intervals{};
+	//		for (usize i = 0; i < intervals.size(); i++)
+	//		{
+	//			const f32 far = NearPlane * std::pow(FarPlane / NearPlane, static_cast<f32>(i + 1) /
+	// ShadowMapNumCascades);
+	//
+	//			spdlog::debug("far : {}", far);
+	//			intervals.at(i) = far;
+	//		}
 
-//		return intervals;
+	//		return intervals;
+}
+std::array<glm::vec3, SsaoKernelSize> GenerateSsaoKernel()
+{
+	std::random_device rd;
+	std::default_random_engine generator(rd());
+	std::uniform_real_distribution<f32> randomFloats(0.0f, 1.0f);
+	std::array<glm::vec3, SsaoKernelSize> ssaoKernel{};
+	for (usize i = 0; i < SsaoKernelSize; i++)
+	{
+		glm::vec3 sample(
+			randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator));
+		sample = glm::normalize(sample);
+		sample *= randomFloats(generator);
+		f32 scale = static_cast<f32>(i) / 64.0f;
+		scale = Lerp(0.1f, 1.0f, scale * scale);
+		sample *= scale;
+		ssaoKernel.at(i) = sample;
+	}
+
+	return ssaoKernel;
+}
+
+std::array<glm::vec3, SsaoRandomTextureSize> GenerateSsaoRandomTexture()
+{
+	std::random_device rd;
+	std::default_random_engine generator(rd());
+	std::uniform_real_distribution<f32> randomFloats(0.0f, 1.0f);
+	std::array<glm::vec3, SsaoRandomTextureSize> ssaoRandomTexture{};
+	for (auto& randomSample : ssaoRandomTexture)
+	{
+		const glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f);
+		randomSample = noise;
+	}
+
+	return ssaoRandomTexture;
 }
 }// namespace stw

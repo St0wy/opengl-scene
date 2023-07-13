@@ -80,6 +80,15 @@ constexpr glm::mat4 ConvertMatAssimpToGlm(const aiMatrix4x4& assimpMatrix)
 
 std::array<f32, ShadowMapNumCascades> ComputeCascades();
 
+std::array<glm::vec3, SsaoKernelSize> GenerateSsaoKernel();
+std::array<glm::vec3, SsaoRandomTextureSize> GenerateSsaoRandomTexture();
+
+template<typename T>
+constexpr T Lerp(T a, T b, T f)
+{
+	return a + f * (b - a);
+}
+
 void ClearGlErrors();
 
 bool CheckGlError(std::string_view file, u32 line);

@@ -58,7 +58,6 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 	m_DirectionalLightPipeline.SetInt("gPosition", 0);
 	m_DirectionalLightPipeline.SetInt("gNormal", 1);
 	m_DirectionalLightPipeline.SetInt("gBaseColorSpecular", 2);
-	m_DirectionalLightPipeline.SetInt("depthBuffer", 3);
 	m_DirectionalLightPipeline.SetInt("shadowMaps[0]", 4);
 	m_DirectionalLightPipeline.SetInt("shadowMaps[1]", 5);
 	m_DirectionalLightPipeline.SetInt("shadowMaps[2]", 6);
@@ -143,6 +142,16 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 	SetViewport({ 0, 0 }, screenSize);
 
 	m_Intervals = ComputeCascades();
+
+	m_SsaoKernel = GenerateSsaoKernel();
+	m_SsaoRandomTexture = GenerateSsaoRandomTexture();
+	GLCALL(glGenTextures(1, &m_SsaoGlRandomTexture));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_SsaoGlRandomTexture));
+	GLCALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 4, 4, 0, GL_RGB, GL_FLOAT, m_SsaoRandomTexture.data()));
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 }
 
 void stw::Renderer::SetEnableMultisample(const bool enableMultisample)
@@ -783,7 +792,7 @@ std::optional<std::array<glm::mat4, stw::ShadowMapNumCascades>> stw::Renderer::G
 		}
 	}
 
-	m_LightViewProjMatrices = lightViewMatrices;
+	//	m_LightViewProjMatrices = lightViewMatrices;
 	return lightViewMatrices;
 }
 
