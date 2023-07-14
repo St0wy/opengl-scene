@@ -21,12 +21,28 @@ stw::Renderer::~Renderer()
 void stw::Renderer::Init(glm::uvec2 screenSize)
 {
 	m_IsInitialized = true;
+
 	m_MatricesUniformBuffer.Init(0);
 	m_MatricesUniformBuffer.Bind();
 	constexpr GLsizeiptr matricesSize = 2 * sizeof(glm::mat4);
 	m_MatricesUniformBuffer.Allocate(matricesSize);
+
 	m_SceneGraph.Init();
 
+	m_DebugSphereLight = Mesh::CreateUvSphere(1.0f, 20, 20);
+	m_RenderQuad = Mesh::CreateQuad();
+
+	InitPipelines();
+
+	InitFramebuffers(screenSize);
+	SetViewport({ 0, 0 }, screenSize);
+
+	m_Intervals = ComputeCascades();
+	InitSsao();
+}
+
+void stw::Renderer::InitPipelines()
+{
 	m_DepthPipeline.InitFromPath("shaders/shadow_map/depth.vert", "shaders/shadow_map/depth.frag");
 	m_HdrPipeline.InitFromPath("shaders/quad.vert", "shaders/hdr/hdr.frag");
 	m_HdrPipeline.Bind();
@@ -51,6 +67,7 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 	m_PointLightPipeline.SetInt("gPosition", 0);
 	m_PointLightPipeline.SetInt("gNormal", 1);
 	m_PointLightPipeline.SetInt("gBaseColorSpecular", 2);
+	m_PointLightPipeline.SetInt("gSsao", 3);
 	m_PointLightPipeline.UnBind();
 
 	m_DirectionalLightPipeline.InitFromPath("shaders/quad.vert", "shaders/deferred/directional_light_pass.frag");
@@ -58,6 +75,7 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 	m_DirectionalLightPipeline.SetInt("gPosition", 0);
 	m_DirectionalLightPipeline.SetInt("gNormal", 1);
 	m_DirectionalLightPipeline.SetInt("gBaseColorSpecular", 2);
+	m_DirectionalLightPipeline.SetInt("gSsao", 3);
 	m_DirectionalLightPipeline.SetInt("shadowMaps[0]", 4);
 	m_DirectionalLightPipeline.SetInt("shadowMaps[1]", 5);
 	m_DirectionalLightPipeline.SetInt("shadowMaps[2]", 6);
@@ -65,8 +83,22 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 	m_DirectionalLightPipeline.UnBind();
 
 	m_DebugLightsPipeline.InitFromPath("shaders/deferred/debug_light.vert", "shaders/deferred/debug_light.frag");
-	m_DebugSphereLight = Mesh::CreateUvSphere(1.0f, 20, 20);
 
+	m_SsaoPipeline.InitFromPath("shaders/quad.vert", "shaders/ssao/ssao.frag");
+	m_SsaoPipeline.Bind();
+	m_SsaoPipeline.SetInt("gPosition", 0);
+	m_SsaoPipeline.SetInt("gNormal", 1);
+	m_SsaoPipeline.SetInt("texNoise", 2);
+	m_SsaoPipeline.UnBind();
+
+	m_SsaoBlurPipeline.InitFromPath("shaders/quad.vert", "shaders/ssao/blur.frag");
+	m_SsaoBlurPipeline.Bind();
+	m_SsaoPipeline.SetInt("gSsao", 0);
+	m_SsaoBlurPipeline.UnBind();
+}
+
+void stw::Renderer::InitFramebuffers(glm::uvec2 screenSize)
+{
 	{
 		FramebufferDepthStencilAttachment depthStencilAttachment{};
 		depthStencilAttachment.isRenderbufferObject = false;
@@ -98,7 +130,6 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 		framebufferDescription.framebufferSize = screenSize;
 		m_HdrFramebuffer.Init(framebufferDescription);
 	}
-
 	{
 		FramebufferDepthStencilAttachment depthStencilAttachment{};
 		depthStencilAttachment.isRenderbufferObject = true;
@@ -128,6 +159,19 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 		framebufferDescription.framebufferSize = screenSize;
 		m_GBufferFramebuffer.Init(framebufferDescription);
 	}
+	{
+		FramebufferColorAttachment colorAttachment{};
+		colorAttachment.format = FramebufferColorAttachment::Format::Red;
+		colorAttachment.size = FramebufferColorAttachment::Size::Eight;
+		colorAttachment.type = FramebufferColorAttachment::Type::Float;
+
+		FramebufferDescription framebufferDescription{};
+		framebufferDescription.colorAttachmentsCount = 1;
+		framebufferDescription.colorAttachments[0] = colorAttachment;
+		framebufferDescription.framebufferSize = screenSize;
+		m_SsaoFramebuffer.Init(framebufferDescription);
+		m_SsaoBlurFramebuffer.Init(framebufferDescription);
+	}
 
 	const bool success = m_BloomFramebuffer.Init(screenSize, MipChainLength);
 
@@ -136,13 +180,10 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 		spdlog::error("Could not successfully initialize bloom framebuffer");
 		assert(false);
 	}
+}
 
-	m_RenderQuad = Mesh::CreateQuad();
-
-	SetViewport({ 0, 0 }, screenSize);
-
-	m_Intervals = ComputeCascades();
-
+void stw::Renderer::InitSsao()
+{
 	m_SsaoKernel = GenerateSsaoKernel();
 	m_SsaoRandomTexture = GenerateSsaoRandomTexture();
 	GLCALL(glGenTextures(1, &m_SsaoGlRandomTexture));
@@ -213,10 +254,11 @@ void stw::Renderer::SetViewport(const glm::ivec2 pos, const glm::uvec2 size)
 {
 	m_ViewportSize = size;
 	GLCALL(glViewport(pos.x, pos.y, static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y)));
-	m_HdrFramebuffer.Delete();
 
 	m_HdrFramebuffer.Resize(size);
 	m_GBufferFramebuffer.Resize(size);
+	m_SsaoFramebuffer.Resize(size);
+	m_SsaoBlurFramebuffer.Resize(size);
 }
 
 void stw::Renderer::Clear(const GLbitfield mask)// NOLINT(readability-convert-member-functions-to-static)
@@ -231,6 +273,8 @@ void stw::Renderer::DrawScene()
 	GLCALL(glDisable(GL_BLEND));
 
 	RenderGBuffer();
+
+	RenderSsao();
 
 	RenderLightsToHdrFramebuffer();
 
@@ -256,6 +300,7 @@ void stw::Renderer::DrawScene()
 
 void stw::Renderer::RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices)
 {
+	GLCALL(glCullFace(GL_FRONT));
 	for (usize i = 0; i < lightViewProjMatrices.size(); i++)
 	{
 		GLCALL(glEnable(GL_DEPTH_CLAMP));
@@ -283,6 +328,7 @@ void stw::Renderer::RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCas
 		m_LightDepthMapFramebuffers.at(i).UnBind();
 		GLCALL(glDisable(GL_DEPTH_CLAMP));
 	}
+	GLCALL(glCullFace(GL_BACK));
 }
 
 void stw::Renderer::Delete()
@@ -316,6 +362,10 @@ void stw::Renderer::Delete()
 	m_DebugSphereLight.Delete();
 	m_DebugLightsPipeline.Delete();
 	m_DirectionalLightPipeline.Delete();
+	m_SsaoPipeline.Delete();
+	m_SsaoFramebuffer.Delete();
+	m_SsaoBlurFramebuffer.Delete();
+	m_SsaoBlurPipeline.Delete();
 }
 
 void stw::Renderer::SetOpenGlCapability(const bool enabled, const GLenum capability, bool& field)
@@ -461,8 +511,12 @@ stw::ProcessMeshResult stw::Renderer::ProcessMesh(const aiMesh* assimpMesh, std:
 	return { std::move(mesh), materialIndex };
 }
 
-void stw::Renderer::SetDirectionalLight(const stw::DirectionalLight& directionalLight)
+void stw::Renderer::SetDirectionalLight(stw::DirectionalLight directionalLight)
 {
+	if (directionalLight.direction == glm::vec3{ 0.0f, -1.0f, 0.0f })
+	{
+		directionalLight.direction = glm::normalize(glm::vec3{ 0.0f, -1.0f, 0.000001f });
+	}
 	m_DirectionalLight.emplace(directionalLight);
 }
 
@@ -663,6 +717,10 @@ void stw::Renderer::RenderPointLights()
 	GLCALL(glActiveTexture(GL_TEXTURE2));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(2)));
 
+	// SSAO
+	GLCALL(glActiveTexture(GL_TEXTURE3));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_SsaoBlurFramebuffer.GetColorAttachment(0)));
+
 	for (usize i = 0; i < m_PointLightsCount; i++)
 	{
 		const PointLight& pointLight = m_PointLights.at(i);
@@ -718,7 +776,7 @@ void stw::Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMap
 {
 	m_DirectionalLightPipeline.Bind();
 	m_DirectionalLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
-	m_DirectionalLightPipeline.SetMat4("viewMatrix", m_Camera->GetViewMatrix());
+	m_MatricesUniformBuffer.Bind();
 
 	m_DirectionalLightPipeline.SetVec4(
 		"csmFarDistances", glm::vec4{ m_Intervals[0], m_Intervals[1], m_Intervals[2], m_Intervals[3] });
@@ -740,6 +798,10 @@ void stw::Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMap
 	GLCALL(glActiveTexture(GL_TEXTURE2));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(2)));
 
+	// SSAO
+	GLCALL(glActiveTexture(GL_TEXTURE3));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_SsaoBlurFramebuffer.GetColorAttachment(0)));
+
 	// Shadow map
 	for (usize i = 0; i < m_LightDepthMapFramebuffers.size(); i++)
 	{
@@ -755,7 +817,7 @@ void stw::Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMap
 	m_RenderQuad.GetVertexArray().Bind();
 	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
 	m_RenderQuad.GetVertexArray().UnBind();
-
+	m_MatricesUniformBuffer.UnBind();
 	m_DirectionalLightPipeline.UnBind();
 }
 
@@ -872,6 +934,43 @@ glm::mat4 stw::Renderer::ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane)
 		glm::ortho(minLightProj.x, maxLightProj.x, minLightProj.y, maxLightProj.y, minLightProj.z, maxLightProj.z);
 
 	return lightProjection * lightView;
+}
+
+void stw::Renderer::RenderSsao()
+{
+	m_SsaoFramebuffer.Bind();
+	Clear(GL_COLOR_BUFFER_BIT);
+
+	m_SsaoPipeline.Bind();
+	m_SsaoPipeline.SetVec2("screenSize", m_ViewportSize);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0));
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(1));
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, m_SsaoGlRandomTexture);
+
+	m_SsaoPipeline.SetVec3V("samples", m_SsaoKernel);
+
+	m_RenderQuad.GetVertexArray().Bind();
+	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+	m_RenderQuad.GetVertexArray().UnBind();
+
+	m_SsaoPipeline.UnBind();
+	m_SsaoFramebuffer.UnBind();
+
+	m_SsaoBlurFramebuffer.Bind();
+	m_SsaoBlurPipeline.Bind();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_SsaoFramebuffer.GetColorAttachment(0));
+
+	m_RenderQuad.GetVertexArray().Bind();
+	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+	m_RenderQuad.GetVertexArray().UnBind();
+
+	m_SsaoBlurFramebuffer.UnBind();
+	m_SsaoBlurPipeline.UnBind();
 }
 
 stw::PointLight::PointLight(glm::vec3 position, f32 linear, f32 quadratic, glm::vec3 color)

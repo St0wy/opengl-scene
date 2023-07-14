@@ -15,16 +15,23 @@ in vec2 TexCoords;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gBaseColorSpecular;
+uniform sampler2D gSsao;
 uniform sampler2D shadowMaps[NUM_CASCADES];
 
 uniform DirectionalLight directionalLight;
 
 uniform mat4 lightViewProjMatrix[NUM_CASCADES];
-uniform mat4 viewMatrix;
 uniform vec3 viewPos;
 uniform vec4 csmFarDistances;
 
-vec3 ComputeDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirection, vec3 fragPos, vec3 diffuseTex, float specularTex);
+layout (std140, binding = 0) uniform Matrices
+{
+	mat4 projection;
+	mat4 view;
+};
+
+vec3 ComputeDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirection, vec3 fragPos,
+vec3 diffuseTex, float specularTex, float ambientOcclusion);
 float ComputeShadowIntensity(int cascadeIndex, vec4 fragPosLightSpace, vec3 normal);
 
 void main()
@@ -33,20 +40,22 @@ void main()
 	vec3 normal = texture(gNormal, TexCoords).rgb;
 	vec3 diffuse = texture(gBaseColorSpecular, TexCoords).rgb;
 	float specular = texture(gBaseColorSpecular, TexCoords).a;
+	float ambientOcclusion = texture(gSsao, TexCoords).r;
 
 	vec3 viewDir = normalize(viewPos - fragPos);
 
-	vec3 result = ComputeDirectionalLight(directionalLight, normal, viewDir, fragPos, diffuse, specular);
+	vec3 result = ComputeDirectionalLight(directionalLight, normal, viewDir, fragPos, diffuse, specular, ambientOcclusion);
 
 	FragColor = vec4(result, 1.0);
 }
 
-vec3 ComputeDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirection, vec3 fragPos, vec3 diffuseTex, float specularTex)
+vec3 ComputeDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirection, vec3 fragPos,
+vec3 diffuseTex, float specularTex, float ambientOcclusion)
 {
 	vec3 lightDirection = normalize(-light.direction);
 
 	// Diffuse
-	float diffuseIntensity = max(dot(normal, lightDirection), 0.0);
+	float diffuseIntensity = max(dot(normal, lightDirection), 0.0) * ambientOcclusion;
 
 	// Specular
 	vec3 reflectDirection = reflect(-lightDirection, normal);
@@ -56,7 +65,7 @@ vec3 ComputeDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirec
 	vec3 diffuse = light.color * diffuseIntensity * diffuseTex;
 	vec3 specular = light.color * specularIntensity * specularTex;
 
-	vec4 viewFragPos = viewMatrix * vec4(fragPos, 1.0);
+	vec4 viewFragPos = view * vec4(fragPos, 1.0);
 	float depthValue = -viewFragPos.z;
 	vec4 res = step(csmFarDistances, vec4(depthValue));
 	int shadowCascadeIndex = int(res.x + res.y + res.z + res.w);
@@ -76,7 +85,7 @@ vec3 ComputeDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirec
 	}
 
 	//	return (1.0 - shadow) * (diffuse + specular) + hint;
-	return (1.0 - shadow) * (diffuse + specular);
+	return (1.0 - shadow) * (diffuse + specular) * ambientOcclusion;
 	//	return vec3(depthValue);
 }
 
@@ -95,8 +104,8 @@ float ComputeShadowIntensity(int cascadeIndex, vec4 fragPosLightSpace, vec3 norm
 	float currentDepth = projectionCoords.z;
 
 	// Compute bias (based on depth map resolution and slope)
-	vec3 lightDirection = normalize(directionalLight.direction);
-	float bias = max(0.05 * (1.0 / dot(normal, lightDirection)), 0.005);
+	//	vec3 lightDirection = normalize(directionalLight.direction);
+	//	float bias = max(0.05 * (1.0 / dot(normal, lightDirection)), 0.005);
 
 	// Check whether current frag pos is in shadow
 	//		float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
@@ -108,7 +117,8 @@ float ComputeShadowIntensity(int cascadeIndex, vec4 fragPosLightSpace, vec3 norm
 		for (int y = -1; y <= 1; ++y)
 		{
 			float pcfDepth = texture(shadowMaps[cascadeIndex], projectionCoords.xy + vec2(x, y) * texelSize).r;
-			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+			//			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+			shadow += currentDepth > pcfDepth ? 1.0 : 0.0;
 		}
 	}
 	shadow /= 9.0;

@@ -30,7 +30,6 @@ add_executable(
 	"include/ogl/vertex_array.hpp"
 	"include/ogl/vertex_buffer.hpp"
 	"include/ogl/vertex_buffer_layout.hpp"
-	"include/scenes/normal_map_scene.hpp"
 	"include/scenes/scene.hpp"
 	"include/texture.hpp"
 	"include/timer.hpp"
@@ -53,14 +52,13 @@ add_executable(
 	"src/utils.cpp"
 	"include/material_manager.hpp"
 	"include/scene_graph.hpp"
-	"include/scenes/shadow_mapping_scene.hpp"
 	"include/texture_manager.hpp"
 	"src/material_manager.cpp"
 	"src/scene_graph.cpp"
 	"src/texture_manager.cpp"
 	"include/bloom_framebuffer.hpp"
 	"src/bloom_framebuffer.cpp"
-	include/scenes/deferred_shading_scene.hpp include/consts.hpp)
+	include/scenes/deferred_shading_scene.hpp include/consts.hpp include/scenes/ssao_scene.hpp)
 
 target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_system_libraries(

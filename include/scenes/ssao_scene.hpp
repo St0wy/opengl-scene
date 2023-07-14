@@ -1,12 +1,14 @@
+
 //
-// Created by stowy on 04/07/2023.
+// Created by stowy on 14/07/2023.
 //
 #pragma once
 
-
 #include <GL/glew.h>
 #include <glm/ext.hpp>
+#include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
+#include <numbers>
 #include <random>
 #include <variant>
 
@@ -19,7 +21,7 @@
 
 namespace stw
 {
-class ShadowMappingScene final : public Scene
+class SsaoScene final : public Scene
 {
 public:
 	void Init(glm::uvec2 screenSize) override
@@ -44,77 +46,44 @@ public:
 		}
 
 		m_Camera.SetMovementSpeed(4.0f);
-		m_Camera.SetYaw(180.0f);
 
-		m_Renderer.Init(screenSize);
-		m_Renderer.SetEnableMultisample(true);
-		m_Renderer.SetEnableDepthTest(true);
-		m_Renderer.SetDepthFunc(GL_LEQUAL);
-		m_Renderer.SetClearColor(glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
+		m_Renderer = std::make_unique<Renderer>(&m_Camera);
+		m_Renderer->Init(screenSize);
+		//		m_Renderer->SetEnableMultisample(true);
+		m_Renderer->SetEnableDepthTest(true);
+		m_Renderer->SetDepthFunc(GL_LEQUAL);
+		m_Renderer->SetClearColor(glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
 
-		m_Renderer.SetEnableCullFace(true);
-
-		m_Pipeline.InitFromPath("shaders/shadow_map/shadow_map.vert", "shaders/shadow_map/shadow_map.frag");
-		m_Pipeline.Bind();
-		m_Pipeline.SetInt("shadowMap", 3);
+		m_Renderer->SetEnableCullFace(true);
 
 		UpdateProjection();
 
-		auto result = m_Renderer.LoadModel("./data/backpack/backpack.obj");
-		if (result.has_value())
+		auto result = m_Renderer->LoadModel("./data/backpack/backpack.obj");
+		if (!result.has_value())
 		{
-			spdlog::error("Error on model loading : {}", result.value());
+			spdlog::error("Error on backpack model loading : {}", result.error());
 		}
 
-		glm::vec3 direction{ 0.0f, -1.0f, -0.5f };
+		glm::vec3 direction{ 0.0f, -1.0f, 0.0f };
 		direction = glm::normalize(direction);
-		const DirectionalLight directionalLight{ direction, glm::vec3{ 0.1f }, glm::vec3{ 0.8f }, glm::vec3{ 0.6f } };
-		m_Renderer.SetDirectionalLight(directionalLight);
+		const DirectionalLight directionalLight{ direction, glm::vec3{ 0.3f } };
+		m_Renderer->SetDirectionalLight(directionalLight);
 
-		const PointLight pointLight{ glm::vec3{ 0.0f, 2.0f, 0.0f },
-			0.1f,
-			0.2f,
-			0.3f,
-			glm::vec3{ 0.1f, 0.1f, 0.1f },
-			glm::vec3{ 20.0f , 20.0f, 20.0f},
-			glm::vec3{ 10.0f, 10.0f, 10.0f } };
-
-		m_Renderer.PushPointLight(pointLight);
+		const PointLight p{ glm::vec3{ 0.0f, 0.0f, 9.0f }, 0.1f, 0.2f, glm::vec3{ 2.0f } };
+		m_Renderer->PushPointLight(p);
 	}
 
-	void SetupPipeline(Pipeline& pipeline)
-	{
-		pipeline.Bind();
-		pipeline.SetVec3("viewPos", m_Camera.Position());
-		pipeline.UnBind();
-	}
+	void UpdateProjection() { m_Renderer->UpdateProjectionMatrix(); }
 
-	void UpdateProjection() const
-	{
-		const auto projection = m_Camera.GetProjectionMatrix();
-		m_Renderer.UpdateProjectionMatrix();
-	}
-
-	void UpdateView()
-	{
-		const glm::mat4 view = m_Camera.GetViewMatrix();
-		m_Renderer.UpdateViewMatrix();
-		m_Renderer.viewPosition = m_Camera.Position();
-	}
+	void UpdateView() { m_Renderer->UpdateViewMatrix(); }
 
 	void Update(const f32 deltaTime) override
 	{
-		m_Renderer.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		m_Renderer->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		UpdateView();
 
-		SetupPipeline(m_Pipeline);
-
-		m_Pipeline.Bind();
-
-		m_Renderer.DrawScene();
-
-		m_Pipeline.UnBind();
+		m_Renderer->DrawScene();
 
 #pragma region Camera
 		i32 keyboardStateLength = 0;
@@ -168,19 +137,15 @@ public:
 
 	void OnResize(const i32 windowWidth, const i32 windowHeight) override
 	{
-		m_Renderer.SetViewport({ 0, 0 }, { windowWidth, windowHeight });
+		m_Renderer->SetViewport({ 0, 0 }, { windowWidth, windowHeight });
 		m_Camera.SetAspectRatio(static_cast<f32>(windowWidth) / static_cast<f32>(windowHeight));
+		UpdateProjection();
 	}
 
-	void Delete() override
-	{
-		m_Pipeline.Delete();
-		m_Renderer.Delete();
-	}
+	void Delete() override { m_Renderer->Delete(); }
 
 private:
-	Pipeline m_Pipeline{};
-	Camera m_Camera{ glm::vec3{ 5.0f, 2.0f, -6.0f } };
-	Renderer m_Renderer{};
+	Camera m_Camera{ glm::vec3{ 0.0f, 0.0f, 2.0f } };
+	std::unique_ptr<Renderer> m_Renderer{};
 };
 }// namespace stw

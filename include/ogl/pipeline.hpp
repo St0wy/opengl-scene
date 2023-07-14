@@ -9,6 +9,7 @@
 #include <GL/glew.h>
 #include <glm/fwd.hpp>
 #include <glm/vec3.hpp>
+#include <span>
 
 #include "number_types.hpp"
 
@@ -41,6 +42,7 @@ public:
 	void SetFloat(std::string_view name, f32 value);
 	void SetVec4(std::string_view name, glm::vec4 value);
 	void SetVec3(std::string_view name, glm::vec3 value);
+	void SetVec3V(std::string_view name, std::span<const glm::vec3> values);
 	void SetVec2(std::string_view name, glm::vec2 value);
 	void SetMat3(std::string_view name, const glm::mat3& mat);
 	void SetMat4(std::string_view name, const glm::mat4& mat);

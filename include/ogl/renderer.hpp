@@ -65,6 +65,9 @@ public:
 	Renderer& operator=(Renderer&&) = delete;
 
 	void Init(glm::uvec2 screenSize);
+	void InitPipelines();
+	void InitFramebuffers(glm::uvec2 screenSize);
+	void InitSsao();
 
 	void SetEnableMultisample(bool enableMultisample);
 	void SetEnableDepthTest(bool enableDepthTest);
@@ -79,7 +82,7 @@ public:
 
 	SceneGraph& GetSceneGraph();
 
-	void SetDirectionalLight(const DirectionalLight& directionalLight);
+	void SetDirectionalLight(stw::DirectionalLight directionalLight);
 	[[maybe_unused]] void RemoveDirectionalLight();
 
 	[[maybe_unused]] void PushPointLight(const PointLight& pointLight);
@@ -139,6 +142,10 @@ private:
 	std::array<glm::vec3, SsaoKernelSize> m_SsaoKernel{};
 	std::array<glm::vec3, SsaoRandomTextureSize> m_SsaoRandomTexture{};
 	GLuint m_SsaoGlRandomTexture{};
+	Framebuffer m_SsaoFramebuffer{};
+	Framebuffer m_SsaoBlurFramebuffer{};
+	Pipeline m_SsaoPipeline{};
+	Pipeline m_SsaoBlurPipeline{};
 
 	u32 m_PointLightsCount = 0;
 	std::array<PointLight, MaxPointLights> m_PointLights{};
@@ -155,6 +162,7 @@ private:
 	void RenderDebugLights();
 	void RenderPointLights();
 	void RenderDirectionalLight(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices);
+	void RenderSsao();
 	std::optional<std::array<glm::mat4, ShadowMapNumCascades>> GetLightViewProjMatrices();
 	glm::mat4 ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane);
 };

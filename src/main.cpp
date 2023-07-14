@@ -1,6 +1,6 @@
 #include <spdlog/spdlog.h>
 
-#include "scenes/deferred_shading_scene.hpp"
+#include "scenes/ssao_scene.hpp"
 #include "window.hpp"
 
 int main(int, char*[])
@@ -9,7 +9,7 @@ int main(int, char*[])
 	spdlog::set_level(spdlog::level::debug);
 #endif
 
-	stw::Window<stw::DeferredShadingScene> window("OpenGL Scene");
+	stw::Window<stw::SsaoScene> window("OpenGL Scene");
 	window.Loop();
 	return 0;
 }
