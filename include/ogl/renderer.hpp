@@ -135,7 +135,6 @@ private:
 	Pipeline m_DirectionalLightPipeline;
 
 	std::optional<DirectionalLight> m_DirectionalLight{};
-	//	std::array<glm::mat4, ShadowMapNumCascades> m_LightViewProjMatrices{};
 	glm::vec3 m_OldCamViewPos{};
 	std::array<f32, ShadowMapNumCascades> m_Intervals{};
 

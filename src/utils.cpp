@@ -42,7 +42,10 @@ GLenum GetGlTextureTarget(const TextureType type)
 {
 	switch (type)
 	{
-	case TextureType::Diffuse:
+	case TextureType::Roughness:
+	case TextureType::AmbientOcclusion:
+	case TextureType::Metallic:
+	case TextureType::BaseColor:
 	case TextureType::Specular:
 	case TextureType::Normal:
 		return GL_TEXTURE_2D;
@@ -52,6 +55,7 @@ GLenum GetGlTextureTarget(const TextureType type)
 		return GL_DEPTH_COMPONENT;
 	}
 
+	spdlog::warn("Invalid texture type {} {}", __FILE__, __LINE__);
 	return GL_INVALID_ENUM;
 }
 

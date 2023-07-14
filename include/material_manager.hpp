@@ -22,11 +22,7 @@ public:
 	const Material& operator[](std::size_t index) const;
 
 private:
-	void LoadDiffuse(
-		const aiMaterial* material, const std::filesystem::path& workingDirectory, stw::TextureManager& textureManager);
-	void LoadDiffuseSpecular(
-		const aiMaterial* material, const std::filesystem::path& workingDirectory, stw::TextureManager& textureManager);
-	void LoadDiffuseSpecularNormal(
+	void LoadPbrNormal(
 		const aiMaterial* material, const std::filesystem::path& workingDirectory, stw::TextureManager& textureManager);
 
 	std::vector<Material> m_Materials;

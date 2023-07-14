@@ -9,38 +9,25 @@
 #define STBI_FAILURE_USERMSG
 #endif
 #include <array>
-#include <stb_image/stb_image.h>
 #include <spdlog/spdlog.h>
+#include <stb_image/stb_image.h>
 
 #include "utils.hpp"
 
-
-//void stw::SmartTexture::Bind(Pipeline& pipeline) const
-//{
-//	ASSERT_MESSAGE(m_TextureId != 0, "The texture should be initialized before being boud.");
-//	const GLenum activeTexture = GetTextureFromId(m_UniformId);
-//
-//	glActiveTexture(activeTexture);
-//	pipeline.SetInt(m_UniformName.c_str(), m_UniformId);
-//	glBindTexture(GL_TEXTURE_2D, m_TextureId);
-//}
-
-std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::filesystem::path& path,
-	const TextureType type,
-	const TextureSpace space)
+std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(
+	const std::filesystem::path& path, const TextureType type, const TextureSpace space)
 {
-	int width;
-	int height;
-	int nbrComponents;
+	int width = 0;
+	int height = 0;
+	int nbrComponents = 0;
 	const auto stringPath = path.string();
 	unsigned char* data = stbi_load(stringPath.c_str(), &width, &height, &nbrComponents, 0);
 
 	if (!data)
 	{
 		stbi_image_free(data);
-		return std::unexpected(fmt::format("Texture failed to load at path: {}\n{}",
-			stringPath,
-			stbi_failure_reason()));
+		return std::unexpected(
+			fmt::format("Texture failed to load at path: {}\n{}", stringPath, stbi_failure_reason()));
 	}
 
 	Texture texture;
@@ -57,7 +44,7 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(const std::f
 
 	stbi_image_free(data);
 
-	return {std::move(texture)};
+	return { std::move(texture) };
 }
 
 std::expected<stw::Texture, std::string> stw::Texture::LoadCubeMap(
@@ -67,13 +54,13 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadCubeMap(
 	texture.Init(TextureType::CubeMap, TextureSpace::Srgb);
 	texture.Bind();
 
-	int width;
-	int height;
-	int nbrComponents;
+	int width = 0;
+	int height = 0;
+	int nbrComponents = 0;
 
 	for (std::size_t i = 0; i < paths.size(); i++)
 	{
-		const auto stringPath = paths[i].string();
+		const auto stringPath = paths.at(i).string();
 		unsigned char* data = stbi_load(stringPath.c_str(), &width, &height, &nbrComponents, 0);
 		if (!data)
 		{
@@ -84,7 +71,7 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadCubeMap(
 
 		texture.SetFormat(nbrComponents);
 		const auto target = static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
-		texture.Specify(width, height, data, {target});
+		texture.Specify(width, height, data, { target });
 		stbi_image_free(data);
 	}
 
@@ -94,7 +81,7 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadCubeMap(
 	texture.SetWrapT(GL_CLAMP_TO_EDGE);
 	texture.SetWrapR(GL_CLAMP_TO_EDGE);
 
-	return {std::move(texture)};
+	return { std::move(texture) };
 }
 
 void stw::Texture::Init(const TextureType type, const stw::TextureSpace textureSpace)
@@ -112,7 +99,6 @@ void stw::Texture::SetFormat(const int nbComponents)
 	case 1:
 		glFormat = GL_RED;
 		internalFormat = static_cast<GLint>(glFormat);
-
 		break;
 	case 2:
 		glFormat = GL_RG;
@@ -137,6 +123,7 @@ void stw::Texture::SetFormat(const int nbComponents)
 	default:
 		glFormat = GL_INVALID_ENUM;
 		internalFormat = GL_INVALID_ENUM;
+		spdlog::warn("Unhandled amount of channels in texture : {}", nbComponents);
 		break;
 	}
 }
@@ -167,10 +154,7 @@ void stw::Texture::Specify(const GLsizei width,
 	}
 }
 
-void stw::Texture::GenerateMipmap() const
-{
-	GLCALL(glGenerateMipmap(m_GlTextureTarget));
-}
+void stw::Texture::GenerateMipmap() const { GLCALL(glGenerateMipmap(m_GlTextureTarget)); }
 
 void stw::Texture::SetMinFilter(const GLint filter) const
 {
@@ -182,20 +166,11 @@ void stw::Texture::SetMagFilter(const GLint filter) const
 	glTexParameteri(m_GlTextureTarget, GL_TEXTURE_MAG_FILTER, filter);
 }
 
-void stw::Texture::SetWrapS(const GLint wrap) const
-{
-	glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_S, wrap);
-}
+void stw::Texture::SetWrapS(const GLint wrap) const { glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_S, wrap); }
 
-void stw::Texture::SetWrapT(const GLint wrap) const
-{
-	glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_T, wrap);
-}
+void stw::Texture::SetWrapT(const GLint wrap) const { glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_T, wrap); }
 
-void stw::Texture::SetWrapR(const GLint wrap) const
-{
-	glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_R, wrap);
-}
+void stw::Texture::SetWrapR(const GLint wrap) const { glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_R, wrap); }
 
 void stw::Texture::Delete()
 {
@@ -207,7 +182,7 @@ const char* stw::ToString(const TextureType type)
 {
 	switch (type)
 	{
-	case TextureType::Diffuse:
+	case TextureType::BaseColor:
 		return "texture_diffuse";
 	case TextureType::Specular:
 		return "texture_specular";
@@ -224,7 +199,7 @@ aiTextureType stw::ToAssimpTextureType(const TextureType type)
 {
 	switch (type)
 	{
-	case TextureType::Diffuse:
+	case TextureType::BaseColor:
 		return aiTextureType_DIFFUSE;
 	case TextureType::Specular:
 		return aiTextureType_SPECULAR;
@@ -236,12 +211,8 @@ aiTextureType stw::ToAssimpTextureType(const TextureType type)
 }
 
 stw::Texture::Texture(Texture&& other) noexcept
-	: textureId(other.textureId),
-	textureType(other.textureType),
-	space(other.space),
-	glFormat(other.glFormat),
-	internalFormat(other.internalFormat),
-	m_GlTextureTarget(other.m_GlTextureTarget)
+	: textureId(other.textureId), textureType(other.textureType), space(other.space), glFormat(other.glFormat),
+	  internalFormat(other.internalFormat), m_GlTextureTarget(other.m_GlTextureTarget)
 {
 	other.textureId = 0;
 	other.glFormat = GL_INVALID_ENUM;
@@ -260,7 +231,9 @@ stw::Texture::~Texture()
 stw::Texture& stw::Texture::operator=(Texture&& other) noexcept
 {
 	if (this == &other)
+	{
 		return *this;
+	}
 
 	Delete();
 	textureId = other.textureId;

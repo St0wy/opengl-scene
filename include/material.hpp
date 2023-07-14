@@ -12,25 +12,16 @@ struct InvalidMaterial
 {
 };
 
-struct MaterialDiffuse
+struct MaterialPbrNormal
 {
-	std::size_t diffuseMapIndex{};
-};
-
-struct MaterialDiffuseSpecular
-{
-	std::size_t diffuseMapIndex{};
-	std::size_t specularMapIndex{};
-};
-
-struct MaterialDiffuseSpecularNormal
-{
-	std::size_t diffuseMapIndex{};
-	std::size_t specularMapIndex{};
+	std::size_t baseColorMapIndex{};
 	std::size_t normalMapIndex{};
+	std::size_t ambientOcclusionMapIndex{};
+	std::size_t roughnessMapIndex{};
+	std::size_t metallicMapIndex{};
 };
 
-using Material = std::variant<InvalidMaterial, MaterialDiffuse, MaterialDiffuseSpecularNormal, MaterialDiffuseSpecular>;
+using Material = std::variant<InvalidMaterial, MaterialPbrNormal>;
 
 void BindMaterialForGBuffer(const Material& materialVariant, TextureManager& textureManager, Pipeline& gBufferPipeline);
 }// namespace stw

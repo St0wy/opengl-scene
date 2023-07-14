@@ -4,20 +4,23 @@
 
 #pragma once
 
+#include <assimp/material.h>
 #include <expected>
 #include <filesystem>
+#include <GL/glew.h>
 #include <string>
 #include <string_view>
-#include <assimp/material.h>
-#include <GL/glew.h>
 
 namespace stw
 {
 enum class TextureType
 {
-	Diffuse,
+	BaseColor,
 	Specular,
 	Normal,
+	Roughness,
+	AmbientOcclusion,
+	Metallic,
 	CubeMap,
 	DepthMap,
 };
@@ -31,36 +34,9 @@ enum class TextureSpace
 const char* ToString(TextureType type);
 aiTextureType ToAssimpTextureType(TextureType type);
 
-// This is the texture that was used in the light scene
-// It is called smart because it handles the OpenGL logic to bind it to the shader
-//class SmartTexture final
-//{
-//public:
-//	SmartTexture() = default;
-//	~SmartTexture();
-//	SmartTexture(const SmartTexture& other) = delete;
-//	SmartTexture(SmartTexture&& other) = default;
-//	SmartTexture& operator=(const SmartTexture& other) = delete;
-//	SmartTexture& operator=(SmartTexture&& other) noexcept = default;
-//
-//	void Init(std::string_view path,
-//		std::string uniformName,
-//		GLint uniformId,
-//		Pipeline& pipeline,
-//		GLint format = GL_RGB);
-//	void Bind(Pipeline& pipeline) const;
-//
-//private:
-//	GLuint m_TextureId{};
-//	i32 m_Width{};
-//	i32 m_Height{};
-//	i32 m_ChannelsInFile{};
-//	std::string m_UniformName{};
-//	GLint m_UniformId{};
-//};
-
-struct Texture
+class Texture
 {
+public:
 	Texture() = default;
 	Texture(const Texture&) = delete;
 	Texture(Texture&& other) noexcept;
@@ -71,14 +47,13 @@ struct Texture
 
 	static constexpr std::size_t CubeMapTextureCount = 6;
 
-	static std::expected<Texture, std::string> LoadFromPath(const std::filesystem::path& path,
-		TextureType type,
-		TextureSpace space = TextureSpace::Linear);
+	static std::expected<Texture, std::string> LoadFromPath(
+		const std::filesystem::path& path, TextureType type, TextureSpace space = TextureSpace::Srgb);
 	static std::expected<Texture, std::string> LoadCubeMap(
 		const std::array<std::filesystem::path, CubeMapTextureCount>& paths);
 
 	GLuint textureId = 0;
-	TextureType textureType = TextureType::Diffuse;
+	TextureType textureType = TextureType::BaseColor;
 	TextureSpace space = TextureSpace::Srgb;
 	GLenum glFormat = GL_INVALID_ENUM;
 	GLint internalFormat = -1;
@@ -102,4 +77,4 @@ struct Texture
 private:
 	GLenum m_GlTextureTarget = GL_INVALID_ENUM;
 };
-} // namespace stw
+}// namespace stw

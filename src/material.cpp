@@ -7,47 +7,29 @@
 void stw::BindMaterialForGBuffer(
 	const stw::Material& materialVariant, stw::TextureManager& textureManager, stw::Pipeline& gBufferPipeline)
 {
-
-	const auto noNormalNoSpecular = [&textureManager, &gBufferPipeline](const MaterialDiffuse& material) {
-		Pipeline& pipeline = gBufferPipeline;
-		pipeline.Bind();
-		GLCALL(glActiveTexture(GL_TEXTURE0));
-		pipeline.SetInt("texture_diffuse", 0);
-		textureManager.GetTexture(material.diffuseMapIndex).Bind();
-
-		GLCALL(glActiveTexture(GL_TEXTURE0));
-	};
-
-	const auto normalSpecular = [&textureManager, &gBufferPipeline](const MaterialDiffuseSpecularNormal& material) {
-		Pipeline& pipeline = gBufferPipeline;
+	const auto pbrNormal = [&textureManager, &gBufferPipeline](const MaterialPbrNormal& material) {
+		Pipeline const& pipeline = gBufferPipeline;
 		pipeline.Bind();
 
+		// Base Color
 		GLCALL(glActiveTexture(GL_TEXTURE0));
-		pipeline.SetInt("texture_diffuse", 0);
-		textureManager.GetTexture(material.diffuseMapIndex).Bind();
+		textureManager.GetTexture(material.baseColorMapIndex).Bind();
 
+		// Normal
 		GLCALL(glActiveTexture(GL_TEXTURE1));
-		pipeline.SetInt("texture_normal", 1);
 		textureManager.GetTexture(material.normalMapIndex).Bind();
 
+		// Ambient Occlusion
 		GLCALL(glActiveTexture(GL_TEXTURE2));
-		pipeline.SetInt("texture_specular", 2);
-		textureManager.GetTexture(material.specularMapIndex).Bind();
+		textureManager.GetTexture(material.ambientOcclusionMapIndex).Bind();
 
-		GLCALL(glActiveTexture(GL_TEXTURE0));
-	};
+		// Roughness
+		GLCALL(glActiveTexture(GL_TEXTURE3));
+		textureManager.GetTexture(material.roughnessMapIndex).Bind();
 
-	const auto noNormalSpecular = [&textureManager, &gBufferPipeline](const MaterialDiffuseSpecular& material) {
-		Pipeline& pipeline = gBufferPipeline;
-		pipeline.Bind();
-
-		GLCALL(glActiveTexture(GL_TEXTURE0));
-		pipeline.SetInt("texture_diffuse", 0);
-		textureManager.GetTexture(material.diffuseMapIndex).Bind();
-
-		GLCALL(glActiveTexture(GL_TEXTURE1));
-		pipeline.SetInt("texture_specular", 1);
-		textureManager.GetTexture(material.specularMapIndex).Bind();
+		// Metallic
+		GLCALL(glActiveTexture(GL_TEXTURE4));
+		textureManager.GetTexture(material.metallicMapIndex).Bind();
 
 		GLCALL(glActiveTexture(GL_TEXTURE0));
 	};
@@ -56,5 +38,5 @@ void stw::BindMaterialForGBuffer(
 		spdlog::error("Invalid material... {} {}", __FILE__, __LINE__);
 	};
 
-	std::visit(Overloaded{ invalid, noNormalNoSpecular, normalSpecular, noNormalSpecular }, materialVariant);
+	std::visit(Overloaded{ invalid, pbrNormal }, materialVariant);
 }

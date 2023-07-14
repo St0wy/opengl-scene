@@ -12,9 +12,10 @@ layout (location = 0) out vec4 FragColor;
 
 in vec2 TexCoords;
 
-uniform sampler2D gPosition;
-uniform sampler2D gNormal;
-uniform sampler2D gBaseColorSpecular;
+// TODO : PBR
+uniform sampler2D gPositionAmbientOcclusion;
+uniform sampler2D gNormalRoughness;
+uniform sampler2D gBaseColorMetallic;
 uniform sampler2D gSsao;
 uniform sampler2D shadowMaps[NUM_CASCADES];
 
@@ -36,15 +37,15 @@ float ComputeShadowIntensity(int cascadeIndex, vec4 fragPosLightSpace, vec3 norm
 
 void main()
 {
-	vec3 fragPos = texture(gPosition, TexCoords).rgb;
-	vec3 normal = texture(gNormal, TexCoords).rgb;
-	vec3 diffuse = texture(gBaseColorSpecular, TexCoords).rgb;
-	float specular = texture(gBaseColorSpecular, TexCoords).a;
+	vec3 fragPos = texture(gPositionAmbientOcclusion, TexCoords).rgb;
+	vec3 normal = texture(gNormalRoughness, TexCoords).rgb;
+	vec3 baseColor = texture(gBaseColorMetallic, TexCoords).rgb;
+	float specular = texture(gBaseColorMetallic, TexCoords).a;
 	float ambientOcclusion = texture(gSsao, TexCoords).r;
 
 	vec3 viewDir = normalize(viewPos - fragPos);
 
-	vec3 result = ComputeDirectionalLight(directionalLight, normal, viewDir, fragPos, diffuse, specular, ambientOcclusion);
+	vec3 result = ComputeDirectionalLight(directionalLight, normal, viewDir, fragPos, baseColor, specular, ambientOcclusion);
 
 	FragColor = vec4(result, 1.0);
 }

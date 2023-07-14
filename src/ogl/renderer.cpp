@@ -60,7 +60,14 @@ void stw::Renderer::InitPipelines()
 	m_UpsamplePipeline.SetInt("srcTexture", 0);
 	m_UpsamplePipeline.UnBind();
 
-	m_GBufferPipeline.InitFromPath("shaders/deferred/gbuffer.vert", "shaders/deferred/gbuffer.frag");
+	m_GBufferPipeline.InitFromPath("shaders/pbr/gbuffer.vert", "shaders/pbr/gbuffer.frag");
+	m_GBufferPipeline.Bind();
+	m_GBufferPipeline.SetInt("texture_base_color", 0);
+	m_GBufferPipeline.SetInt("texture_normal", 1);
+	m_GBufferPipeline.SetInt("texture_ambient_occlusion", 2);
+	m_GBufferPipeline.SetInt("texture_roughness", 3);
+	m_GBufferPipeline.SetInt("texture_metallic", 4);
+	m_GBufferPipeline.UnBind();
 
 	m_PointLightPipeline.InitFromPath("shaders/deferred/light_pass.vert", "shaders/deferred/point_light_pass.frag");
 	m_PointLightPipeline.Bind();
@@ -72,9 +79,9 @@ void stw::Renderer::InitPipelines()
 
 	m_DirectionalLightPipeline.InitFromPath("shaders/quad.vert", "shaders/deferred/directional_light_pass.frag");
 	m_DirectionalLightPipeline.Bind();
-	m_DirectionalLightPipeline.SetInt("gPosition", 0);
-	m_DirectionalLightPipeline.SetInt("gNormal", 1);
-	m_DirectionalLightPipeline.SetInt("gBaseColorSpecular", 2);
+	m_DirectionalLightPipeline.SetInt("gPositionAmbientOcclusion", 0);
+	m_DirectionalLightPipeline.SetInt("gNormalRoughness", 1);
+	m_DirectionalLightPipeline.SetInt("gBaseColorMetallic", 2);
 	m_DirectionalLightPipeline.SetInt("gSsao", 3);
 	m_DirectionalLightPipeline.SetInt("shadowMaps[0]", 4);
 	m_DirectionalLightPipeline.SetInt("shadowMaps[1]", 5);
@@ -86,14 +93,14 @@ void stw::Renderer::InitPipelines()
 
 	m_SsaoPipeline.InitFromPath("shaders/quad.vert", "shaders/ssao/ssao.frag");
 	m_SsaoPipeline.Bind();
-	m_SsaoPipeline.SetInt("gPosition", 0);
-	m_SsaoPipeline.SetInt("gNormal", 1);
+	m_SsaoPipeline.SetInt("gPositionAmbientOcclusion", 0);
+	m_SsaoPipeline.SetInt("gNormalRoughness", 1);
 	m_SsaoPipeline.SetInt("texNoise", 2);
 	m_SsaoPipeline.UnBind();
 
 	m_SsaoBlurPipeline.InitFromPath("shaders/quad.vert", "shaders/ssao/blur.frag");
 	m_SsaoBlurPipeline.Bind();
-	m_SsaoPipeline.SetInt("gSsao", 0);
+	m_SsaoBlurPipeline.SetInt("gSsao", 0);
 	m_SsaoBlurPipeline.UnBind();
 }
 
@@ -135,27 +142,27 @@ void stw::Renderer::InitFramebuffers(glm::uvec2 screenSize)
 		depthStencilAttachment.isRenderbufferObject = true;
 		depthStencilAttachment.hasStencil = false;
 
-		FramebufferColorAttachment positionAttachment{};
-		positionAttachment.format = FramebufferColorAttachment::Format::Rgba;
-		positionAttachment.size = FramebufferColorAttachment::Size::Sixteen;
-		positionAttachment.type = FramebufferColorAttachment::Type::Float;
+		FramebufferColorAttachment positionAmbientOcclusionAttachment{};
+		positionAmbientOcclusionAttachment.format = FramebufferColorAttachment::Format::Rgba;
+		positionAmbientOcclusionAttachment.size = FramebufferColorAttachment::Size::Sixteen;
+		positionAmbientOcclusionAttachment.type = FramebufferColorAttachment::Type::Float;
 
-		FramebufferColorAttachment normalAttachment{};
-		normalAttachment.format = FramebufferColorAttachment::Format::Rgba;
-		normalAttachment.size = FramebufferColorAttachment::Size::Sixteen;
-		normalAttachment.type = FramebufferColorAttachment::Type::Float;
+		FramebufferColorAttachment normalRoughnessAttachment{};
+		normalRoughnessAttachment.format = FramebufferColorAttachment::Format::Rgba;
+		normalRoughnessAttachment.size = FramebufferColorAttachment::Size::Sixteen;
+		normalRoughnessAttachment.type = FramebufferColorAttachment::Type::Float;
 
-		FramebufferColorAttachment colorSpecularAttachment{};
-		colorSpecularAttachment.format = FramebufferColorAttachment::Format::Rgba;
-		colorSpecularAttachment.size = FramebufferColorAttachment::Size::Sixteen;
-		colorSpecularAttachment.type = FramebufferColorAttachment::Type::Float;
+		FramebufferColorAttachment colorMetallicAttachment{};
+		colorMetallicAttachment.format = FramebufferColorAttachment::Format::Rgba;
+		colorMetallicAttachment.size = FramebufferColorAttachment::Size::Sixteen;
+		colorMetallicAttachment.type = FramebufferColorAttachment::Type::Float;
 
 		FramebufferDescription framebufferDescription{};
 		framebufferDescription.depthStencilAttachment = depthStencilAttachment;
 		framebufferDescription.colorAttachmentsCount = 3;
-		framebufferDescription.colorAttachments[0] = positionAttachment;
-		framebufferDescription.colorAttachments[1] = normalAttachment;
-		framebufferDescription.colorAttachments[2] = colorSpecularAttachment;
+		framebufferDescription.colorAttachments[0] = positionAmbientOcclusionAttachment;
+		framebufferDescription.colorAttachments[1] = normalRoughnessAttachment;
+		framebufferDescription.colorAttachments[2] = colorMetallicAttachment;
 		framebufferDescription.framebufferSize = screenSize;
 		m_GBufferFramebuffer.Init(framebufferDescription);
 	}
@@ -194,6 +201,375 @@ void stw::Renderer::InitSsao()
 	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
 	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 }
+
+void stw::Renderer::DrawScene()
+{
+	GLCALL(glDepthMask(GL_TRUE));
+	GLCALL(glEnable(GL_DEPTH_TEST));
+	GLCALL(glDisable(GL_BLEND));
+
+	RenderGBuffer();
+
+	RenderSsao();
+
+	RenderLightsToHdrFramebuffer();
+
+	RenderDebugLights();
+
+	RenderBloomToBloomFramebuffer(m_HdrFramebuffer.GetColorAttachment(0), FilterRadius);
+
+	m_HdrPipeline.Bind();
+	GLCALL(glDisable(GL_DEPTH_TEST));
+
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_HdrFramebuffer.GetColorAttachment(0)));
+
+	GLCALL(glActiveTexture(GL_TEXTURE1));
+	const GLuint bloomTexture = m_BloomFramebuffer.MipChain()[0].texture;
+	GLCALL(glBindTexture(GL_TEXTURE_2D, bloomTexture));
+
+	m_RenderQuad.GetVertexArray().Bind();
+	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+	m_RenderQuad.GetVertexArray().UnBind();
+	GLCALL(glEnable(GL_DEPTH_TEST));
+}
+
+void stw::Renderer::RenderGBuffer()
+{
+	m_GBufferFramebuffer.Bind();
+	GLCALL(glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a));
+	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+	m_SceneGraph.ForEach([this](SceneGraphElementIndex elementIndex, std::span<const glm::mat4> transformMatrices) {
+		m_MatricesUniformBuffer.Bind();
+		auto& material = m_MaterialManager[elementIndex.materialId];
+
+		BindMaterialForGBuffer(material, m_TextureManager, m_GBufferPipeline);
+
+		auto& mesh = m_Meshes[elementIndex.meshId];
+		mesh.Bind(transformMatrices);
+
+		const auto size = static_cast<GLsizei>(mesh.GetIndicesSize());
+		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, transformMatrices.size()));
+
+		mesh.UnBind();
+		m_MatricesUniformBuffer.UnBind();
+	});
+	m_GBufferFramebuffer.UnBind();
+}
+
+void stw::Renderer::RenderSsao()
+{
+	m_SsaoFramebuffer.Bind();
+	Clear(GL_COLOR_BUFFER_BIT);
+
+	m_SsaoPipeline.Bind();
+	m_SsaoPipeline.SetVec2("screenSize", m_ViewportSize);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0));
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(1));
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, m_SsaoGlRandomTexture);
+
+	m_SsaoPipeline.SetVec3V("samples", m_SsaoKernel);
+
+	m_RenderQuad.GetVertexArray().Bind();
+	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+	m_RenderQuad.GetVertexArray().UnBind();
+
+	m_SsaoPipeline.UnBind();
+	m_SsaoFramebuffer.UnBind();
+
+	m_SsaoBlurFramebuffer.Bind();
+	m_SsaoBlurPipeline.Bind();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_SsaoFramebuffer.GetColorAttachment(0));
+
+	m_RenderQuad.GetVertexArray().Bind();
+	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+	m_RenderQuad.GetVertexArray().UnBind();
+
+	m_SsaoBlurFramebuffer.UnBind();
+	m_SsaoBlurPipeline.UnBind();
+}
+
+void stw::Renderer::RenderLightsToHdrFramebuffer()
+{
+	const auto lightViewProjMatrix = GetLightViewProjMatrices();
+
+	if (m_DirectionalLight.has_value())
+	{
+		RenderShadowMaps(lightViewProjMatrix.value());
+	}
+
+	GLCALL(glViewport(0, 0, m_ViewportSize.x, m_ViewportSize.y));
+
+	m_HdrFramebuffer.Bind();
+	GLCALL(glDepthMask(GL_FALSE));
+	GLCALL(glDisable(GL_DEPTH_TEST));
+
+	GLCALL(glEnable(GL_BLEND));
+	GLCALL(glBlendEquation(GL_FUNC_ADD));
+	GLCALL(glBlendFunc(GL_ONE, GL_ONE));
+
+	GLCALL(glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a));
+	GLCALL(glClear(GL_COLOR_BUFFER_BIT));
+
+	GLCALL(glCullFace(GL_FRONT));
+	RenderPointLights();
+	GLCALL(glCullFace(GL_BACK));
+
+	if (m_DirectionalLight.has_value())
+	{
+		RenderDirectionalLight(lightViewProjMatrix.value());
+	}
+
+	GLCALL(glDepthMask(GL_TRUE));
+	GLCALL(glEnable(GL_DEPTH_TEST));
+	GLCALL(glDisable(GL_BLEND));
+	m_HdrFramebuffer.UnBind();
+
+	// Copy depth stencil from gbuffer to hdr framebuffer
+	m_GBufferFramebuffer.BindRead();
+	m_HdrFramebuffer.BindWrite();
+	GLCALL(glBlitFramebuffer(0,
+		0,
+		m_ViewportSize.x,
+		m_ViewportSize.y,
+		0,
+		0,
+		m_ViewportSize.x,
+		m_ViewportSize.y,
+		GL_DEPTH_BUFFER_BIT,
+		GL_NEAREST));
+	m_HdrFramebuffer.UnBind();
+}
+
+void stw::Renderer::RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices)
+{
+	GLCALL(glCullFace(GL_FRONT));
+	for (usize i = 0; i < lightViewProjMatrices.size(); i++)
+	{
+		GLCALL(glEnable(GL_DEPTH_CLAMP));
+		m_DepthPipeline.Bind();
+		m_DepthPipeline.SetMat4("lightViewProjMatrix", lightViewProjMatrices.at(i));
+
+		GLCALL(glViewport(0, 0, ShadowMapSize, ShadowMapSize));
+		m_LightDepthMapFramebuffers.at(i).Bind();
+		Clear(GL_DEPTH_BUFFER_BIT);
+		// Render meshes on light depth buffer
+		m_SceneGraph.ForEach([this](SceneGraphElementIndex elementIndex, std::span<const glm::mat4> transformMatrices) {
+			m_MatricesUniformBuffer.Bind();
+			auto& mesh = m_Meshes[elementIndex.meshId];
+			mesh.Bind(transformMatrices);
+
+			const auto indicesSize = static_cast<GLsizei>(mesh.GetIndicesSize());
+			GLCALL(
+				glDrawElementsInstanced(GL_TRIANGLES, indicesSize, GL_UNSIGNED_INT, nullptr, transformMatrices.size()));
+
+			mesh.UnBind();
+			m_MatricesUniformBuffer.UnBind();
+		});
+
+		m_DepthPipeline.UnBind();
+		m_LightDepthMapFramebuffers.at(i).UnBind();
+		GLCALL(glDisable(GL_DEPTH_CLAMP));
+	}
+	GLCALL(glCullFace(GL_BACK));
+}
+
+void stw::Renderer::RenderPointLights()
+{
+	m_PointLightPipeline.Bind();
+	m_PointLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
+	m_PointLightPipeline.SetVec2("screenSize", m_ViewportSize);
+
+	// GetPosition
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0)));
+
+	// Normal
+	GLCALL(glActiveTexture(GL_TEXTURE1));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(1)));
+
+	// Base Color + Specular
+	GLCALL(glActiveTexture(GL_TEXTURE2));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(2)));
+
+	// SSAO
+	GLCALL(glActiveTexture(GL_TEXTURE3));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_SsaoBlurFramebuffer.GetColorAttachment(0)));
+
+	for (usize i = 0; i < m_PointLightsCount; i++)
+	{
+		const PointLight& pointLight = m_PointLights.at(i);
+		m_PointLightPipeline.SetVec3("pointLight.position", pointLight.position);
+		m_PointLightPipeline.SetFloat("pointLight.linear", pointLight.linear);
+		m_PointLightPipeline.SetFloat("pointLight.quadratic", pointLight.quadratic);
+		m_PointLightPipeline.SetVec3("pointLight.color", pointLight.color);
+
+		// Render
+		glm::mat4 sphereModel{ 1.0f };
+		sphereModel = glm::translate(sphereModel, pointLight.position);
+		sphereModel = glm::scale(sphereModel, glm::vec3{ pointLight.radius });
+
+		m_PointLightPipeline.SetMat4("modelMatrix", sphereModel);
+		m_MatricesUniformBuffer.Bind();
+
+		m_DebugSphereLight.GetVertexArray().Bind();
+		GLCALL(glDrawElements(GL_TRIANGLES, m_DebugSphereLight.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+		m_DebugSphereLight.GetVertexArray().UnBind();
+		m_MatricesUniformBuffer.UnBind();
+	}
+	m_PointLightPipeline.UnBind();
+}
+
+void stw::Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices)
+{
+	m_DirectionalLightPipeline.Bind();
+	m_DirectionalLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
+	m_MatricesUniformBuffer.Bind();
+
+	m_DirectionalLightPipeline.SetVec4(
+		"csmFarDistances", glm::vec4{ m_Intervals[0], m_Intervals[1], m_Intervals[2], m_Intervals[3] });
+
+	for (usize i = 0; i < lightViewProjMatrices.size(); i++)
+	{
+		m_DirectionalLightPipeline.SetMat4(fmt::format("lightViewProjMatrix[{}]", i), lightViewProjMatrices.at(i));
+	}
+
+	// GetPosition
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0)));
+
+	// Normal
+	GLCALL(glActiveTexture(GL_TEXTURE1));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(1)));
+
+	// Base Color + Specular
+	GLCALL(glActiveTexture(GL_TEXTURE2));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(2)));
+
+	// SSAO
+	GLCALL(glActiveTexture(GL_TEXTURE3));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_SsaoBlurFramebuffer.GetColorAttachment(0)));
+
+	// Shadow map
+	for (usize i = 0; i < m_LightDepthMapFramebuffers.size(); i++)
+	{
+		GLCALL(glActiveTexture(GL_TEXTURE4 + i));
+		GLCALL(glBindTexture(GL_TEXTURE_2D, m_LightDepthMapFramebuffers.at(i).GetDepthStencilAttachment().value()));
+	}
+
+	const DirectionalLight& directionalLight = m_DirectionalLight.value();
+
+	m_DirectionalLightPipeline.SetVec3("directionalLight.direction", directionalLight.direction);
+	m_DirectionalLightPipeline.SetVec3("directionalLight.color", directionalLight.color);
+
+	m_RenderQuad.GetVertexArray().Bind();
+	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+	m_RenderQuad.GetVertexArray().UnBind();
+	m_MatricesUniformBuffer.UnBind();
+	m_DirectionalLightPipeline.UnBind();
+}
+
+void stw::Renderer::RenderDebugLights()
+{
+	GLCALL(glDepthMask(GL_TRUE));
+	GLCALL(glEnable(GL_DEPTH_TEST));
+	constexpr f32 debugLightScale = 0.4f;
+	m_HdrFramebuffer.Bind();
+	m_DebugLightsPipeline.Bind();
+
+	for (usize i = 0; i < m_PointLightsCount; i++)
+	{
+		m_MatricesUniformBuffer.Bind();
+		const auto& pointLight = m_PointLights.at(i);
+
+		m_DebugLightsPipeline.SetVec3("lightColor", pointLight.color);
+
+		glm::mat4 model{ 1.0f };
+		model = glm::translate(model, pointLight.position);
+		model = glm::scale(model, glm::vec3{ debugLightScale });
+
+		m_DebugSphereLight.Bind({ &model, 1 });
+		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, m_DebugSphereLight.GetIndicesSize(), GL_UNSIGNED_INT, nullptr, 1));
+		m_DebugSphereLight.UnBind();
+
+		m_MatricesUniformBuffer.UnBind();
+	}
+}
+
+void stw::Renderer::RenderBloomToBloomFramebuffer(GLuint hdrTexture, f32 filterRadius)
+{
+	m_BloomFramebuffer.Bind();
+	RenderDownsample(hdrTexture);
+	RenderUpsamples(filterRadius);
+	m_BloomFramebuffer.UnBind();
+	GLCALL(glViewport(0, 0, m_ViewportSize.x, m_ViewportSize.y));
+}
+
+void stw::Renderer::RenderDownsample(const GLuint hdrTexture)
+{
+	m_DownsamplePipeline.Bind();
+	m_DownsamplePipeline.SetVec2("srcResolution", glm::vec2(m_ViewportSize));
+
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, hdrTexture));
+
+	for (const BloomMip& bloomMip : m_BloomFramebuffer.MipChain())
+	{
+		GLCALL(glViewport(0, 0, bloomMip.size.x, bloomMip.size.y));
+		GLCALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomMip.texture, 0));
+
+		// Render current mip
+		m_RenderQuad.GetVertexArray().Bind();
+		GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+		m_RenderQuad.GetVertexArray().UnBind();
+
+		m_DownsamplePipeline.SetVec2("srcResolution", bloomMip.size);
+		GLCALL(glBindTexture(GL_TEXTURE_2D, bloomMip.texture));
+	}
+
+	m_DownsamplePipeline.UnBind();
+}
+
+void stw::Renderer::RenderUpsamples(f32 filterRadius)
+{
+	m_UpsamplePipeline.Bind();
+	m_UpsamplePipeline.SetFloat("filterRadius", filterRadius);
+
+	// Enable additive blending
+	GLCALL(glEnable(GL_BLEND));
+	GLCALL(glBlendFunc(GL_ONE, GL_ONE));
+	GLCALL(glBlendEquation(GL_FUNC_ADD));
+
+	const auto mipChain = m_BloomFramebuffer.MipChain();
+
+	for (usize i = mipChain.size() - 1; i > 0; i--)
+	{
+		const BloomMip& bloomMip = mipChain[i];
+		const BloomMip& nextBloomMip = mipChain[i - 1];
+
+		GLCALL(glActiveTexture(GL_TEXTURE0));
+		GLCALL(glBindTexture(GL_TEXTURE_2D, bloomMip.texture));
+
+		GLCALL(glViewport(0, 0, nextBloomMip.size.x, nextBloomMip.size.y));
+		GLCALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, nextBloomMip.texture, 0));
+
+		m_RenderQuad.GetVertexArray().Bind();
+		GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+		m_RenderQuad.GetVertexArray().UnBind();
+	}
+
+	GLCALL(glDisable(GL_BLEND));
+
+	m_UpsamplePipeline.UnBind();
+}
+
+#pragma region Osef
 
 void stw::Renderer::SetEnableMultisample(const bool enableMultisample)
 {
@@ -266,70 +642,20 @@ void stw::Renderer::Clear(const GLbitfield mask)// NOLINT(readability-convert-me
 	GLCALL(glClear(mask));
 }
 
-void stw::Renderer::DrawScene()
+void stw::Renderer::SetOpenGlCapability(const bool enabled, const GLenum capability, bool& field)
 {
-	GLCALL(glDepthMask(GL_TRUE));
-	GLCALL(glEnable(GL_DEPTH_TEST));
-	GLCALL(glDisable(GL_BLEND));
-
-	RenderGBuffer();
-
-	RenderSsao();
-
-	RenderLightsToHdrFramebuffer();
-
-	RenderDebugLights();
-
-	RenderBloomToBloomFramebuffer(m_HdrFramebuffer.GetColorAttachment(0), FilterRadius);
-
-	m_HdrPipeline.Bind();
-	GLCALL(glDisable(GL_DEPTH_TEST));
-
-	GLCALL(glActiveTexture(GL_TEXTURE0));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_HdrFramebuffer.GetColorAttachment(0)));
-
-	GLCALL(glActiveTexture(GL_TEXTURE1));
-	const GLuint bloomTexture = m_BloomFramebuffer.MipChain()[0].texture;
-	GLCALL(glBindTexture(GL_TEXTURE_2D, bloomTexture));
-
-	m_RenderQuad.GetVertexArray().Bind();
-	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
-	m_RenderQuad.GetVertexArray().UnBind();
-	GLCALL(glEnable(GL_DEPTH_TEST));
-}
-
-void stw::Renderer::RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices)
-{
-	GLCALL(glCullFace(GL_FRONT));
-	for (usize i = 0; i < lightViewProjMatrices.size(); i++)
+	field = enabled;
+	if (field)
 	{
-		GLCALL(glEnable(GL_DEPTH_CLAMP));
-		m_DepthPipeline.Bind();
-		m_DepthPipeline.SetMat4("lightViewProjMatrix", lightViewProjMatrices.at(i));
-
-		GLCALL(glViewport(0, 0, ShadowMapSize, ShadowMapSize));
-		m_LightDepthMapFramebuffers.at(i).Bind();
-		Clear(GL_DEPTH_BUFFER_BIT);
-		// Render meshes on light depth buffer
-		m_SceneGraph.ForEach([this](SceneGraphElementIndex elementIndex, std::span<const glm::mat4> transformMatrices) {
-			m_MatricesUniformBuffer.Bind();
-			auto& mesh = m_Meshes[elementIndex.meshId];
-			mesh.Bind(transformMatrices);
-
-			const auto indicesSize = static_cast<GLsizei>(mesh.GetIndicesSize());
-			GLCALL(
-				glDrawElementsInstanced(GL_TRIANGLES, indicesSize, GL_UNSIGNED_INT, nullptr, transformMatrices.size()));
-
-			mesh.UnBind();
-			m_MatricesUniformBuffer.UnBind();
-		});
-
-		m_DepthPipeline.UnBind();
-		m_LightDepthMapFramebuffers.at(i).UnBind();
-		GLCALL(glDisable(GL_DEPTH_CLAMP));
+		GLCALL(glEnable(capability));
 	}
-	GLCALL(glCullFace(GL_BACK));
+	else
+	{
+		GLCALL(glDisable(capability));
+	}
 }
+
+#pragma endregion Osef
 
 void stw::Renderer::Delete()
 {
@@ -366,19 +692,6 @@ void stw::Renderer::Delete()
 	m_SsaoFramebuffer.Delete();
 	m_SsaoBlurFramebuffer.Delete();
 	m_SsaoBlurPipeline.Delete();
-}
-
-void stw::Renderer::SetOpenGlCapability(const bool enabled, const GLenum capability, bool& field)
-{
-	field = enabled;
-	if (field)
-	{
-		GLCALL(glEnable(capability));
-	}
-	else
-	{
-		GLCALL(glDisable(capability));
-	}
 }
 
 [[maybe_unused]] stw::TextureManager& stw::Renderer::GetTextureManager() { return m_TextureManager; }
@@ -554,272 +867,7 @@ void stw::Renderer::SetDirectionalLight(stw::DirectionalLight directionalLight)
 	m_PointLights.at(index) = pointLight;
 }
 
-void stw::Renderer::RenderBloomToBloomFramebuffer(GLuint hdrTexture, f32 filterRadius)
-{
-	m_BloomFramebuffer.Bind();
-	RenderDownsample(hdrTexture);
-	RenderUpsamples(filterRadius);
-	m_BloomFramebuffer.UnBind();
-	GLCALL(glViewport(0, 0, m_ViewportSize.x, m_ViewportSize.y));
-}
-
-void stw::Renderer::RenderDownsample(const GLuint hdrTexture)
-{
-	m_DownsamplePipeline.Bind();
-	m_DownsamplePipeline.SetVec2("srcResolution", glm::vec2(m_ViewportSize));
-
-	GLCALL(glActiveTexture(GL_TEXTURE0));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, hdrTexture));
-
-	for (const BloomMip& bloomMip : m_BloomFramebuffer.MipChain())
-	{
-		GLCALL(glViewport(0, 0, bloomMip.size.x, bloomMip.size.y));
-		GLCALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomMip.texture, 0));
-
-		// Render current mip
-		m_RenderQuad.GetVertexArray().Bind();
-		GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
-		m_RenderQuad.GetVertexArray().UnBind();
-
-		m_DownsamplePipeline.SetVec2("srcResolution", bloomMip.size);
-		GLCALL(glBindTexture(GL_TEXTURE_2D, bloomMip.texture));
-	}
-
-	m_DownsamplePipeline.UnBind();
-}
-
-void stw::Renderer::RenderUpsamples(f32 filterRadius)
-{
-	m_UpsamplePipeline.Bind();
-	m_UpsamplePipeline.SetFloat("filterRadius", filterRadius);
-
-	// Enable additive blending
-	GLCALL(glEnable(GL_BLEND));
-	GLCALL(glBlendFunc(GL_ONE, GL_ONE));
-	GLCALL(glBlendEquation(GL_FUNC_ADD));
-
-	const auto mipChain = m_BloomFramebuffer.MipChain();
-
-	for (usize i = mipChain.size() - 1; i > 0; i--)
-	{
-		const BloomMip& bloomMip = mipChain[i];
-		const BloomMip& nextBloomMip = mipChain[i - 1];
-
-		GLCALL(glActiveTexture(GL_TEXTURE0));
-		GLCALL(glBindTexture(GL_TEXTURE_2D, bloomMip.texture));
-
-		GLCALL(glViewport(0, 0, nextBloomMip.size.x, nextBloomMip.size.y));
-		GLCALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, nextBloomMip.texture, 0));
-
-		m_RenderQuad.GetVertexArray().Bind();
-		GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
-		m_RenderQuad.GetVertexArray().UnBind();
-	}
-
-	GLCALL(glDisable(GL_BLEND));
-
-	m_UpsamplePipeline.UnBind();
-}
-
 stw::SceneGraph& stw::Renderer::GetSceneGraph() { return m_SceneGraph; }
-
-void stw::Renderer::RenderGBuffer()
-{
-	m_GBufferFramebuffer.Bind();
-	GLCALL(glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a));
-	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
-	m_SceneGraph.ForEach([this](SceneGraphElementIndex elementIndex, std::span<const glm::mat4> transformMatrices) {
-		m_MatricesUniformBuffer.Bind();
-		auto& material = m_MaterialManager[elementIndex.materialId];
-
-		BindMaterialForGBuffer(material, m_TextureManager, m_GBufferPipeline);
-
-		auto& mesh = m_Meshes[elementIndex.meshId];
-		mesh.Bind(transformMatrices);
-
-		const auto size = static_cast<GLsizei>(mesh.GetIndicesSize());
-		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, transformMatrices.size()));
-
-		mesh.UnBind();
-		m_MatricesUniformBuffer.UnBind();
-	});
-	m_GBufferFramebuffer.UnBind();
-}
-
-void stw::Renderer::RenderLightsToHdrFramebuffer()
-{
-	const auto lightViewProjMatrix = GetLightViewProjMatrices();
-
-	if (m_DirectionalLight.has_value())
-	{
-		RenderShadowMaps(lightViewProjMatrix.value());
-	}
-
-	GLCALL(glViewport(0, 0, m_ViewportSize.x, m_ViewportSize.y));
-
-	m_HdrFramebuffer.Bind();
-	GLCALL(glDepthMask(GL_FALSE));
-	GLCALL(glDisable(GL_DEPTH_TEST));
-
-	GLCALL(glEnable(GL_BLEND));
-	GLCALL(glBlendEquation(GL_FUNC_ADD));
-	GLCALL(glBlendFunc(GL_ONE, GL_ONE));
-
-	GLCALL(glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a));
-	GLCALL(glClear(GL_COLOR_BUFFER_BIT));
-
-	GLCALL(glCullFace(GL_FRONT));
-	RenderPointLights();
-	GLCALL(glCullFace(GL_BACK));
-
-	if (m_DirectionalLight.has_value())
-	{
-		RenderDirectionalLight(lightViewProjMatrix.value());
-	}
-
-	GLCALL(glDepthMask(GL_TRUE));
-	GLCALL(glEnable(GL_DEPTH_TEST));
-	GLCALL(glDisable(GL_BLEND));
-	m_HdrFramebuffer.UnBind();
-
-	// Copy depth stencil from gbuffer to hdr framebuffer
-	m_GBufferFramebuffer.BindRead();
-	m_HdrFramebuffer.BindWrite();
-	GLCALL(glBlitFramebuffer(0,
-		0,
-		m_ViewportSize.x,
-		m_ViewportSize.y,
-		0,
-		0,
-		m_ViewportSize.x,
-		m_ViewportSize.y,
-		GL_DEPTH_BUFFER_BIT,
-		GL_NEAREST));
-	m_HdrFramebuffer.UnBind();
-}
-
-void stw::Renderer::RenderPointLights()
-{
-	m_PointLightPipeline.Bind();
-	m_PointLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
-	m_PointLightPipeline.SetVec2("screenSize", m_ViewportSize);
-
-	// GetPosition
-	GLCALL(glActiveTexture(GL_TEXTURE0));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0)));
-
-	// Normal
-	GLCALL(glActiveTexture(GL_TEXTURE1));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(1)));
-
-	// Base Color + Specular
-	GLCALL(glActiveTexture(GL_TEXTURE2));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(2)));
-
-	// SSAO
-	GLCALL(glActiveTexture(GL_TEXTURE3));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_SsaoBlurFramebuffer.GetColorAttachment(0)));
-
-	for (usize i = 0; i < m_PointLightsCount; i++)
-	{
-		const PointLight& pointLight = m_PointLights.at(i);
-		m_PointLightPipeline.SetVec3("pointLight.position", pointLight.position);
-		m_PointLightPipeline.SetFloat("pointLight.linear", pointLight.linear);
-		m_PointLightPipeline.SetFloat("pointLight.quadratic", pointLight.quadratic);
-		m_PointLightPipeline.SetVec3("pointLight.color", pointLight.color);
-
-		// Render
-		glm::mat4 sphereModel{ 1.0f };
-		sphereModel = glm::translate(sphereModel, pointLight.position);
-		sphereModel = glm::scale(sphereModel, glm::vec3{ pointLight.radius });
-
-		m_PointLightPipeline.SetMat4("modelMatrix", sphereModel);
-		m_MatricesUniformBuffer.Bind();
-
-		m_DebugSphereLight.GetVertexArray().Bind();
-		GLCALL(glDrawElements(GL_TRIANGLES, m_DebugSphereLight.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
-		m_DebugSphereLight.GetVertexArray().UnBind();
-		m_MatricesUniformBuffer.UnBind();
-	}
-	m_PointLightPipeline.UnBind();
-}
-
-void stw::Renderer::RenderDebugLights()
-{
-	GLCALL(glDepthMask(GL_TRUE));
-	GLCALL(glEnable(GL_DEPTH_TEST));
-	constexpr f32 debugLightScale = 0.4f;
-	m_HdrFramebuffer.Bind();
-	m_DebugLightsPipeline.Bind();
-
-	for (usize i = 0; i < m_PointLightsCount; i++)
-	{
-		m_MatricesUniformBuffer.Bind();
-		const auto& pointLight = m_PointLights.at(i);
-
-		m_DebugLightsPipeline.SetVec3("lightColor", pointLight.color);
-
-		glm::mat4 model{ 1.0f };
-		model = glm::translate(model, pointLight.position);
-		model = glm::scale(model, glm::vec3{ debugLightScale });
-
-		m_DebugSphereLight.Bind({ &model, 1 });
-		GLCALL(glDrawElementsInstanced(GL_TRIANGLES, m_DebugSphereLight.GetIndicesSize(), GL_UNSIGNED_INT, nullptr, 1));
-		m_DebugSphereLight.UnBind();
-
-		m_MatricesUniformBuffer.UnBind();
-	}
-}
-
-void stw::Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices)
-{
-	m_DirectionalLightPipeline.Bind();
-	m_DirectionalLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
-	m_MatricesUniformBuffer.Bind();
-
-	m_DirectionalLightPipeline.SetVec4(
-		"csmFarDistances", glm::vec4{ m_Intervals[0], m_Intervals[1], m_Intervals[2], m_Intervals[3] });
-
-	for (usize i = 0; i < lightViewProjMatrices.size(); i++)
-	{
-		m_DirectionalLightPipeline.SetMat4(fmt::format("lightViewProjMatrix[{}]", i), lightViewProjMatrices.at(i));
-	}
-
-	// GetPosition
-	GLCALL(glActiveTexture(GL_TEXTURE0));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0)));
-
-	// Normal
-	GLCALL(glActiveTexture(GL_TEXTURE1));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(1)));
-
-	// Base Color + Specular
-	GLCALL(glActiveTexture(GL_TEXTURE2));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(2)));
-
-	// SSAO
-	GLCALL(glActiveTexture(GL_TEXTURE3));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_SsaoBlurFramebuffer.GetColorAttachment(0)));
-
-	// Shadow map
-	for (usize i = 0; i < m_LightDepthMapFramebuffers.size(); i++)
-	{
-		GLCALL(glActiveTexture(GL_TEXTURE4 + i));
-		GLCALL(glBindTexture(GL_TEXTURE_2D, m_LightDepthMapFramebuffers.at(i).GetDepthStencilAttachment().value()));
-	}
-
-	const DirectionalLight& directionalLight = m_DirectionalLight.value();
-
-	m_DirectionalLightPipeline.SetVec3("directionalLight.direction", directionalLight.direction);
-	m_DirectionalLightPipeline.SetVec3("directionalLight.color", directionalLight.color);
-
-	m_RenderQuad.GetVertexArray().Bind();
-	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
-	m_RenderQuad.GetVertexArray().UnBind();
-	m_MatricesUniformBuffer.UnBind();
-	m_DirectionalLightPipeline.UnBind();
-}
 
 stw::Renderer::Renderer(gsl::not_null<Camera*> camera) : m_Camera(camera) {}
 
@@ -934,43 +982,6 @@ glm::mat4 stw::Renderer::ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane)
 		glm::ortho(minLightProj.x, maxLightProj.x, minLightProj.y, maxLightProj.y, minLightProj.z, maxLightProj.z);
 
 	return lightProjection * lightView;
-}
-
-void stw::Renderer::RenderSsao()
-{
-	m_SsaoFramebuffer.Bind();
-	Clear(GL_COLOR_BUFFER_BIT);
-
-	m_SsaoPipeline.Bind();
-	m_SsaoPipeline.SetVec2("screenSize", m_ViewportSize);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0));
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(1));
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, m_SsaoGlRandomTexture);
-
-	m_SsaoPipeline.SetVec3V("samples", m_SsaoKernel);
-
-	m_RenderQuad.GetVertexArray().Bind();
-	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
-	m_RenderQuad.GetVertexArray().UnBind();
-
-	m_SsaoPipeline.UnBind();
-	m_SsaoFramebuffer.UnBind();
-
-	m_SsaoBlurFramebuffer.Bind();
-	m_SsaoBlurPipeline.Bind();
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_SsaoFramebuffer.GetColorAttachment(0));
-
-	m_RenderQuad.GetVertexArray().Bind();
-	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
-	m_RenderQuad.GetVertexArray().UnBind();
-
-	m_SsaoBlurFramebuffer.UnBind();
-	m_SsaoBlurPipeline.UnBind();
 }
 
 stw::PointLight::PointLight(glm::vec3 position, f32 linear, f32 quadratic, glm::vec3 color)

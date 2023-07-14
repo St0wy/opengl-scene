@@ -9,8 +9,8 @@ layout (location = 0) out float FragColor;
 
 in vec2 TexCoords;
 
-uniform sampler2D gPosition;
-uniform sampler2D gNormal;
+uniform sampler2D gPositionAmbientOcclusion;
+uniform sampler2D gNormalRoughness;
 uniform sampler2D texNoise;
 
 uniform vec3 samples[SAMPLES_COUNT];
@@ -27,8 +27,8 @@ void main()
 	//	vec3 fragPos = vec3(view * vec4(texture(gPosition, TexCoords).rgb, 1.0));
 	//	vec3 normal = vec3(view * vec4(texture(gNormal, TexCoords).rgb, 1.0));
 
-	vec3 fragPos = texture(gPosition, TexCoords).rgb;
-	vec3 normal = texture(gNormal, TexCoords).rgb;
+	vec3 fragPos = texture(gPositionAmbientOcclusion, TexCoords).rgb;
+	vec3 normal = texture(gNormalRoughness, TexCoords).rgb;
 
 	vec2 noiseScale = screenSize / RANDOM_TEXTURE_SIZE;
 	vec3 randomVec = texture(texNoise, TexCoords * noiseScale).xyz;

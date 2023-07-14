@@ -15,6 +15,7 @@ struct PointLight
 
 layout (location = 0) out vec4 FragColor;
 
+// TODO : Put correct name and to PBR
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gBaseColorSpecular;
