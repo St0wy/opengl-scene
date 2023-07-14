@@ -69,4 +69,17 @@ cpmaddpackage(
 	SYSTEM
 )
 
+cpmaddpackage(
+	NAME
+	GSL
+	VERSION
+	4.0.0
+	GITHUB_REPOSITORY
+	microsoft/GSL
+	OPTIONS
+	"BUILD_SHARED_LIBS OFF"
+	EXCLUDE_FROM_ALL
+	SYSTEM
+)
+
 add_subdirectory(./external)

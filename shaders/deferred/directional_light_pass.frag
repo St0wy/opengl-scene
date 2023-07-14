@@ -75,7 +75,7 @@ vec3 ComputeDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirec
 		hint = vec3(1.0, 1.0, 1.0);
 	}
 
-	//		return (1.0 - shadow) * (diffuse + specular) + hint;
+	//	return (1.0 - shadow) * (diffuse + specular) + hint;
 	return (1.0 - shadow) * (diffuse + specular);
 	//	return vec3(depthValue);
 }

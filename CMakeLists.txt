@@ -75,18 +75,13 @@ target_link_system_libraries(
 	Boost::math
 	assimp::assimp
 	stb_image
+	Microsoft.GSL::GSL
 )
 
 add_dependencies(opengl_scene shader_target data_target)
 
 set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION true)
 add_sanitizers(opengl_scene)
-
-target_compile_options(opengl_scene PRIVATE
-	$<$<CXX_COMPILER_ID:Clang>:-fconstexpr-steps=100000000 -fconstexpr-depth=27>
-	$<$<CXX_COMPILER_ID:GNU>:-fconstexpr-steps=100000000 -fconstexpr-depth=27>
-	$<$<CXX_COMPILER_ID:MSVC>:>
-	)
 
 # if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release") message("Setting flags to have no console")
 # set_target_properties(opengl_scene PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup") endif()

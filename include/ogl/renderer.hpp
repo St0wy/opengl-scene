@@ -8,6 +8,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <gsl/pointers>
 
 #include "bloom_framebuffer.hpp"
 #include "camera.hpp"
@@ -55,7 +56,7 @@ struct ProcessMeshResult
 class Renderer
 {
 public:
-	explicit Renderer(Camera& camera);
+	explicit Renderer(gsl::not_null<Camera*> camera);
 	Renderer(const Renderer&) = delete;
 	Renderer(Renderer&&) = delete;
 	~Renderer();
@@ -106,7 +107,7 @@ private:
 	glm::uvec2 m_ViewportSize{};
 	glm::vec4 m_ClearColor{ 0.0f, 0.0f, 0.0f, 1.0f };
 	UniformBuffer m_MatricesUniformBuffer;
-	Camera& m_Camera;
+	gsl::not_null<Camera*> m_Camera;
 
 	TextureManager m_TextureManager;
 	MaterialManager m_MaterialManager;

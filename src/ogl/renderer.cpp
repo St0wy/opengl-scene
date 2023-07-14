@@ -197,7 +197,7 @@ void stw::Renderer::UpdateProjectionMatrix()
 {
 	assert(m_IsInitialized);
 	m_MatricesUniformBuffer.Bind();
-	m_MatricesUniformBuffer.SetSubData(0, sizeof(glm::mat4), value_ptr(m_Camera.GetProjectionMatrix()));
+	m_MatricesUniformBuffer.SetSubData(0, sizeof(glm::mat4), value_ptr(m_Camera->GetProjectionMatrix()));
 	m_MatricesUniformBuffer.UnBind();
 }
 
@@ -205,7 +205,7 @@ void stw::Renderer::UpdateViewMatrix()
 {
 	assert(m_IsInitialized);
 	m_MatricesUniformBuffer.Bind();
-	m_MatricesUniformBuffer.SetSubData(sizeof(glm::mat4), sizeof(glm::mat4), value_ptr(m_Camera.GetViewMatrix()));
+	m_MatricesUniformBuffer.SetSubData(sizeof(glm::mat4), sizeof(glm::mat4), value_ptr(m_Camera->GetViewMatrix()));
 	m_MatricesUniformBuffer.UnBind();
 }
 
@@ -648,7 +648,7 @@ void stw::Renderer::RenderLightsToHdrFramebuffer()
 void stw::Renderer::RenderPointLights()
 {
 	m_PointLightPipeline.Bind();
-	m_PointLightPipeline.SetVec3("viewPos", m_Camera.GetPosition());
+	m_PointLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
 	m_PointLightPipeline.SetVec2("screenSize", m_ViewportSize);
 
 	// GetPosition
@@ -717,8 +717,8 @@ void stw::Renderer::RenderDebugLights()
 void stw::Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices)
 {
 	m_DirectionalLightPipeline.Bind();
-	m_DirectionalLightPipeline.SetVec3("viewPos", m_Camera.GetPosition());
-	m_DirectionalLightPipeline.SetMat4("viewMatrix", m_Camera.GetViewMatrix());
+	m_DirectionalLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
+	m_DirectionalLightPipeline.SetMat4("viewMatrix", m_Camera->GetViewMatrix());
 
 	m_DirectionalLightPipeline.SetVec4(
 		"csmFarDistances", glm::vec4{ m_Intervals[0], m_Intervals[1], m_Intervals[2], m_Intervals[3] });
@@ -759,7 +759,7 @@ void stw::Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMap
 	m_DirectionalLightPipeline.UnBind();
 }
 
-stw::Renderer::Renderer(stw::Camera& camera) : m_Camera(camera) {}
+stw::Renderer::Renderer(gsl::not_null<Camera*> camera) : m_Camera(camera) {}
 
 std::optional<std::array<glm::mat4, stw::ShadowMapNumCascades>> stw::Renderer::GetLightViewProjMatrices()
 {
@@ -768,11 +768,11 @@ std::optional<std::array<glm::mat4, stw::ShadowMapNumCascades>> stw::Renderer::G
 		return std::nullopt;
 	}
 
-	//	if (m_Camera.GetPosition() == m_OldCamViewPos)
+	//	if (m_Camera->GetPosition() == m_OldCamViewPos)
 	//	{
 	//		return m_LightViewProjMatrices;
 	//	}
-	//	m_OldCamViewPos = m_Camera.GetPosition();
+	//	m_OldCamViewPos = m_Camera->GetPosition();
 
 	std::array<glm::mat4, ShadowMapNumCascades> lightViewMatrices{};
 	for (usize i = 0; i < m_Intervals.size(); i++)
@@ -800,11 +800,11 @@ glm::mat4 stw::Renderer::ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane)
 {
 	constexpr glm::vec3 up{ 0.0f, 1.0f, 0.0f };
 	const glm::mat4 proj =
-		glm::perspective(glm::radians(m_Camera.GetFovY()), m_Camera.GetAspectRatio(), nearPlane, farPlane);
+		glm::perspective(glm::radians(m_Camera->GetFovY()), m_Camera->GetAspectRatio(), nearPlane, farPlane);
 
-	const auto frustumCorners = ComputeFrustumCorners(proj, m_Camera.GetViewMatrix());
+	const auto frustumCorners = ComputeFrustumCorners(proj, m_Camera->GetViewMatrix());
 
-	//	const glm::vec3 target = m_Camera.GetPosition() + m_Camera.GetFront() * NearPlane;
+	//	const glm::vec3 target = m_Camera->GetPosition() + m_Camera->GetFront() * NearPlane;
 	//	const glm::vec3 lightPosition = target - m_DirectionalLight.value().direction;
 	//	const glm::mat4 lightView = glm::lookAt(lightPosition, target, up);
 

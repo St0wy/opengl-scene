@@ -91,7 +91,7 @@ public:
 
 		m_Camera.SetMovementSpeed(4.0f);
 
-		m_Renderer = std::make_unique<Renderer>(m_Camera);
+		m_Renderer = std::make_unique<Renderer>(&m_Camera);
 		m_Renderer->Init(screenSize);
 		//		m_Renderer->SetEnableMultisample(true);
 		m_Renderer->SetEnableDepthTest(true);
@@ -105,7 +105,7 @@ public:
 		auto result = m_Renderer->LoadModel("./data/sphere/myHonestSphere.obj");
 		if (!result.has_value())
 		{
-			spdlog::error("Error on model loading : {}", result.error());
+			spdlog::error("Error on sphere model loading : {}", result.error());
 		}
 
 		SceneGraph& sceneGraph = m_Renderer->GetSceneGraph();
@@ -192,6 +192,6 @@ public:
 
 private:
 	Camera m_Camera{ glm::vec3{ 5.0f, 2.0f, -6.0f } };
-	std::unique_ptr<Renderer> m_Renderer{  };
+	std::unique_ptr<Renderer> m_Renderer{};
 };
 }// namespace stw
