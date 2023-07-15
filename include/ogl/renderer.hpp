@@ -39,10 +39,8 @@ struct DirectionalLight
 struct PointLight
 {
 	PointLight() = default;
-	PointLight(glm::vec3 position, f32 linear, f32 quadratic, glm::vec3 color);
+	PointLight(glm::vec3 position, glm::vec3 color);
 	glm::vec3 position{};
-	f32 linear{};
-	f32 quadratic{};
 	f32 radius{};
 	glm::vec3 color{};
 };
@@ -133,6 +131,7 @@ private:
 	Mesh m_DebugSphereLight{};
 	Pipeline m_PointLightPipeline;
 	Pipeline m_DirectionalLightPipeline;
+//	std::array<glm::mat4, stw::ShadowMapNumCascades> m_LightViewProjMatrices{};
 
 	std::optional<DirectionalLight> m_DirectionalLight{};
 	glm::vec3 m_OldCamViewPos{};

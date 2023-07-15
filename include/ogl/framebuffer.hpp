@@ -66,6 +66,7 @@ struct FramebufferDescription
 	glm::uvec2 framebufferSize{ 1280, 720 };
 };
 
+// TODO : Rule of five
 class Framebuffer
 {
 public:

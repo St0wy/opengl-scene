@@ -69,15 +69,15 @@ void stw::Renderer::InitPipelines()
 	m_GBufferPipeline.SetInt("texture_metallic", 4);
 	m_GBufferPipeline.UnBind();
 
-	m_PointLightPipeline.InitFromPath("shaders/deferred/light_pass.vert", "shaders/deferred/point_light_pass.frag");
+	m_PointLightPipeline.InitFromPath("shaders/deferred/light_pass.vert", "shaders/pbr/point_light_pass.frag");
 	m_PointLightPipeline.Bind();
-	m_PointLightPipeline.SetInt("gPosition", 0);
-	m_PointLightPipeline.SetInt("gNormal", 1);
-	m_PointLightPipeline.SetInt("gBaseColorSpecular", 2);
+	m_PointLightPipeline.SetInt("gPositionAmbientOcclusion", 0);
+	m_PointLightPipeline.SetInt("gNormalRoughness", 1);
+	m_PointLightPipeline.SetInt("gBaseColorMetallic", 2);
 	m_PointLightPipeline.SetInt("gSsao", 3);
 	m_PointLightPipeline.UnBind();
 
-	m_DirectionalLightPipeline.InitFromPath("shaders/quad.vert", "shaders/deferred/directional_light_pass.frag");
+	m_DirectionalLightPipeline.InitFromPath("shaders/quad.vert", "shaders/pbr/directional_light_pass.frag");
 	m_DirectionalLightPipeline.Bind();
 	m_DirectionalLightPipeline.SetInt("gPositionAmbientOcclusion", 0);
 	m_DirectionalLightPipeline.SetInt("gNormalRoughness", 1);
@@ -386,15 +386,15 @@ void stw::Renderer::RenderPointLights()
 	m_PointLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
 	m_PointLightPipeline.SetVec2("screenSize", m_ViewportSize);
 
-	// GetPosition
+	// Position + Ambient Occlusion
 	GLCALL(glActiveTexture(GL_TEXTURE0));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0)));
 
-	// Normal
+	// Normal + Roughness
 	GLCALL(glActiveTexture(GL_TEXTURE1));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(1)));
 
-	// Base Color + Specular
+	// Base Color + Metallic
 	GLCALL(glActiveTexture(GL_TEXTURE2));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(2)));
 
@@ -406,8 +406,6 @@ void stw::Renderer::RenderPointLights()
 	{
 		const PointLight& pointLight = m_PointLights.at(i);
 		m_PointLightPipeline.SetVec3("pointLight.position", pointLight.position);
-		m_PointLightPipeline.SetFloat("pointLight.linear", pointLight.linear);
-		m_PointLightPipeline.SetFloat("pointLight.quadratic", pointLight.quadratic);
 		m_PointLightPipeline.SetVec3("pointLight.color", pointLight.color);
 
 		// Render
@@ -878,32 +876,26 @@ std::optional<std::array<glm::mat4, stw::ShadowMapNumCascades>> stw::Renderer::G
 		return std::nullopt;
 	}
 
-	//	if (m_Camera->GetPosition() == m_OldCamViewPos)
-	//	{
-	//		return m_LightViewProjMatrices;
-	//	}
-	//	m_OldCamViewPos = m_Camera->GetPosition();
-
-	std::array<glm::mat4, ShadowMapNumCascades> lightViewMatrices{};
+	std::array<glm::mat4, stw::ShadowMapNumCascades> lightViewProjMatrices{};
 	for (usize i = 0; i < m_Intervals.size(); i++)
 	{
 		const auto interval = m_Intervals.at(i);
 		if (i == 0)
 		{
-			lightViewMatrices.at(i) = ComputeLightViewProjMatrix(NearPlane, interval);
+			lightViewProjMatrices.at(i) = ComputeLightViewProjMatrix(NearPlane, interval);
 		}
 		else if (i < m_Intervals.size())
 		{
-			lightViewMatrices.at(i) = ComputeLightViewProjMatrix(m_Intervals.at(i - 1), interval);
+			lightViewProjMatrices.at(i) = ComputeLightViewProjMatrix(m_Intervals.at(i - 1), interval);
 		}
 		else
 		{
-			lightViewMatrices.at(i) = ComputeLightViewProjMatrix(m_Intervals.at(i - 1), FarPlane);
+			lightViewProjMatrices.at(i) = ComputeLightViewProjMatrix(m_Intervals.at(i - 1), FarPlane);
 		}
 	}
 
 	//	m_LightViewProjMatrices = lightViewMatrices;
-	return lightViewMatrices;
+	return lightViewProjMatrices;
 }
 
 glm::mat4 stw::Renderer::ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane)
@@ -947,19 +939,19 @@ glm::mat4 stw::Renderer::ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane)
 
 	// We set the size of the shadow frustum to be the size of the biggest diagonal in the camera frustum
 	//	f32 diagLength = glm::distance(frustumCorners.front(), frustumCorners.back());
-	//	spdlog::debug("DiagLength : {}", diagLength);
-
+	//	//	spdlog::debug("DiagLength : {}", diagLength);
+	//
 	//	const f32 midX = minX + (maxX - minX) / 2.0f;
 	//	const f32 midY = minY + (maxY - minY) / 2.0f;
 	//	const f32 midZ = minZ + (maxZ - minZ) / 2.0f;
-
+	//
 	//	glm::vec3 minLightProj{ midX - diagLength, midY - diagLength, midZ - diagLength };
 	//	glm::vec3 maxLightProj{ midX + diagLength, midY + diagLength, midZ + diagLength };
 
 	glm::vec3 minLightProj{ minX, minY, minZ };
 	glm::vec3 maxLightProj{ maxX, maxY, maxZ };
 
-	constexpr float zMultiplier = 10.0f;
+	constexpr float zMultiplier = 5.0f;
 	if (minLightProj.z < 0)
 	{
 		minLightProj.z *= zMultiplier;
@@ -984,11 +976,8 @@ glm::mat4 stw::Renderer::ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane)
 	return lightProjection * lightView;
 }
 
-stw::PointLight::PointLight(glm::vec3 position, f32 linear, f32 quadratic, glm::vec3 color)
-	: position(position), linear(linear), quadratic(quadratic), color(color)
+stw::PointLight::PointLight(glm::vec3 position, glm::vec3 color) : position(position), color(color)
 {
 	const f32 maxColor = std::fmax(std::fmax(color.r, color.g), color.b);
-	radius =
-		(-linear + std::sqrtf(linear * linear - 4.0f * quadratic * (1.0f - (256.0f / MinLightIntensity) * maxColor)))
-		/ (2 * quadratic);
+	radius = (std::sqrtf(-4.0f * (1.0f - (256.0f / MinLightIntensity) * maxColor))) / (2.0f);
 }

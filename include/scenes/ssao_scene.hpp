@@ -64,12 +64,12 @@ public:
 			spdlog::error("Error on backpack model loading : {}", result.error());
 		}
 
-		glm::vec3 direction{ 0.0f, -1.0f, 0.0f };
+		glm::vec3 direction{ 0.0f, -1.0f, -1.0f };
 		direction = glm::normalize(direction);
-		const DirectionalLight directionalLight{ direction, glm::vec3{ 0.3f } };
+		const DirectionalLight directionalLight{ direction, glm::vec3{ 5.0f } };
 		m_Renderer->SetDirectionalLight(directionalLight);
 
-		const PointLight p{ glm::vec3{ 0.0f, 0.0f, 9.0f }, 0.1f, 0.2f, glm::vec3{ 2.0f } };
+		const PointLight p{ glm::vec3{ 0.0f, 0.0f, 9.0f }, glm::vec3{ 100.0f } };
 		m_Renderer->PushPointLight(p);
 	}
 

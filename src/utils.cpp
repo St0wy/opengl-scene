@@ -121,18 +121,18 @@ bool CheckGlError(std::string_view file, u32 line)
 
 std::array<f32, ShadowMapNumCascades> ComputeCascades()
 {
-	return { FarPlane / 50.0f, FarPlane / 25.0f, FarPlane / 10.0f, FarPlane / 2.0f };
-	//		std::array<f32, ShadowMapNumCascades> intervals{};
-	//		for (usize i = 0; i < intervals.size(); i++)
-	//		{
-	//			const f32 far = NearPlane * std::pow(FarPlane / NearPlane, static_cast<f32>(i + 1) /
-	// ShadowMapNumCascades);
-	//
-	//			spdlog::debug("far : {}", far);
-	//			intervals.at(i) = far;
-	//		}
-
-	//		return intervals;
+//	return { FarPlane / 50.0f, FarPlane / 25.0f, FarPlane / 10.0f, FarPlane / 2.0f };
+	return { FarPlane / 100.0f, FarPlane / 25.0f, FarPlane / 10.0f, FarPlane / 2.0f };
+//	std::array<f32, ShadowMapNumCascades> intervals{};
+//	for (usize i = 0; i < intervals.size(); i++)
+//	{
+//		const f32 far = NearPlane * std::pow(FarPlane / NearPlane, static_cast<f32>(i + 1) / ShadowMapNumCascades);
+//
+//		spdlog::debug("far : {}", far);
+//		intervals.at(i) = far;
+//	}
+//
+//	return intervals;
 }
 std::array<glm::vec3, SsaoKernelSize> GenerateSsaoKernel()
 {
