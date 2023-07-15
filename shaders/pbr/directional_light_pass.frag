@@ -13,11 +13,11 @@ layout (location = 0) out vec4 FragColor;
 
 in vec2 TexCoords;
 
-// TODO : PBR
 uniform sampler2D gPositionAmbientOcclusion;
 uniform sampler2D gNormalRoughness;
 uniform sampler2D gBaseColorMetallic;
 uniform sampler2D gSsao;
+uniform samplerCube irradianceMap;
 uniform sampler2D shadowMaps[NUM_CASCADES];
 
 uniform DirectionalLight directionalLight;
@@ -37,6 +37,7 @@ vec3 FresnelSchlick(float cosTheta, vec3 F0);
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
+vec3 FresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 void main()
 {
@@ -48,38 +49,45 @@ void main()
 	float ambientOcclusion = texture(gSsao, TexCoords).r * texture(gPositionAmbientOcclusion, TexCoords).a;
 
 	vec3 viewDir = normalize(viewPos - fragPos);
-	vec3 Lo = vec3(0.0);
-	// I cannot loop over every light...
-
-	// L
-	vec3 fragToLightDir = normalize(-directionalLight.direction);
-	// H
-	vec3 halfwayDir = normalize(fragToLightDir + viewDir);
-
-	vec3 radiance = directionalLight.color;
 
 	vec3 F0 = vec3(0.04);
 	F0 = mix(F0, baseColor, metallic);
-	// F
-	vec3 fresnel = FresnelSchlick(max(dot(halfwayDir, viewDir), 0.0), F0);
-	float normalDistributionFunction = DistributionGGX(normal, halfwayDir, roughness);
-	float geometry = GeometrySmith(normal, viewDir, fragToLightDir, roughness);
 
-	vec3 kSpecular = fresnel;
-	vec3 kDiffuse = vec3(1.0) - kSpecular;
-	kDiffuse *= 1.0 - metallic;
+	vec3 Lo = vec3(0.0);
+	// I cannot loop over every light...
+	{
+		// L
+		vec3 fragToLightDir = normalize(-directionalLight.direction);
+		// H
+		vec3 halfwayDir = normalize(fragToLightDir + viewDir);
 
-	// Cook-Torrance BRDF
-	vec3 numerator = normalDistributionFunction * geometry * fresnel;
-	// We add a small number to prevent division by 0
-	float denominator = 4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, fragToLightDir), 0.0) + 0.0001;
-	vec3 specular = numerator / denominator;
+		vec3 radiance = directionalLight.color;
 
-	float normalDotFragToLightDir = max(dot(normal, fragToLightDir), 0.0);
-	Lo += (kDiffuse * baseColor / PI + specular) * radiance * normalDotFragToLightDir;
-	// End of imaginary loop here
+		// F
+		vec3 fresnel = FresnelSchlick(max(dot(halfwayDir, viewDir), 0.0), F0);
+		float normalDistributionFunction = DistributionGGX(normal, halfwayDir, roughness);
+		float geometry = GeometrySmith(normal, viewDir, fragToLightDir, roughness);
 
-	vec3 ambient = vec3(0.03) * baseColor * ambientOcclusion;
+		vec3 kSpecular = fresnel;
+		vec3 kDiffuse = vec3(1.0) - kSpecular;
+		kDiffuse *= 1.0 - metallic;
+
+		// Cook-Torrance BRDF
+		vec3 numerator = normalDistributionFunction * geometry * fresnel;
+		// We add a small number to prevent division by 0
+		float denominator = 4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, fragToLightDir), 0.0) + 0.0001;
+		vec3 specular = numerator / denominator;
+
+		float normalDotFragToLightDir = max(dot(normal, fragToLightDir), 0.0);
+		Lo += (kDiffuse * baseColor / PI + specular) * radiance * normalDotFragToLightDir;
+		// End of imaginary loop here
+	}
+
+	vec3 kSpecular = FresnelSchlickRoughness(max(dot(normal, viewDir), 0.0), F0, roughness);
+	vec3 kDiffuse = 1.0 - kSpecular;
+	vec3 irradiance = texture(irradianceMap, normal).rgb;
+	vec3 diffuse = irradiance * baseColor;
+	vec3 ambient =  kDiffuse * diffuse * ambientOcclusion;
 	vec3 color = ambient + Lo;
 
 	vec4 viewFragPos = view * vec4(fragPos, 1.0);
@@ -89,19 +97,20 @@ void main()
 	float shadow = ComputeShadowIntensity(shadowCascadeIndex, lightViewProjMatrix[shadowCascadeIndex] * vec4(fragPos, 1.0), normal);
 
 	color *= (1.0 - shadow);
+//	color = irradiance;
 
-//	vec3 hint = vec3(0.0);
-//	if (shadowCascadeIndex == 0){
-//		hint = vec3(0.05, 0.0, 0.0);
-//	} else if (shadowCascadeIndex == 1){
-//		hint = vec3(0.0, 0.05, 0.0);
-//	} else if (shadowCascadeIndex == 2){
-//		hint = vec3(0.0, 0.0, 0.05);
-//	} else if (shadowCascadeIndex == 3){
-//		hint = vec3(0.05, 0.05, 0.0);
-//	} else {
-//		hint = vec3(1.0, 1.0, 1.0);
-//	}
+	//	vec3 hint = vec3(0.0);
+	//	if (shadowCascadeIndex == 0){
+	//		hint = vec3(0.05, 0.0, 0.0);
+	//	} else if (shadowCascadeIndex == 1){
+	//		hint = vec3(0.0, 0.05, 0.0);
+	//	} else if (shadowCascadeIndex == 2){
+	//		hint = vec3(0.0, 0.0, 0.05);
+	//	} else if (shadowCascadeIndex == 3){
+	//		hint = vec3(0.05, 0.05, 0.0);
+	//	} else {
+	//		hint = vec3(1.0, 1.0, 1.0);
+	//	}
 
 	FragColor = vec4(color, 1.0);
 }
@@ -146,46 +155,6 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 	return ggx1 * ggx2;
 }
 
-vec3 ComputeDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirection, vec3 fragPos,
-vec3 diffuseTex, float specularTex, float ambientOcclusion)
-{
-	vec3 lightDirection = normalize(-light.direction);
-
-	// Diffuse
-	float diffuseIntensity = max(dot(normal, lightDirection), 0.0) * ambientOcclusion;
-
-	// Specular
-	vec3 reflectDirection = reflect(-lightDirection, normal);
-	vec3 halfwayDir = normalize(lightDirection + viewDirection);
-	float specularIntensity = pow(max(dot(normal, halfwayDir), 0.0), 16.0);
-
-	vec3 diffuse = light.color * diffuseIntensity * diffuseTex;
-	vec3 specular = light.color * specularIntensity * specularTex;
-
-	vec4 viewFragPos = view * vec4(fragPos, 1.0);
-	float depthValue = -viewFragPos.z;
-	vec4 res = step(csmFarDistances, vec4(depthValue));
-	int shadowCascadeIndex = int(res.x + res.y + res.z + res.w);
-	float shadow = ComputeShadowIntensity(shadowCascadeIndex, lightViewProjMatrix[shadowCascadeIndex] * vec4(fragPos, 1.0), normal);
-
-	vec3 hint = vec3(0.0);
-	if (shadowCascadeIndex == 0){
-		hint = vec3(0.05, 0.0, 0.0);
-	} else if (shadowCascadeIndex == 1){
-		hint = vec3(0.0, 0.05, 0.0);
-	} else if (shadowCascadeIndex == 2){
-		hint = vec3(0.0, 0.0, 0.05);
-	} else if (shadowCascadeIndex == 3){
-		hint = vec3(0.05, 0.05, 0.0);
-	} else {
-		hint = vec3(1.0, 1.0, 1.0);
-	}
-
-	//	return (1.0 - shadow) * (diffuse + specular) + hint;
-	return (1.0 - shadow) * (diffuse + specular) * ambientOcclusion;
-	//	return vec3(depthValue);
-}
-
 float ComputeShadowIntensity(int cascadeIndex, vec4 fragPosLightSpace, vec3 normal)
 {
 	// Perform perspective divide
@@ -228,4 +197,9 @@ float ComputeShadowIntensity(int cascadeIndex, vec4 fragPosLightSpace, vec3 norm
 
 	//	return closestDepth;
 	return shadow;
+}
+
+vec3 FresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }

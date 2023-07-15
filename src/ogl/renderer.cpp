@@ -76,6 +76,7 @@ void stw::Renderer::InitPipelines()
 	m_PointLightPipeline.SetInt("gNormalRoughness", 1);
 	m_PointLightPipeline.SetInt("gBaseColorMetallic", 2);
 	m_PointLightPipeline.SetInt("gSsao", 3);
+	m_PointLightPipeline.SetInt("irradianceMap", 4);
 	m_PointLightPipeline.UnBind();
 
 	m_DirectionalLightPipeline.InitFromPath("shaders/quad.vert", "shaders/pbr/directional_light_pass.frag");
@@ -84,10 +85,11 @@ void stw::Renderer::InitPipelines()
 	m_DirectionalLightPipeline.SetInt("gNormalRoughness", 1);
 	m_DirectionalLightPipeline.SetInt("gBaseColorMetallic", 2);
 	m_DirectionalLightPipeline.SetInt("gSsao", 3);
-	m_DirectionalLightPipeline.SetInt("shadowMaps[0]", 4);
-	m_DirectionalLightPipeline.SetInt("shadowMaps[1]", 5);
-	m_DirectionalLightPipeline.SetInt("shadowMaps[2]", 6);
-	m_DirectionalLightPipeline.SetInt("shadowMaps[3]", 7);
+	m_DirectionalLightPipeline.SetInt("irradianceMap", 4);
+	m_DirectionalLightPipeline.SetInt("shadowMaps[0]", 5);
+	m_DirectionalLightPipeline.SetInt("shadowMaps[1]", 6);
+	m_DirectionalLightPipeline.SetInt("shadowMaps[2]", 7);
+	m_DirectionalLightPipeline.SetInt("shadowMaps[3]", 8);
 	m_DirectionalLightPipeline.UnBind();
 
 	m_DebugLightsPipeline.InitFromPath("shaders/deferred/debug_light.vert", "shaders/deferred/debug_light.frag");
@@ -268,7 +270,7 @@ void stw::Renderer::InitSkybox()
 		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
 	};
 
-	auto loadResult = Texture::LoadRadianceMapFromPath("data/drackenstein_quarry_puresky_4k.hdr");
+	auto loadResult = Texture::LoadRadianceMapFromPath("data/kloofendal_overcast_4k.hdr");
 
 	if (!loadResult)
 	{
@@ -551,6 +553,10 @@ void stw::Renderer::RenderPointLights()
 	GLCALL(glActiveTexture(GL_TEXTURE3));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, m_SsaoBlurFramebuffer.GetColorAttachment(0)));
 
+	// Irradiance Map
+	GLCALL(glActiveTexture(GL_TEXTURE3));
+	GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap));
+
 	for (usize i = 0; i < m_PointLightsCount; i++)
 	{
 		const PointLight& pointLight = m_PointLights.at(i);
@@ -603,10 +609,14 @@ void stw::Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMap
 	GLCALL(glActiveTexture(GL_TEXTURE3));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, m_SsaoBlurFramebuffer.GetColorAttachment(0)));
 
+	// Irradiance map
+	GLCALL(glActiveTexture(GL_TEXTURE4));
+	GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap));
+
 	// Shadow map
 	for (usize i = 0; i < m_LightDepthMapFramebuffers.size(); i++)
 	{
-		GLCALL(glActiveTexture(GL_TEXTURE4 + i));
+		GLCALL(glActiveTexture(GL_TEXTURE5 + i));
 		GLCALL(glBindTexture(GL_TEXTURE_2D, m_LightDepthMapFramebuffers.at(i).GetDepthStencilAttachment().value()));
 	}
 
