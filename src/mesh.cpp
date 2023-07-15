@@ -152,6 +152,37 @@ stw::Mesh stw::Mesh::CreateCube()
 	return mesh;
 }
 
+stw::Mesh stw::Mesh::CreateInsideCube()
+{
+	constexpr f32 size = 1.0f;
+	std::vector<Vertex> vertices = {
+		{ glm::vec3(-size, -size, -size), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec3{} },
+		{ glm::vec3(-size, -size, size), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec3{} },
+		{ glm::vec3(-size, size, -size), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f), glm::vec3{} },
+		{ glm::vec3(-size, size, size), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::vec3{} },
+		{ glm::vec3(size, -size, -size), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec3{} },
+		{ glm::vec3(size, -size, size), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec3{} },
+		{ glm::vec3(size, size, -size), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f), glm::vec3{} },
+		{ glm::vec3(size, size, size), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::vec3{} }
+	};
+
+	// clang-format off
+	std::vector<u32> indices = {
+		1, 0, 2, 1, 2, 3, // Left face
+		4, 5, 6, 6, 5, 7, // Right face
+		3, 2, 6, 3, 6, 7, // Top face
+		2, 0, 4, 2, 4, 6, // GetFront face
+		5, 1, 3, 5, 3, 7, // Back face
+		4, 0, 1, 4, 1, 5  // Bottom face
+	};
+	// clang-format on
+
+	Mesh mesh;
+	mesh.Init(std::move(vertices), std::move(indices));
+
+	return mesh;
+}
+
 stw::Mesh stw::Mesh::CreateUvSphere(f32 radius, u32 latitudes, u32 longitudes)
 {
 	constexpr u32 minLatitudes = 3;

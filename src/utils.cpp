@@ -42,6 +42,7 @@ GLenum GetGlTextureTarget(const TextureType type)
 {
 	switch (type)
 	{
+	case TextureType::RadianceMap:
 	case TextureType::Roughness:
 	case TextureType::AmbientOcclusion:
 	case TextureType::Metallic:

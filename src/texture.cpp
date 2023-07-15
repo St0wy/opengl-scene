@@ -17,9 +17,9 @@
 std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(
 	const std::filesystem::path& path, const TextureType type, const TextureSpace space)
 {
-	int width = 0;
-	int height = 0;
-	int nbrComponents = 0;
+	i32 width = 0;
+	i32 height = 0;
+	i32 nbrComponents = 0;
 	const auto stringPath = path.string();
 	unsigned char* data = stbi_load(stringPath.c_str(), &width, &height, &nbrComponents, 0);
 
@@ -45,6 +45,40 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(
 	stbi_image_free(data);
 
 	return { std::move(texture) };
+}
+
+std::expected<stw::Texture, std::string> stw::Texture::LoadRadianceMapFromPath(const std::filesystem::path& path)
+{
+	i32 width = 0;
+	i32 height = 0;
+	i32 nbrComponents = 0;
+	const auto stringPath = path.string();
+	stbi_set_flip_vertically_on_load(true);
+	f32* data = stbi_loadf(stringPath.c_str(), &width, &height, &nbrComponents, 0);
+	stbi_set_flip_vertically_on_load(false);
+
+	if (!data)
+	{
+		stbi_image_free(data);
+		return std::unexpected(
+			fmt::format("Radiance map failed to load at path: {}\n{}", stringPath, stbi_failure_reason()));
+	}
+
+	GLuint hdrTexture = 0;
+	glGenTextures(1, &hdrTexture);
+	glBindTexture(GL_TEXTURE_2D, hdrTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	stbi_image_free(data);
+
+	Texture tex{ hdrTexture, TextureType::RadianceMap, TextureSpace::Linear, GL_RGB16F, GL_RGB, GL_TEXTURE_2D };
+
+	return { std::move(tex) };
 }
 
 std::expected<stw::Texture, std::string> stw::Texture::LoadCubeMap(
@@ -166,7 +200,10 @@ void stw::Texture::SetMagFilter(const GLint filter) const
 	glTexParameteri(m_GlTextureTarget, GL_TEXTURE_MAG_FILTER, filter);
 }
 
-void stw::Texture::SetWrapS(const GLint wrap) const { glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_S, wrap); }
+void stw::Texture::SetWrapS(const GLint wrap) const
+{
+	GLCALL(glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_S, wrap));
+}
 
 void stw::Texture::SetWrapT(const GLint wrap) const { glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_T, wrap); }
 
@@ -174,7 +211,7 @@ void stw::Texture::SetWrapR(const GLint wrap) const { glTexParameteri(m_GlTextur
 
 void stw::Texture::Delete()
 {
-	glDeleteTextures(1, &textureId);
+	GLCALL(glDeleteTextures(1, &textureId));
 	textureId = 0;
 }
 
@@ -249,3 +286,13 @@ stw::Texture& stw::Texture::operator=(Texture&& other) noexcept
 
 	return *this;
 }
+
+stw::Texture::Texture(GLuint textureId,
+	stw::TextureType textureType,
+	stw::TextureSpace textureSpace,
+	GLenum glFormat,
+	GLint internalFormat,
+	GLenum glTextureTarget)
+	: textureId(textureId), textureType(textureType), space(textureSpace), glFormat(glFormat),
+	  internalFormat(internalFormat), m_GlTextureTarget(glTextureTarget)
+{}

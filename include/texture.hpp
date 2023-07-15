@@ -23,6 +23,7 @@ enum class TextureType
 	Metallic,
 	CubeMap,
 	DepthMap,
+	RadianceMap,
 };
 
 enum class TextureSpace
@@ -49,6 +50,7 @@ public:
 
 	static std::expected<Texture, std::string> LoadFromPath(
 		const std::filesystem::path& path, TextureType type, TextureSpace space = TextureSpace::Srgb);
+	static std::expected<Texture, std::string> LoadRadianceMapFromPath(const std::filesystem::path& path);
 	static std::expected<Texture, std::string> LoadCubeMap(
 		const std::array<std::filesystem::path, CubeMapTextureCount>& paths);
 
@@ -75,6 +77,12 @@ public:
 	void Delete();
 
 private:
+	Texture(GLuint textureId,
+		TextureType textureType,
+		TextureSpace textureSpace,
+		GLenum glFormat,
+		GLint internalFormat,
+		GLenum glTextureTarget);
 	GLenum m_GlTextureTarget = GL_INVALID_ENUM;
 };
 }// namespace stw

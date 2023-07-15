@@ -39,6 +39,7 @@ void stw::Renderer::Init(glm::uvec2 screenSize)
 
 	m_Intervals = ComputeCascades();
 	InitSsao();
+	InitSkybox();
 }
 
 void stw::Renderer::InitPipelines()
@@ -102,6 +103,22 @@ void stw::Renderer::InitPipelines()
 	m_SsaoBlurPipeline.Bind();
 	m_SsaoBlurPipeline.SetInt("gSsao", 0);
 	m_SsaoBlurPipeline.UnBind();
+
+	m_EquirectangularToCubemapPipeline.InitFromPath(
+		"shaders/pbr/equirectangular.vert", "shaders/pbr/equirectangular.frag");
+	m_EquirectangularToCubemapPipeline.Bind();
+	m_EquirectangularToCubemapPipeline.SetInt("equirectangularMap", 0);
+	m_EquirectangularToCubemapPipeline.UnBind();
+
+	m_CubemapPipeline.InitFromPath("shaders/pbr/cubemap.vert", "shaders/pbr/cubemap.frag");
+	m_CubemapPipeline.Bind();
+	m_CubemapPipeline.SetInt("environmentMap", 0);
+	m_CubemapPipeline.UnBind();
+
+	m_IrradiancePipeline.InitFromPath("shaders/pbr/equirectangular.vert", "shaders/pbr/ibl_convolution.frag");
+	m_IrradiancePipeline.Bind();
+	m_IrradiancePipeline.SetInt("environmentMap", 0);
+	m_IrradiancePipeline.UnBind();
 }
 
 void stw::Renderer::InitFramebuffers(glm::uvec2 screenSize)
@@ -179,6 +196,20 @@ void stw::Renderer::InitFramebuffers(glm::uvec2 screenSize)
 		m_SsaoFramebuffer.Init(framebufferDescription);
 		m_SsaoBlurFramebuffer.Init(framebufferDescription);
 	}
+	{
+		FramebufferDepthStencilAttachment depthStencilAttachment{};
+		depthStencilAttachment.isRenderbufferObject = true;
+		depthStencilAttachment.hasStencil = false;
+
+		FramebufferDescription framebufferDescription{};
+		framebufferDescription.depthStencilAttachment = depthStencilAttachment;
+		framebufferDescription.framebufferSize = glm::uvec2{ SkyboxResolution, SkyboxResolution };
+
+		m_SkyboxCaptureFramebuffer.Init(framebufferDescription);
+		m_SkyboxCaptureFramebuffer.Bind();
+		const GLenum buf = GL_COLOR_ATTACHMENT0;
+		GLCALL(glDrawBuffers(static_cast<GLsizei>(1), &buf));
+	}
 
 	const bool success = m_BloomFramebuffer.Init(screenSize, MipChainLength);
 
@@ -202,6 +233,122 @@ void stw::Renderer::InitSsao()
 	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 }
 
+void stw::Renderer::InitSkybox()
+{
+	GLCALL(glGenTextures(1, &m_EnvironmentCubemap));
+	GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvironmentCubemap));
+	for (unsigned int i = 0; i < 6; ++i)
+	{
+		// note that we store each face with 16 bit floating point values
+		GLCALL(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0,
+			GL_RGB16F,
+			SkyboxResolution,
+			SkyboxResolution,
+			0,
+			GL_RGB,
+			GL_FLOAT,
+			nullptr));
+	}
+	GLCALL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	GLCALL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+	GLCALL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
+	GLCALL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GLCALL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+	m_CubemapMesh = Mesh::CreateInsideCube();
+
+	const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+	const std::array<glm::mat4, 6> captureViews = {
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
+	};
+
+	auto loadResult = Texture::LoadRadianceMapFromPath("data/drackenstein_quarry_puresky_4k.hdr");
+
+	if (!loadResult)
+	{
+		spdlog::error(loadResult.error());
+	}
+
+	m_HdrTexture = std::move(loadResult.value());
+
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	m_HdrTexture.Bind();
+	m_SkyboxCaptureFramebuffer.Bind();
+
+	m_EquirectangularToCubemapPipeline.Bind();
+	m_EquirectangularToCubemapPipeline.SetMat4("projection", captureProjection);
+
+	GLCALL(glViewport(0, 0, SkyboxResolution, SkyboxResolution));
+	for (usize i = 0; i < 6; i++)
+	{
+		m_EquirectangularToCubemapPipeline.SetMat4("view", captureViews.at(i));
+		GLCALL(glFramebufferTexture2D(
+			GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_EnvironmentCubemap, 0));
+		GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+		m_CubemapMesh.GetVertexArray().Bind();
+		GLCALL(glDrawElements(GL_TRIANGLES, m_CubemapMesh.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+		m_CubemapMesh.GetVertexArray().UnBind();
+	}
+	m_EquirectangularToCubemapPipeline.UnBind();
+	m_SkyboxCaptureFramebuffer.UnBind();
+
+	glGenTextures(1, &m_IrradianceMap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap);
+	for (u32 i = 0; i < 6; ++i)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0,
+			GL_RGB16F,
+			IrradianceMapResolution,
+			IrradianceMapResolution,
+			0,
+			GL_RGB,
+			GL_FLOAT,
+			nullptr);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	m_SkyboxCaptureFramebuffer.Bind();
+	m_SkyboxCaptureFramebuffer.Resize(glm::uvec2{ IrradianceMapResolution });
+	m_SkyboxCaptureFramebuffer.Bind();
+	const GLenum buf = GL_COLOR_ATTACHMENT0;
+	GLCALL(glDrawBuffers(static_cast<GLsizei>(1), &buf));
+
+	m_IrradiancePipeline.Bind();
+	m_IrradiancePipeline.SetMat4("projection", captureProjection);
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvironmentCubemap));
+
+	GLCALL(glViewport(0, 0, IrradianceMapResolution, IrradianceMapResolution));
+	m_SkyboxCaptureFramebuffer.Bind();
+	for (u32 i = 0; i < 6; ++i)
+	{
+		m_IrradiancePipeline.SetMat4("view", captureViews.at(i));
+		GLCALL(glFramebufferTexture2D(
+			GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_IrradianceMap, 0));
+		GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+		m_CubemapMesh.GetVertexArray().Bind();
+		GLCALL(glDrawElements(GL_TRIANGLES, m_CubemapMesh.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+		m_CubemapMesh.GetVertexArray().UnBind();
+	}
+	m_SkyboxCaptureFramebuffer.UnBind();
+	m_IrradiancePipeline.UnBind();
+
+	GLCALL(glViewport(0, 0, m_ViewportSize.x, m_ViewportSize.y));
+}
+
 void stw::Renderer::DrawScene()
 {
 	GLCALL(glDepthMask(GL_TRUE));
@@ -215,6 +362,8 @@ void stw::Renderer::DrawScene()
 	RenderLightsToHdrFramebuffer();
 
 	RenderDebugLights();
+
+	RenderCubemap();
 
 	RenderBloomToBloomFramebuffer(m_HdrFramebuffer.GetColorAttachment(0), FilterRadius);
 
@@ -567,6 +716,23 @@ void stw::Renderer::RenderUpsamples(f32 filterRadius)
 	m_UpsamplePipeline.UnBind();
 }
 
+void stw::Renderer::RenderCubemap()
+{
+	m_HdrFramebuffer.Bind();
+	m_CubemapPipeline.Bind();
+	m_MatricesUniformBuffer.Bind();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvironmentCubemap);
+
+	m_CubemapMesh.GetVertexArray().Bind();
+	GLCALL(glDrawElements(GL_TRIANGLES, m_CubemapMesh.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+	m_CubemapMesh.GetVertexArray().UnBind();
+
+	m_MatricesUniformBuffer.UnBind();
+	m_CubemapPipeline.UnBind();
+	m_HdrFramebuffer.UnBind();
+}
+
 #pragma region Osef
 
 void stw::Renderer::SetEnableMultisample(const bool enableMultisample)
@@ -690,6 +856,13 @@ void stw::Renderer::Delete()
 	m_SsaoFramebuffer.Delete();
 	m_SsaoBlurFramebuffer.Delete();
 	m_SsaoBlurPipeline.Delete();
+	m_SkyboxCaptureFramebuffer.Delete();
+	m_EquirectangularToCubemapPipeline.Delete();
+	m_HdrTexture.Delete();
+	GLCALL(glDeleteTextures(1, &m_EnvironmentCubemap));
+	m_CubemapMesh.Delete();
+	m_CubemapPipeline.Delete();
+	m_IrradiancePipeline.Delete();
 }
 
 [[maybe_unused]] stw::TextureManager& stw::Renderer::GetTextureManager() { return m_TextureManager; }

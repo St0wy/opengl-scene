@@ -66,6 +66,7 @@ public:
 	void InitPipelines();
 	void InitFramebuffers(glm::uvec2 screenSize);
 	void InitSsao();
+	void InitSkybox();
 
 	void SetEnableMultisample(bool enableMultisample);
 	void SetEnableDepthTest(bool enableDepthTest);
@@ -131,7 +132,6 @@ private:
 	Mesh m_DebugSphereLight{};
 	Pipeline m_PointLightPipeline;
 	Pipeline m_DirectionalLightPipeline;
-//	std::array<glm::mat4, stw::ShadowMapNumCascades> m_LightViewProjMatrices{};
 
 	std::optional<DirectionalLight> m_DirectionalLight{};
 	glm::vec3 m_OldCamViewPos{};
@@ -144,6 +144,15 @@ private:
 	Framebuffer m_SsaoBlurFramebuffer{};
 	Pipeline m_SsaoPipeline{};
 	Pipeline m_SsaoBlurPipeline{};
+
+	Framebuffer m_SkyboxCaptureFramebuffer;
+	Pipeline m_EquirectangularToCubemapPipeline;
+	Texture m_HdrTexture;
+	GLuint m_EnvironmentCubemap{};
+	Mesh m_CubemapMesh;
+	Pipeline m_CubemapPipeline;
+	GLuint m_IrradianceMap{};
+	Pipeline m_IrradiancePipeline{};
 
 	u32 m_PointLightsCount = 0;
 	std::array<PointLight, MaxPointLights> m_PointLights{};
@@ -161,6 +170,7 @@ private:
 	void RenderPointLights();
 	void RenderDirectionalLight(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices);
 	void RenderSsao();
+	void RenderCubemap();
 	std::optional<std::array<glm::mat4, ShadowMapNumCascades>> GetLightViewProjMatrices();
 	glm::mat4 ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane);
 };

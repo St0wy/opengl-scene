@@ -69,7 +69,7 @@ public:
 		const DirectionalLight directionalLight{ direction, glm::vec3{ 5.0f } };
 		m_Renderer->SetDirectionalLight(directionalLight);
 
-		const PointLight p{ glm::vec3{ 0.0f, 0.0f, 9.0f }, glm::vec3{ 100.0f } };
+		const PointLight p{ glm::vec3{ 0.0f, 0.0f, 9.0f }, glm::vec3{ 20.0f } };
 		m_Renderer->PushPointLight(p);
 	}
 

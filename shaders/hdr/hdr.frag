@@ -21,11 +21,12 @@ void main()
 	//	vec3 mapped = hdrColor / (hdrColor + vec3(1.0));
 
 	// Narkowicz ACES tone mapping
+	imageColor *= 0.6;
 	vec3 mapped = (imageColor * (2.51f * imageColor + 0.03f)) / (imageColor * (2.43f * imageColor + 0.59f) + 0.14f);
 	mapped = clamp(mapped, vec3(0.0), vec3(1.0));
 
 	// gamma correction
 	mapped = pow(mapped, vec3(1.0 / gamma));
 
-		FragColor = vec4(mapped, 1.0);
+	FragColor = vec4(mapped, 1.0);
 }

@@ -15,6 +15,8 @@ static constexpr f32 FilterRadius = 0.005f;
 static constexpr usize ShadowMapNumCascades = 4;
 static constexpr usize SsaoKernelSize = 64;
 static constexpr usize SsaoRandomTextureSize = 16;
+static constexpr u32 SkyboxResolution = 4096;
+static constexpr u32 IrradianceMapResolution = 32;
 
 static constexpr f32 DefaultYaw = -90.0f;
 static constexpr f32 DefaultPitch = 0.0f;
