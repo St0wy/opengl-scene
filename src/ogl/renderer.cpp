@@ -20,6 +20,7 @@ stw::Renderer::~Renderer()
 
 void stw::Renderer::Init(glm::uvec2 screenSize)
 {
+	GLCALL(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
 	m_IsInitialized = true;
 
 	m_MatricesUniformBuffer.Init(0);
@@ -117,10 +118,15 @@ void stw::Renderer::InitPipelines()
 	m_CubemapPipeline.SetInt("environmentMap", 0);
 	m_CubemapPipeline.UnBind();
 
-	m_IrradiancePipeline.InitFromPath("shaders/pbr/equirectangular.vert", "shaders/pbr/ibl_convolution.frag");
+	m_IrradiancePipeline.InitFromPath("shaders/pbr/equirectangular.vert", "shaders/pbr/irradiance_convolution.frag");
 	m_IrradiancePipeline.Bind();
 	m_IrradiancePipeline.SetInt("environmentMap", 0);
 	m_IrradiancePipeline.UnBind();
+
+	m_PrefilterShader.InitFromPath("shaders/pbr/equirectangular.vert", "shaders/pbr/prefilter_convolution.frag");
+	m_PrefilterShader.Bind();
+	m_PrefilterShader.SetInt("environmentMap", 0);
+	m_PrefilterShader.UnBind();
 }
 
 void stw::Renderer::InitFramebuffers(glm::uvec2 screenSize)
@@ -301,6 +307,10 @@ void stw::Renderer::InitSkybox()
 	m_EquirectangularToCubemapPipeline.UnBind();
 	m_SkyboxCaptureFramebuffer.UnBind();
 
+	GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvironmentCubemap));
+	GLCALL(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
+	GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+
 	glGenTextures(1, &m_IrradianceMap);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap);
 	for (u32 i = 0; i < 6; ++i)
@@ -347,6 +357,67 @@ void stw::Renderer::InitSkybox()
 	}
 	m_SkyboxCaptureFramebuffer.UnBind();
 	m_IrradiancePipeline.UnBind();
+
+	glGenTextures(1, &m_PrefilterMap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_PrefilterMap);
+	for (unsigned int i = 0; i < 6; ++i)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0,
+			GL_RGB16F,
+			PrefilterMapResolution,
+			PrefilterMapResolution,
+			0,
+			GL_RGB,
+			GL_FLOAT,
+			nullptr);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+	m_PrefilterShader.Bind();
+	m_PrefilterShader.SetMat4("projection", captureProjection);
+
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvironmentCubemap));
+	GLCALL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
+
+	m_SkyboxCaptureFramebuffer.Bind();
+
+	constexpr u32 maxMipLevels = 5;
+	for (u32 mip = 0; mip < maxMipLevels; mip++)
+	{
+		const u32 mipSize = static_cast<u32>(PrefilterMapResolution * std::pow(0.5f, mip));
+		m_SkyboxCaptureFramebuffer.Resize(glm::uvec2{ mipSize });
+		m_SkyboxCaptureFramebuffer.Bind();
+		const GLenum col = GL_COLOR_ATTACHMENT0;
+		GLCALL(glDrawBuffers(static_cast<GLsizei>(1), &col));
+
+		GLCALL(glViewport(0, 0, mipSize, mipSize));
+
+		const f32 roughness = static_cast<f32>(mip) / static_cast<f32>((maxMipLevels - 1));
+		m_PrefilterShader.SetFloat("roughness", roughness);
+		for (u32 i = 0; i < 6; ++i)
+		{
+			m_PrefilterShader.SetMat4("view", captureViews.at(i));
+			GLCALL(glFramebufferTexture2D(
+				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_PrefilterMap, mip));
+
+			GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+			m_CubemapMesh.GetVertexArray().Bind();
+			GLCALL(glDrawElements(GL_TRIANGLES, m_CubemapMesh.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+			m_CubemapMesh.GetVertexArray().UnBind();
+		}
+	}
+
+
+	m_PrefilterShader.UnBind();
+	m_SkyboxCaptureFramebuffer.UnBind();
 
 	GLCALL(glViewport(0, 0, m_ViewportSize.x, m_ViewportSize.y));
 }
@@ -873,6 +944,9 @@ void stw::Renderer::Delete()
 	m_CubemapMesh.Delete();
 	m_CubemapPipeline.Delete();
 	m_IrradiancePipeline.Delete();
+	m_PrefilterShader.Delete();
+	GLCALL(glDeleteTextures(1, &m_IrradianceMap));
+	GLCALL(glDeleteTextures(1, &m_PrefilterMap));
 }
 
 [[maybe_unused]] stw::TextureManager& stw::Renderer::GetTextureManager() { return m_TextureManager; }

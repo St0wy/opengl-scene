@@ -89,7 +89,7 @@ stw::Pipeline::~Pipeline()
 {
 	if (m_ProgramId != 0)
 	{
-		spdlog::warn("Destructor called on a pipeline that still has an ID.");
+		spdlog::error("Destructor called on a pipeline that still has an ID.");
 	}
 }
 

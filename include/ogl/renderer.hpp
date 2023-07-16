@@ -153,6 +153,8 @@ private:
 	Pipeline m_CubemapPipeline;
 	GLuint m_IrradianceMap{};
 	Pipeline m_IrradiancePipeline{};
+	GLuint m_PrefilterMap{};
+	Pipeline m_PrefilterShader;
 
 	u32 m_PointLightsCount = 0;
 	std::array<PointLight, MaxPointLights> m_PointLights{};
