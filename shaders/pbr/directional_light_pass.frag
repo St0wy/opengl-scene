@@ -16,8 +16,6 @@ in vec2 TexCoords;
 uniform sampler2D gPositionAmbientOcclusion;
 uniform sampler2D gNormalRoughness;
 uniform sampler2D gBaseColorMetallic;
-uniform sampler2D gSsao;
-uniform samplerCube irradianceMap;
 uniform sampler2D shadowMaps[NUM_CASCADES];
 
 uniform DirectionalLight directionalLight;
@@ -46,7 +44,6 @@ void main()
 	vec3 baseColor = texture(gBaseColorMetallic, TexCoords).rgb;
 	float roughness = texture(gNormalRoughness, TexCoords).a;
 	float metallic = texture(gBaseColorMetallic, TexCoords).a;
-	float ambientOcclusion = texture(gSsao, TexCoords).r * texture(gPositionAmbientOcclusion, TexCoords).a;
 
 	vec3 viewDir = normalize(viewPos - fragPos);
 
@@ -83,12 +80,7 @@ void main()
 		// End of imaginary loop here
 	}
 
-	vec3 kSpecular = FresnelSchlickRoughness(max(dot(normal, viewDir), 0.0), F0, roughness);
-	vec3 kDiffuse = 1.0 - kSpecular;
-	vec3 irradiance = texture(irradianceMap, normal).rgb;
-	vec3 diffuse = irradiance * baseColor;
-	vec3 ambient =  kDiffuse * diffuse * ambientOcclusion;
-	vec3 color = ambient + Lo;
+	vec3 color = Lo;
 
 	vec4 viewFragPos = view * vec4(fragPos, 1.0);
 	float depthValue = -viewFragPos.z;
@@ -97,7 +89,6 @@ void main()
 	float shadow = ComputeShadowIntensity(shadowCascadeIndex, lightViewProjMatrix[shadowCascadeIndex] * vec4(fragPos, 1.0), normal);
 
 	color *= (1.0 - shadow);
-//	color = irradiance;
 
 	//	vec3 hint = vec3(0.0);
 	//	if (shadowCascadeIndex == 0){

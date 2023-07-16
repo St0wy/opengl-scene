@@ -58,19 +58,24 @@ public:
 
 		UpdateProjection();
 
-		auto result = m_Renderer->LoadModel("./data/backpack/backpack.obj");
+		auto result = m_Renderer->LoadModel("./data/cat/cat.obj", true);
 		if (!result.has_value())
 		{
-			spdlog::error("Error on backpack model loading : {}", result.error());
+			spdlog::error("Error on model loading : {}", result.error());
 		}
 
-		glm::vec3 direction{ 0.0f, -1.0f, -1.0f };
-		direction = glm::normalize(direction);
-		const DirectionalLight directionalLight{ direction, glm::vec3{ 5.0f } };
-		m_Renderer->SetDirectionalLight(directionalLight);
+		auto nodeVec = result.value();
 
-		const PointLight p{ glm::vec3{ 0.0f, 0.0f, 9.0f }, glm::vec3{ 20.0f } };
-		m_Renderer->PushPointLight(p);
+		const auto& node = m_Renderer->GetSceneGraph().GetNodes()[0];
+		m_Model = &m_Renderer->GetSceneGraph().GetElements()[node.elementId];
+
+		//		glm::vec3 direction{ 0.0f, -1.0f, -1.0f };
+		//		direction = glm::normalize(direction);
+		//		const DirectionalLight directionalLight{ direction, glm::vec3{ 5.0f } };
+		//		m_Renderer->SetDirectionalLight(directionalLight);
+
+//		const PointLight p{ glm::vec3{ 0.0f, 0.0f, 9.0f }, glm::vec3{ 20.0f } };
+//		m_Renderer->PushPointLight(p);
 	}
 
 	void UpdateProjection() { m_Renderer->UpdateProjectionMatrix(); }
@@ -79,6 +84,17 @@ public:
 
 	void Update(const f32 deltaTime) override
 	{
+		angle += deltaTime;
+
+		const glm::mat4 model{ 1.0f };
+		m_Model->localTransformMatrix = glm::rotate(model, angle, glm::vec3{ 0.0f, 1.0f, 0.0f });
+
+		auto& sceneGraphElems = m_Renderer->GetSceneGraph().GetElements();
+		for (usize i = 1; i < sceneGraphElems.size(); i++)
+		{
+			sceneGraphElems[i].parentTransformMatrix = m_Model->localTransformMatrix;
+		}
+
 		m_Renderer->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		UpdateView();
@@ -145,7 +161,9 @@ public:
 	void Delete() override { m_Renderer->Delete(); }
 
 private:
+	f32 angle = 0.0f;
 	Camera m_Camera{ glm::vec3{ 0.0f, 0.0f, 2.0f } };
 	std::unique_ptr<Renderer> m_Renderer{};
+	stw::SceneGraphElement* m_Model;
 };
 }// namespace stw

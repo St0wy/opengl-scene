@@ -71,26 +71,41 @@ void stw::Renderer::InitPipelines()
 	m_GBufferPipeline.SetInt("texture_metallic", 4);
 	m_GBufferPipeline.UnBind();
 
+	m_GBufferNoAoPipeline.InitFromPath("shaders/pbr/gbuffer.vert", "shaders/pbr/gbuffer_no_ao.frag");
+	m_GBufferNoAoPipeline.Bind();
+	m_GBufferNoAoPipeline.SetInt("texture_base_color", 0);
+	m_GBufferNoAoPipeline.SetInt("texture_normal", 1);
+	m_GBufferNoAoPipeline.SetInt("texture_roughness", 2);
+	m_GBufferNoAoPipeline.SetInt("texture_metallic", 3);
+	m_GBufferNoAoPipeline.UnBind();
+
 	m_PointLightPipeline.InitFromPath("shaders/deferred/light_pass.vert", "shaders/pbr/point_light_pass.frag");
 	m_PointLightPipeline.Bind();
 	m_PointLightPipeline.SetInt("gPositionAmbientOcclusion", 0);
 	m_PointLightPipeline.SetInt("gNormalRoughness", 1);
 	m_PointLightPipeline.SetInt("gBaseColorMetallic", 2);
-	m_PointLightPipeline.SetInt("gSsao", 3);
-	m_PointLightPipeline.SetInt("irradianceMap", 4);
 	m_PointLightPipeline.UnBind();
+
+	m_AmbientIblPipeline.InitFromPath("shaders/quad.vert", "shaders/pbr/ibl_ambient.frag");
+	m_AmbientIblPipeline.Bind();
+	m_AmbientIblPipeline.SetInt("gPositionAmbientOcclusion", 0);
+	m_AmbientIblPipeline.SetInt("gNormalRoughness", 1);
+	m_AmbientIblPipeline.SetInt("gBaseColorMetallic", 2);
+	m_AmbientIblPipeline.SetInt("gSsao", 3);
+	m_AmbientIblPipeline.SetInt("irradianceMap", 4);
+	m_AmbientIblPipeline.SetInt("prefilterMap", 5);
+	m_AmbientIblPipeline.SetInt("brdfLut", 6);
+	m_AmbientIblPipeline.UnBind();
 
 	m_DirectionalLightPipeline.InitFromPath("shaders/quad.vert", "shaders/pbr/directional_light_pass.frag");
 	m_DirectionalLightPipeline.Bind();
 	m_DirectionalLightPipeline.SetInt("gPositionAmbientOcclusion", 0);
 	m_DirectionalLightPipeline.SetInt("gNormalRoughness", 1);
 	m_DirectionalLightPipeline.SetInt("gBaseColorMetallic", 2);
-	m_DirectionalLightPipeline.SetInt("gSsao", 3);
-	m_DirectionalLightPipeline.SetInt("irradianceMap", 4);
-	m_DirectionalLightPipeline.SetInt("shadowMaps[0]", 5);
-	m_DirectionalLightPipeline.SetInt("shadowMaps[1]", 6);
-	m_DirectionalLightPipeline.SetInt("shadowMaps[2]", 7);
-	m_DirectionalLightPipeline.SetInt("shadowMaps[3]", 8);
+	m_DirectionalLightPipeline.SetInt("shadowMaps[0]", 3);
+	m_DirectionalLightPipeline.SetInt("shadowMaps[1]", 4);
+	m_DirectionalLightPipeline.SetInt("shadowMaps[2]", 5);
+	m_DirectionalLightPipeline.SetInt("shadowMaps[3]", 6);
 	m_DirectionalLightPipeline.UnBind();
 
 	m_DebugLightsPipeline.InitFromPath("shaders/deferred/debug_light.vert", "shaders/deferred/debug_light.frag");
@@ -127,6 +142,8 @@ void stw::Renderer::InitPipelines()
 	m_PrefilterShader.Bind();
 	m_PrefilterShader.SetInt("environmentMap", 0);
 	m_PrefilterShader.UnBind();
+
+	m_BrdfPipeline.InitFromPath("shaders/quad.vert", "shaders/pbr/brdf.frag");
 }
 
 void stw::Renderer::InitFramebuffers(glm::uvec2 screenSize)
@@ -217,6 +234,24 @@ void stw::Renderer::InitFramebuffers(glm::uvec2 screenSize)
 		m_SkyboxCaptureFramebuffer.Bind();
 		const GLenum buf = GL_COLOR_ATTACHMENT0;
 		GLCALL(glDrawBuffers(static_cast<GLsizei>(1), &buf));
+	}
+	{
+		FramebufferDepthStencilAttachment depthStencilAttachment{};
+		depthStencilAttachment.isRenderbufferObject = true;
+		depthStencilAttachment.hasStencil = false;
+
+		FramebufferColorAttachment brdfLutAttachment{};
+		brdfLutAttachment.size = FramebufferColorAttachment::Size::Sixteen;
+		brdfLutAttachment.type = FramebufferColorAttachment::Type::Float;
+		brdfLutAttachment.format = FramebufferColorAttachment::Format::Rg;
+
+		FramebufferDescription framebufferDescription{};
+		framebufferDescription.depthStencilAttachment = depthStencilAttachment;
+		framebufferDescription.colorAttachmentsCount = 1;
+		framebufferDescription.colorAttachments[0] = brdfLutAttachment;
+		framebufferDescription.framebufferSize = glm::uvec2{ BrdfLutResolution };
+
+		m_BrdfFramebuffer.Init(framebufferDescription);
 	}
 
 	const bool success = m_BloomFramebuffer.Init(screenSize, MipChainLength);
@@ -414,10 +449,21 @@ void stw::Renderer::InitSkybox()
 			m_CubemapMesh.GetVertexArray().UnBind();
 		}
 	}
-
-
 	m_PrefilterShader.UnBind();
 	m_SkyboxCaptureFramebuffer.UnBind();
+
+	m_BrdfFramebuffer.Bind();
+	GLCALL(glViewport(0, 0, BrdfLutResolution, BrdfLutResolution));
+	m_BrdfPipeline.Bind();
+
+	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+	m_RenderQuad.GetVertexArray().Bind();
+	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+	m_RenderQuad.GetVertexArray().UnBind();
+
+	m_BrdfPipeline.UnBind();
+	m_BrdfFramebuffer.UnBind();
 
 	GLCALL(glViewport(0, 0, m_ViewportSize.x, m_ViewportSize.y));
 }
@@ -466,7 +512,7 @@ void stw::Renderer::RenderGBuffer()
 		m_MatricesUniformBuffer.Bind();
 		auto& material = m_MaterialManager[elementIndex.materialId];
 
-		BindMaterialForGBuffer(material, m_TextureManager, m_GBufferPipeline);
+		BindMaterialForGBuffer(material, m_TextureManager, { m_GBufferPipeline, m_GBufferNoAoPipeline });
 
 		auto& mesh = m_Meshes[elementIndex.meshId];
 		mesh.Bind(transformMatrices);
@@ -539,6 +585,8 @@ void stw::Renderer::RenderLightsToHdrFramebuffer()
 	GLCALL(glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a));
 	GLCALL(glClear(GL_COLOR_BUFFER_BIT));
 
+	RenderAmbient();
+
 	GLCALL(glCullFace(GL_FRONT));
 	RenderPointLights();
 	GLCALL(glCullFace(GL_BACK));
@@ -602,11 +650,10 @@ void stw::Renderer::RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCas
 	GLCALL(glCullFace(GL_BACK));
 }
 
-void stw::Renderer::RenderPointLights()
+void stw::Renderer::RenderAmbient()
 {
-	m_PointLightPipeline.Bind();
-	m_PointLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
-	m_PointLightPipeline.SetVec2("screenSize", m_ViewportSize);
+	m_AmbientIblPipeline.Bind();
+	m_AmbientIblPipeline.SetVec3("viewPos", m_Camera->GetPosition());
 
 	// Position + Ambient Occlusion
 	GLCALL(glActiveTexture(GL_TEXTURE0));
@@ -625,8 +672,41 @@ void stw::Renderer::RenderPointLights()
 	GLCALL(glBindTexture(GL_TEXTURE_2D, m_SsaoBlurFramebuffer.GetColorAttachment(0)));
 
 	// Irradiance Map
-	GLCALL(glActiveTexture(GL_TEXTURE3));
+	GLCALL(glActiveTexture(GL_TEXTURE4));
 	GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap));
+
+	// Prefilter Map
+	GLCALL(glActiveTexture(GL_TEXTURE5));
+	GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, m_PrefilterMap));
+
+	// BRDF Lut
+	GLCALL(glActiveTexture(GL_TEXTURE6));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_BrdfFramebuffer.GetColorAttachment(0)));
+
+	m_RenderQuad.GetVertexArray().Bind();
+	GLCALL(glDrawElements(GL_TRIANGLES, m_RenderQuad.GetIndicesSize(), GL_UNSIGNED_INT, nullptr));
+	m_RenderQuad.GetVertexArray().UnBind();
+
+	m_AmbientIblPipeline.UnBind();
+}
+
+void stw::Renderer::RenderPointLights()
+{
+	m_PointLightPipeline.Bind();
+	m_PointLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
+	m_PointLightPipeline.SetVec2("screenSize", m_ViewportSize);
+
+	// Position + Ambient Occlusion
+	GLCALL(glActiveTexture(GL_TEXTURE0));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0)));
+
+	// Normal + Roughness
+	GLCALL(glActiveTexture(GL_TEXTURE1));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(1)));
+
+	// Base Color + Metallic
+	GLCALL(glActiveTexture(GL_TEXTURE2));
+	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(2)));
 
 	for (usize i = 0; i < m_PointLightsCount; i++)
 	{
@@ -676,18 +756,10 @@ void stw::Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMap
 	GLCALL(glActiveTexture(GL_TEXTURE2));
 	GLCALL(glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(2)));
 
-	// SSAO
-	GLCALL(glActiveTexture(GL_TEXTURE3));
-	GLCALL(glBindTexture(GL_TEXTURE_2D, m_SsaoBlurFramebuffer.GetColorAttachment(0)));
-
-	// Irradiance map
-	GLCALL(glActiveTexture(GL_TEXTURE4));
-	GLCALL(glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap));
-
 	// Shadow map
 	for (usize i = 0; i < m_LightDepthMapFramebuffers.size(); i++)
 	{
-		GLCALL(glActiveTexture(GL_TEXTURE5 + i));
+		GLCALL(glActiveTexture(GL_TEXTURE3 + i));
 		GLCALL(glBindTexture(GL_TEXTURE_2D, m_LightDepthMapFramebuffers.at(i).GetDepthStencilAttachment().value()));
 	}
 
@@ -947,15 +1019,23 @@ void stw::Renderer::Delete()
 	m_PrefilterShader.Delete();
 	GLCALL(glDeleteTextures(1, &m_IrradianceMap));
 	GLCALL(glDeleteTextures(1, &m_PrefilterMap));
+	m_BrdfPipeline.Delete();
+	m_BrdfFramebuffer.Delete();
+	m_AmbientIblPipeline.Delete();
+	m_GBufferNoAoPipeline.Delete();
 }
 
 [[maybe_unused]] stw::TextureManager& stw::Renderer::GetTextureManager() { return m_TextureManager; }
 
-std::expected<std::vector<std::reference_wrapper<const stw::SceneGraphNode>>, std::string> stw::Renderer::LoadModel(
-	const std::filesystem::path& path)
+std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const std::filesystem::path& path, bool flipUVs)
 {
 	Assimp::Importer importer;
-	constexpr u32 assimpImportFlags = aiProcessPreset_TargetRealtime_Fast;
+	u32 assimpImportFlags = aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices
+							| aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType;
+	if (flipUVs)
+	{
+		assimpImportFlags |= aiProcess_FlipUVs;
+	}
 
 	const auto pathString = path.string();
 
@@ -981,7 +1061,7 @@ std::expected<std::vector<std::reference_wrapper<const stw::SceneGraphNode>>, st
 	assimpNodes.push(assimpScene->mRootNode);
 	const std::span<aiMesh*> assimpSceneMeshes{ assimpScene->mMeshes, assimpScene->mNumMeshes };
 
-	std::vector<std::reference_wrapper<const SceneGraphNode>> addedNodes;
+	std::vector<usize> addedNodes;
 	while (!assimpNodes.empty())
 	{
 		const aiNode* currentAssimpNode = assimpNodes.front();
@@ -1003,9 +1083,9 @@ std::expected<std::vector<std::reference_wrapper<const stw::SceneGraphNode>>, st
 
 			// TODO: Take in account parents and children (right now there's only one level of nodes)
 			const glm::mat4 transformMatrix = ConvertMatAssimpToGlm(currentAssimpNode->mTransformation);
-			const SceneGraphNode& node =
+			const usize nodeIndex =
 				m_SceneGraph.AddElementToRoot(m_Meshes.size() - 1, meshMaterialIndex, transformMatrix);
-			addedNodes.emplace_back(node);
+			addedNodes.emplace_back(nodeIndex);
 		}
 
 		const std::span<aiNode*> nodeChildren{ currentAssimpNode->mChildren, currentAssimpNode->mNumChildren };

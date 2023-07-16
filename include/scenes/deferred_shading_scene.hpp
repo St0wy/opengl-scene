@@ -102,7 +102,7 @@ public:
 
 		UpdateProjection();
 
-		auto result = m_Renderer->LoadModel("./data/sphere/myHonestSphere.obj");
+		auto result = m_Renderer->LoadModel("./data/sphere/myHonestSphere.obj", false);
 		if (!result.has_value())
 		{
 			spdlog::error("Error on sphere model loading : {}", result.error());

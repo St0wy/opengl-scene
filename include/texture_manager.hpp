@@ -15,7 +15,8 @@ namespace stw
 class TextureManager
 {
 public:
-	std::optional<std::size_t> LoadTextureFromPath(const std::filesystem::path& path, TextureType type);
+	std::optional<std::size_t> LoadTextureFromPath(
+		const std::filesystem::path& path, stw::TextureType type, TextureSpace space);
 	[[nodiscard]] Texture& GetTexture(std::size_t index);
 	[[nodiscard]] const Texture& GetTexture(std::size_t index) const;
 

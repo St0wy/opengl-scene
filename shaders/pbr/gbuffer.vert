@@ -8,6 +8,7 @@ layout (location = 4) in mat4 modelMatrix;
 
 out vec3 FragPos;
 out vec2 TexCoords;
+out vec3 Normal;
 out mat3 TangentToWorldMatrix;
 
 layout (std140, binding = 0) uniform Matrices
@@ -23,7 +24,6 @@ void main()
 	FragPos = vec3(fragPos);
 
 	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
-
 	vec3 T = normalize(normalMatrix * aTangent);
 	vec3 N = normalize(normalMatrix * aNormal);
 	T = normalize(T - dot(T, N) * N);

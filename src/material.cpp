@@ -4,11 +4,12 @@
 
 #include "utils.hpp"
 
-void stw::BindMaterialForGBuffer(
-	const stw::Material& materialVariant, stw::TextureManager& textureManager, stw::Pipeline& gBufferPipeline)
+void stw::BindMaterialForGBuffer(const stw::Material& materialVariant,
+	stw::TextureManager& textureManager,
+	const std::array<std::reference_wrapper<stw::Pipeline>, MaterialCount>& gBufferPipelines)
 {
-	const auto pbrNormal = [&textureManager, &gBufferPipeline](const MaterialPbrNormal& material) {
-		Pipeline const& pipeline = gBufferPipeline;
+	const auto pbrNormal = [&textureManager, &gBufferPipelines](const MaterialPbrNormal& material) {
+		Pipeline const& pipeline = gBufferPipelines[0];
 		pipeline.Bind();
 
 		// Base Color
@@ -34,9 +35,32 @@ void stw::BindMaterialForGBuffer(
 		GLCALL(glActiveTexture(GL_TEXTURE0));
 	};
 
+	const auto pbrNormalNoAo = [&textureManager, &gBufferPipelines](const MaterialPbrNormalNoAo& material) {
+		Pipeline const& pipeline = gBufferPipelines[1];
+		pipeline.Bind();
+
+		// Base Color
+		GLCALL(glActiveTexture(GL_TEXTURE0));
+		textureManager.GetTexture(material.baseColorMapIndex).Bind();
+
+		// Normal
+		GLCALL(glActiveTexture(GL_TEXTURE1));
+		textureManager.GetTexture(material.normalMapIndex).Bind();
+
+		// Roughness
+		GLCALL(glActiveTexture(GL_TEXTURE2));
+		textureManager.GetTexture(material.roughnessMapIndex).Bind();
+
+		// Metallic
+		GLCALL(glActiveTexture(GL_TEXTURE3));
+		textureManager.GetTexture(material.metallicMapIndex).Bind();
+
+		GLCALL(glActiveTexture(GL_TEXTURE0));
+	};
+
 	constexpr auto invalid = [](const InvalidMaterial&) {
 		spdlog::error("Invalid material... {} {}", __FILE__, __LINE__);
 	};
 
-	std::visit(Overloaded{ invalid, pbrNormal }, materialVariant);
+	std::visit(Overloaded{ invalid, pbrNormal, pbrNormalNoAo }, materialVariant);
 }

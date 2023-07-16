@@ -2,12 +2,13 @@
 // Created by stowy on 30/06/2023.
 //
 #include "scene_graph.hpp"
+#include "number_types.hpp"
 
 #include <queue>
 #include <spdlog/spdlog.h>
 #include <unordered_map>
 
-const stw::SceneGraphNode& stw::SceneGraph::AddElementToRoot(
+usize stw::SceneGraph::AddElementToRoot(
 	std::size_t meshId, std::size_t materialId, const glm::mat4& transformMatrix)
 {
 	m_Elements.emplace_back(meshId, materialId, transformMatrix, m_Elements[0].localTransformMatrix);
@@ -35,7 +36,7 @@ const stw::SceneGraphNode& stw::SceneGraph::AddElementToRoot(
 		m_Nodes[currentNodeIndex].siblingId.emplace(newNodeIndex);
 	}
 
-	return m_Nodes.back();
+	return m_Nodes.size() - 1;
 }
 [[maybe_unused]] std::span<const stw::SceneGraphElement> stw::SceneGraph::GetElements() const { return m_Elements; }
 [[maybe_unused]] std::span<const stw::SceneGraphNode> stw::SceneGraph::GetNodes() const { return m_Nodes; }

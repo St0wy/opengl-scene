@@ -24,6 +24,8 @@ public:
 private:
 	void LoadPbrNormal(
 		const aiMaterial* material, const std::filesystem::path& workingDirectory, stw::TextureManager& textureManager);
+	void LoadPbrNormalNoAo(
+		const aiMaterial* material, const std::filesystem::path& workingDirectory, stw::TextureManager& textureManager);
 
 	std::vector<Material> m_Materials;
 };

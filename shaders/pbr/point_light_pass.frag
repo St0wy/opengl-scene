@@ -1,6 +1,7 @@
 #version 430
 
 const float PI = 3.14159265359;
+const float MAX_REFLECTION_LOD = 4.0;
 
 struct PointLight
 {
@@ -13,8 +14,6 @@ layout (location = 0) out vec4 FragColor;
 uniform sampler2D gPositionAmbientOcclusion;
 uniform sampler2D gNormalRoughness;
 uniform sampler2D gBaseColorMetallic;
-uniform sampler2D gSsao;
-uniform samplerCube irradianceMap;
 
 uniform PointLight pointLight;
 
@@ -40,7 +39,6 @@ void main()
 	vec3 baseColor = texture(gBaseColorMetallic, texCoord).rgb;
 	float roughness = texture(gNormalRoughness, texCoord).a;
 	float metallic = texture(gBaseColorMetallic, texCoord).a;
-	float ambientOcclusion = texture(gSsao, texCoord).r * texture(gPositionAmbientOcclusion, texCoord).a;
 
 	// V
 	vec3 viewDir = normalize(viewPos - fragPos);
@@ -81,12 +79,9 @@ void main()
 		// End of imaginary loop here
 	}
 
-	vec3 kSpecular = FresnelSchlickRoughness(max(dot(normal, viewDir), 0.0), F0, roughness);
-	vec3 kDiffuse = 1.0 - kSpecular;
-	vec3 irradiance = texture(irradianceMap, normal).rgb;
-	vec3 diffuse = irradiance * baseColor;
-	vec3 ambient =  kDiffuse * diffuse * ambientOcclusion;
-	vec3 color = ambient + Lo;
+	vec3 color = Lo;
+
+//	color = vec3(brdf, 1.0);
 
 	FragColor = vec4(color, 1.0);
 }

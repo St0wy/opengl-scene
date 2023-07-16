@@ -92,8 +92,8 @@ public:
 
 	void DrawScene();
 
-	std::expected<std::vector<std::reference_wrapper<const stw::SceneGraphNode>>, std::string> LoadModel(
-		const std::filesystem::path& path);
+	std::expected<std::vector<usize>, std::string> LoadModel(
+		const std::filesystem::path& path, bool flipUVs = false);
 	[[maybe_unused]] [[nodiscard]] TextureManager& GetTextureManager();
 
 	void Delete();
@@ -128,6 +128,7 @@ private:
 
 	Framebuffer m_GBufferFramebuffer;
 	Pipeline m_GBufferPipeline;
+	Pipeline m_GBufferNoAoPipeline;
 	Pipeline m_DebugLightsPipeline;
 	Mesh m_DebugSphereLight{};
 	Pipeline m_PointLightPipeline;
@@ -155,6 +156,10 @@ private:
 	Pipeline m_IrradiancePipeline{};
 	GLuint m_PrefilterMap{};
 	Pipeline m_PrefilterShader;
+	Pipeline m_BrdfPipeline;
+	Framebuffer m_BrdfFramebuffer;
+
+	Pipeline m_AmbientIblPipeline;
 
 	u32 m_PointLightsCount = 0;
 	std::array<PointLight, MaxPointLights> m_PointLights{};
@@ -175,5 +180,6 @@ private:
 	void RenderCubemap();
 	std::optional<std::array<glm::mat4, ShadowMapNumCascades>> GetLightViewProjMatrices();
 	glm::mat4 ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane);
+	void RenderAmbient();
 };
 }// namespace stw

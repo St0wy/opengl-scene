@@ -49,7 +49,7 @@ public:
 	static constexpr std::size_t CubeMapTextureCount = 6;
 
 	static std::expected<Texture, std::string> LoadFromPath(
-		const std::filesystem::path& path, TextureType type, TextureSpace space = TextureSpace::Srgb);
+		const std::filesystem::path& path, TextureType type, TextureSpace space);
 	static std::expected<Texture, std::string> LoadRadianceMapFromPath(const std::filesystem::path& path);
 	static std::expected<Texture, std::string> LoadCubeMap(
 		const std::array<std::filesystem::path, CubeMapTextureCount>& paths);

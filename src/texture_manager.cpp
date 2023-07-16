@@ -10,7 +10,7 @@ stw::Texture& stw::TextureManager::GetTexture(std::size_t index) { return m_Text
 const stw::Texture& stw::TextureManager::GetTexture(std::size_t index) const { return m_Textures[index]; }
 
 std::optional<std::size_t> stw::TextureManager::LoadTextureFromPath(
-	const std::filesystem::path& path, stw::TextureType type)
+	const std::filesystem::path& path, stw::TextureType type, TextureSpace space)
 {
 	spdlog::debug("Loading texture {}...", path.string());
 
@@ -19,7 +19,7 @@ std::optional<std::size_t> stw::TextureManager::LoadTextureFromPath(
 		return { result->second };
 	}
 
-	auto textureResult = Texture::LoadFromPath(path, type);
+	auto textureResult = Texture::LoadFromPath(path, type, space);
 
 	if (!textureResult.has_value())
 	{
