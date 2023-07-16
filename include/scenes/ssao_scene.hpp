@@ -69,13 +69,13 @@ public:
 		const auto& node = m_Renderer->GetSceneGraph().GetNodes()[0];
 		m_Model = &m_Renderer->GetSceneGraph().GetElements()[node.elementId];
 
-		//		glm::vec3 direction{ 0.0f, -1.0f, -1.0f };
-		//		direction = glm::normalize(direction);
-		//		const DirectionalLight directionalLight{ direction, glm::vec3{ 5.0f } };
-		//		m_Renderer->SetDirectionalLight(directionalLight);
+		glm::vec3 direction{ 0.0f, -1.0f, -1.0f };
+		direction = glm::normalize(direction);
+		const DirectionalLight directionalLight{ direction, glm::vec3{ 5.0f } };
+		m_Renderer->SetDirectionalLight(directionalLight);
 
-//		const PointLight p{ glm::vec3{ 0.0f, 0.0f, 9.0f }, glm::vec3{ 20.0f } };
-//		m_Renderer->PushPointLight(p);
+		const PointLight p{ glm::vec3{ 0.0f, 0.0f, 4.0f }, glm::vec3{ 20.0f } };
+		m_Renderer->PushPointLight(p);
 	}
 
 	void UpdateProjection() { m_Renderer->UpdateProjectionMatrix(); }

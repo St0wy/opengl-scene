@@ -3,10 +3,10 @@ project(opengl_scene)
 
 set(CMAKE_CXX_STANDARD 23)
 
-if (NOT CMAKE_BUILD_TYPE)
+if(NOT CMAKE_BUILD_TYPE)
 	message("Build Type not set, defaulting to Debug...")
 	set(CMAKE_BUILD_TYPE Debug)
-endif ()
+endif()
 
 include(cmake/data.cmake)
 include(cmake/SystemLink.cmake)
@@ -17,8 +17,11 @@ find_package(Sanitizers)
 
 add_executable(
 	opengl_scene
+	"include/bloom_framebuffer.hpp"
 	"include/camera.hpp"
+	"include/consts.hpp"
 	"include/material.hpp"
+	"include/material_manager.hpp"
 	"include/mesh.hpp"
 	"include/number_types.hpp"
 	"include/ogl/framebuffer.hpp"
@@ -30,14 +33,20 @@ add_executable(
 	"include/ogl/vertex_array.hpp"
 	"include/ogl/vertex_buffer.hpp"
 	"include/ogl/vertex_buffer_layout.hpp"
+	"include/scene_graph.hpp"
+	"include/scenes/deferred_shading_scene.hpp"
 	"include/scenes/scene.hpp"
+	"include/scenes/ssao_scene.hpp"
 	"include/texture.hpp"
+	"include/texture_manager.hpp"
 	"include/timer.hpp"
 	"include/utils.hpp"
 	"include/window.hpp"
+	"src/bloom_framebuffer.cpp"
 	"src/camera.cpp"
 	"src/main.cpp"
 	"src/material.cpp"
+	"src/material_manager.cpp"
 	"src/mesh.cpp"
 	"src/ogl/framebuffer.cpp"
 	"src/ogl/index_buffer.cpp"
@@ -46,19 +55,13 @@ add_executable(
 	"src/ogl/uniform_buffer.cpp"
 	"src/ogl/vertex_array.cpp"
 	"src/ogl/vertex_buffer_layout.cpp"
+	"src/scene_graph.cpp"
 	"src/shader.cpp"
 	"src/texture.cpp"
+	"src/texture_manager.cpp"
 	"src/timer.cpp"
 	"src/utils.cpp"
-	"include/material_manager.hpp"
-	"include/scene_graph.hpp"
-	"include/texture_manager.hpp"
-	"src/material_manager.cpp"
-	"src/scene_graph.cpp"
-	"src/texture_manager.cpp"
-	"include/bloom_framebuffer.hpp"
-	"src/bloom_framebuffer.cpp"
-	include/scenes/deferred_shading_scene.hpp include/consts.hpp include/scenes/ssao_scene.hpp)
+)
 
 target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_system_libraries(
