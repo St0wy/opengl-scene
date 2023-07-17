@@ -76,6 +76,7 @@ target_link_system_libraries(
 	assimp::assimp
 	stb_image
 	Microsoft.GSL::GSL
+	absl::flat_hash_map
 )
 
 add_dependencies(opengl_scene shader_target data_target)

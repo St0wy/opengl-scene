@@ -4,11 +4,11 @@
 
 #include "scene_graph.hpp"
 
+#include <absl/container/flat_hash_map.h>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <queue>
 #include <spdlog/spdlog.h>
-#include <stack>
 #include <unordered_map>
 
 #include "number_types.hpp"
@@ -47,7 +47,7 @@ usize stw::SceneGraph::AddElementToRoot(std::size_t meshId, std::size_t material
 
 void stw::SceneGraph::ForEach(const std::function<void(SceneGraphElementIndex, std::span<const glm::mat4>)>& function)
 {
-	std::unordered_map<SceneGraphElementIndex, std::vector<glm::mat4>> instancingMap{};
+	absl::flat_hash_map<SceneGraphElementIndex, std::vector<glm::mat4>> instancingMap{};
 
 	ForEachChildren(m_Nodes[0], [&instancingMap](SceneGraphElement& element) {
 		if (element.materialId == InvalidId || element.meshId == InvalidId)
@@ -153,24 +153,24 @@ void stw::SceneGraph::DispatchTransforms(stw::SceneGraphNode& currentNode)
 
 	auto& currentElement = m_Elements[currentNode.elementId];
 
-	std::stack<glm::mat4> parentMatrices;
-	parentMatrices.push(currentElement.parentTransformMatrix * currentElement.localTransformMatrix);
+	std::vector<glm::mat4> parentMatricesStack;
+	parentMatricesStack.push_back(currentElement.parentTransformMatrix * currentElement.localTransformMatrix);
 
-	// The boolean is to check if the node is one that should pop the parentMatrices stack
-	std::stack<std::pair<bool, usize>> nodes;
-	nodes.emplace(true, currentNode.childId.value());
+	// The boolean is to check if the node is one that should pop the parentMatricesStack stack
+	std::vector<std::pair<bool, usize>> nodes;
+	nodes.emplace_back(true, currentNode.childId.value());
 	while (!nodes.empty())
 	{
-		auto top = nodes.top();
+		auto top = nodes.back();
 		auto& node = m_Nodes[top.second];
-		nodes.pop();
+		nodes.pop_back();
 		auto& element = m_Elements[node.elementId];
 
-		element.parentTransformMatrix = parentMatrices.top();
+		element.parentTransformMatrix = parentMatricesStack.back();
 
 		if (top.first)
 		{
-			parentMatrices.pop();
+			parentMatricesStack.pop_back();
 		}
 
 		if (node.siblingId)
@@ -178,18 +178,18 @@ void stw::SceneGraph::DispatchTransforms(stw::SceneGraphNode& currentNode)
 			const usize sibling = node.siblingId.value();
 			if (m_Nodes[sibling].siblingId)
 			{
-				nodes.emplace(false, sibling);
+				nodes.emplace_back(false, sibling);
 			}
 			else
 			{
-				nodes.emplace(true, sibling);
+				nodes.emplace_back(true, sibling);
 			}
 		}
 
-		if (node.childId)
+		if (m_Nodes[top.second].childId)
 		{
-			parentMatrices.push(element.parentTransformMatrix * element.localTransformMatrix);
-			nodes.emplace(false, node.childId.value());
+			parentMatricesStack.push_back(element.parentTransformMatrix * element.localTransformMatrix);
+			nodes.emplace_back(false, m_Nodes[top.second].childId.value());
 		}
 	}
 }

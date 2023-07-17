@@ -82,4 +82,18 @@ cpmaddpackage(
 	SYSTEM
 )
 
+set(ABSL_PROPAGATE_CXX_STD ON)
+cpmaddpackage(
+	NAME
+	abseil
+	GIT_TAG
+	master
+	GITHUB_REPOSITORY
+	abseil/abseil-cpp
+	OPTIONS
+	"BUILD_SHARED_LIBS OFF"
+	EXCLUDE_FROM_ALL
+	SYSTEM
+)
+
 add_subdirectory(./external)
