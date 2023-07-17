@@ -201,7 +201,10 @@ void stw::Pipeline::Delete()
 	m_ProgramId = 0;
 }
 
-GLuint stw::Pipeline::Id() const { return m_ProgramId; }
+GLuint stw::Pipeline::Id() const
+{
+	return m_ProgramId;
+}
 
 usize stw::Pipeline::GetTextureCountFromOpengl() const
 {
@@ -234,7 +237,10 @@ usize stw::Pipeline::GetTextureCountFromOpengl() const
 	return textureCount;
 }
 
-usize stw::Pipeline::GetTextureCount() const { return m_TexturesCount; }
+usize stw::Pipeline::GetTextureCount() const
+{
+	return m_TexturesCount;
+}
 
 void stw::Pipeline::SetVec2(std::string_view name, glm::vec2 value)
 {
@@ -254,5 +260,5 @@ void stw::Pipeline::SetVec3V(std::string_view name, std::span<const glm::vec3> v
 {
 	const auto location = GetUniformLocation(name);
 
-	GLCALL(glUniform3fv(location, values.size(), glm::value_ptr(values[0])));
+	GLCALL(glUniform3fv(location, static_cast<GLsizei>(values.size()), glm::value_ptr(values[0])));
 }

@@ -42,8 +42,9 @@ void stw::Framebuffer::Init(const FramebufferDescription& description)
 
 			GLCALL(glBindRenderbuffer(GL_RENDERBUFFER, m_DepthStencilAttachment.value()));
 			GLCALL(glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat, width, height));
-			const auto attachmentEnum =
-				depthAttachmentInfo.hasStencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
+			const auto attachmentEnum = depthAttachmentInfo.hasStencil
+				                            ? GL_DEPTH_STENCIL_ATTACHMENT
+				                            : GL_DEPTH_ATTACHMENT;
 			GLCALL(glFramebufferRenderbuffer(
 				GL_FRAMEBUFFER, attachmentEnum, GL_RENDERBUFFER, m_DepthStencilAttachment.value()));
 		}
@@ -60,17 +61,12 @@ void stw::Framebuffer::Init(const FramebufferDescription& description)
 			GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
 			GLCALL(glTexImage2D(GL_TEXTURE_2D,
-				0,
-				attachmentType.internalFormat,
-				width,
-				height,
-				0,
-				attachmentType.format,
-				attachmentType.type,
-				nullptr));
+				0, attachmentType.internalFormat, width, height, 0, attachmentType.format, attachmentType.type, nullptr
+			));
 
-			const auto attachmentEnum =
-				depthAttachmentInfo.hasStencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
+			const auto attachmentEnum = depthAttachmentInfo.hasStencil
+				                            ? GL_DEPTH_STENCIL_ATTACHMENT
+				                            : GL_DEPTH_ATTACHMENT;
 			GLCALL(glFramebufferTexture2D(
 				GL_FRAMEBUFFER, attachmentEnum, GL_TEXTURE_2D, m_DepthStencilAttachment.value(), 0));
 		}
@@ -104,7 +100,7 @@ void stw::Framebuffer::HandleColorAttachments(const stw::FramebufferDescription&
 			GLCALL(glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat, width, height));
 
 			GLCALL(glFramebufferRenderbuffer(
-				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, colorAttachmentId));
+				GL_FRAMEBUFFER, static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i), GL_RENDERBUFFER, colorAttachmentId));
 		}
 		else
 		{
@@ -118,7 +114,9 @@ void stw::Framebuffer::HandleColorAttachments(const stw::FramebufferDescription&
 		}
 
 		GLCALL(glTexStorage2D(GL_TEXTURE_2D, 1, attachmentType.internalFormat, width, height));
-		GLCALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorAttachmentId, 0));
+		GLCALL(
+			glFramebufferTexture2D(GL_FRAMEBUFFER, static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i), GL_TEXTURE_2D,
+				colorAttachmentId, 0));
 	}
 
 	if (m_ColorAttachmentsCount == 0)
@@ -147,8 +145,7 @@ void stw::Framebuffer::HandleColorAttachments(const stw::FramebufferDescription&
 			GL_COLOR_ATTACHMENT12,
 			GL_COLOR_ATTACHMENT13,
 			GL_COLOR_ATTACHMENT14,
-			GL_COLOR_ATTACHMENT15,
-		};
+			GL_COLOR_ATTACHMENT15, };
 		GLCALL(glDrawBuffers(static_cast<GLsizei>(m_ColorAttachmentsCount), v.data()));
 	}
 }
@@ -178,9 +175,16 @@ void stw::Framebuffer::Delete()
 	GLCALL(glDeleteFramebuffers(1, &m_Fbo));
 	m_Fbo = 0;
 }
-std::optional<GLuint> stw::Framebuffer::GetDepthStencilAttachment() const { return m_DepthStencilAttachment; }
 
-GLuint stw::Framebuffer::GetColorAttachment(usize index) const { return m_ColorAttachments.at(index); }
+std::optional<GLuint> stw::Framebuffer::GetDepthStencilAttachment() const
+{
+	return m_DepthStencilAttachment;
+}
+
+GLuint stw::Framebuffer::GetColorAttachment(usize index) const
+{
+	return m_ColorAttachments.at(index);
+}
 
 void stw::Framebuffer::Resize(glm::uvec2 newSize)
 {
@@ -189,8 +193,16 @@ void stw::Framebuffer::Resize(glm::uvec2 newSize)
 	Delete();
 	Init(descriptionCopy);
 }
-void stw::Framebuffer::BindRead() const { GLCALL(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_Fbo)); }
-void stw::Framebuffer::BindWrite() const { GLCALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Fbo)); }
+
+void stw::Framebuffer::BindRead() const
+{
+	GLCALL(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_Fbo));
+}
+
+void stw::Framebuffer::BindWrite() const
+{
+	GLCALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Fbo));
+}
 
 std::expected<stw::AttachmentType, std::string> stw::FramebufferColorAttachment::GetAttachmentType() const
 {
@@ -441,6 +453,7 @@ std::expected<stw::AttachmentType, std::string> stw::FramebufferColorAttachment:
 
 	return AttachmentType{ glInternalFormat, glFormat, glType };
 }
+
 stw::AttachmentType stw::FramebufferDepthStencilAttachment::GetAttachmentType() const
 {
 	if (hasStencil)
