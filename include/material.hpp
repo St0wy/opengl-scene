@@ -1,7 +1,7 @@
 #pragma once
 
-#include <variant>
 #include <array>
+#include <variant>
 
 #include "ogl/pipeline.hpp"
 #include "texture.hpp"
@@ -9,7 +9,7 @@
 
 namespace stw
 {
-static constexpr u32 MaterialCount = 2;
+static constexpr u32 MaterialCount = 3;
 
 struct InvalidMaterial
 {
@@ -32,10 +32,16 @@ struct MaterialPbrNormalNoAo
 	std::size_t metallicMapIndex{};
 };
 
-using Material = std::variant<InvalidMaterial, MaterialPbrNormal, MaterialPbrNormalNoAo>;
+struct MaterialPbrNormalArm
+{
+	std::size_t baseColorMapIndex{};
+	std::size_t normalMapIndex{};
+	std::size_t armMapIndex{};
+};
 
-void BindMaterialForGBuffer(
-	const std::variant<InvalidMaterial, MaterialPbrNormal, MaterialPbrNormalNoAo>& materialVariant,
+using Material = std::variant<InvalidMaterial, MaterialPbrNormal, MaterialPbrNormalNoAo, MaterialPbrNormalArm>;
+
+void BindMaterialForGBuffer(const Material& materialVariant,
 	stw::TextureManager& textureManager,
 	const std::array<std::reference_wrapper<stw::Pipeline>, MaterialCount>& gBufferPipelines);
 }// namespace stw

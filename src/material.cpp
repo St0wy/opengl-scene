@@ -58,9 +58,28 @@ void stw::BindMaterialForGBuffer(const stw::Material& materialVariant,
 		GLCALL(glActiveTexture(GL_TEXTURE0));
 	};
 
+	const auto pbrNormalArm = [&textureManager, &gBufferPipelines](const MaterialPbrNormalArm& material) {
+		Pipeline const& pipeline = gBufferPipelines[1];
+		pipeline.Bind();
+
+		// Base Color
+		GLCALL(glActiveTexture(GL_TEXTURE0));
+		textureManager.GetTexture(material.baseColorMapIndex).Bind();
+
+		// Normal
+		GLCALL(glActiveTexture(GL_TEXTURE1));
+		textureManager.GetTexture(material.normalMapIndex).Bind();
+
+		// ARM
+		GLCALL(glActiveTexture(GL_TEXTURE2));
+		textureManager.GetTexture(material.armMapIndex).Bind();
+
+		GLCALL(glActiveTexture(GL_TEXTURE0));
+	};
+
 	constexpr auto invalid = [](const InvalidMaterial&) {
 		spdlog::error("Invalid material... {} {}", __FILE__, __LINE__);
 	};
 
-	std::visit(Overloaded{ invalid, pbrNormal, pbrNormalNoAo }, materialVariant);
+	std::visit(Overloaded{ invalid, pbrNormal, pbrNormalNoAo, pbrNormalArm }, materialVariant);
 }

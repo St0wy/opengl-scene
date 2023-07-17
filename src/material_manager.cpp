@@ -7,13 +7,17 @@
 #include <span>
 #include <spdlog/spdlog.h>
 
-std::size_t stw::MaterialManager::LoadMaterialsFromAssimpScene(
+std::vector<std::size_t> stw::MaterialManager::LoadMaterialsFromAssimpScene(
 	const aiScene* assimpScene, const std::filesystem::path& workingDirectory, TextureManager& textureManager)
 {
-	const std::size_t startIndex = m_Materials.size();
+	std::vector<std::size_t> assimpMaterialIndicesLoaded;
+
+	// TODO : Make sure the -1 thing is really working
 	const std::span<aiMaterial*> assimpMaterials{ assimpScene->mMaterials, assimpScene->mNumMaterials };
-	for (const aiMaterial* material : assimpMaterials)
+
+	for (usize i = 0; i < assimpMaterials.size(); i++)
 	{
+		const aiMaterial* material = assimpMaterials[i];
 		const auto diffuseCount = material->GetTextureCount(aiTextureType_DIFFUSE);
 		const auto baseColorCount = material->GetTextureCount(aiTextureType_BASE_COLOR);
 		const auto normalCount = material->GetTextureCount(aiTextureType_NORMALS);
@@ -21,22 +25,36 @@ std::size_t stw::MaterialManager::LoadMaterialsFromAssimpScene(
 		const auto ambientCount = material->GetTextureCount(aiTextureType_AMBIENT);
 		const auto ambientOcclusionCount = material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION);
 		const auto metallicCount = material->GetTextureCount(aiTextureType_METALNESS);
-
+		const auto unknownCount = material->GetTextureCount(aiTextureType_UNKNOWN);
 
 		if ((diffuseCount > 0 || baseColorCount > 0) > 0 && normalCount > 0 && roughnessCount > 0 && metallicCount > 0)
 		{
-			if (ambientCount > 0 || ambientOcclusionCount > 0)
+			if (unknownCount == 0)
 			{
-				LoadPbrNormal(material, workingDirectory, textureManager);
+				if (ambientCount > 0 || ambientOcclusionCount > 0)
+				{
+					LoadPbrNormal(material, workingDirectory, textureManager);
+					assimpMaterialIndicesLoaded.push_back(i);
+				}
+				else
+				{
+					LoadPbrNormalNoAo(material, workingDirectory, textureManager);
+					assimpMaterialIndicesLoaded.push_back(i);
+				}
 			}
 			else
 			{
-				LoadPbrNormalNoAo(material, workingDirectory, textureManager);
+				LoadPbrNormalArm(material, workingDirectory, textureManager);
+				assimpMaterialIndicesLoaded.push_back(i);
 			}
+		}
+		else
+		{
+			spdlog::warn("Unhandled material");
 		}
 	}
 
-	return startIndex;
+	return assimpMaterialIndicesLoaded;
 }
 
 stw::Material& stw::MaterialManager::operator[](std::size_t index) { return m_Materials[index]; }
@@ -163,3 +181,48 @@ void stw::MaterialManager::LoadPbrNormalNoAo(
 
 	m_Materials.emplace_back(MaterialPbrNormalNoAo{ baseColorIndex, normalIndex, roughnessIndex, metallicIndex });
 }
+
+void stw::MaterialManager::LoadPbrNormalArm(
+	const aiMaterial* material, const std::filesystem::path& workingDirectory, stw::TextureManager& textureManager)
+{
+	aiString relativePath;
+	aiReturn result = material->GetTexture(aiTextureType_NORMALS, 0, &relativePath);
+	if (result != aiReturn_SUCCESS)
+	{
+		spdlog::error("Could not get normal map");
+		return;
+	}
+
+	const std::filesystem::path normalPath = workingDirectory / relativePath.C_Str();
+	const std::size_t normalIndex =
+		textureManager.LoadTextureFromPath(normalPath, TextureType::Normal, stw::TextureSpace::Linear).value();
+
+	result = material->GetTexture(aiTextureType_DIFFUSE, 0, &relativePath);
+	if (result != aiReturn_SUCCESS)
+	{
+		result = material->GetTexture(aiTextureType_BASE_COLOR, 0, &relativePath);
+		if (result != aiReturn_SUCCESS)
+		{
+			spdlog::error("Could not get diffuse / base color map");
+			return;
+		}
+	}
+	const std::filesystem::path baseColorPath = workingDirectory / relativePath.C_Str();
+	const std::size_t baseColorIndex =
+		textureManager.LoadTextureFromPath(baseColorPath, TextureType::BaseColor, stw::TextureSpace::Srgb).value();
+
+	// Load ARM (ambient, roughness, metallic) map
+	result = material->GetTexture(aiTextureType_UNKNOWN, 0, &relativePath);
+	if (result != aiReturn_SUCCESS)
+	{
+		spdlog::error("Could not get ARM map");
+		return;
+	}
+	const std::filesystem::path armPath = workingDirectory / relativePath.C_Str();
+	const std::size_t armIndex =
+		textureManager.LoadTextureFromPath(armPath, TextureType::Roughness, stw::TextureSpace::Linear).value();
+
+	m_Materials.emplace_back(MaterialPbrNormalArm{ baseColorIndex, normalIndex, armIndex });
+}
+
+std::size_t stw::MaterialManager::Size() const { return m_Materials.size(); }

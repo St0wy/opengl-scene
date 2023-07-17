@@ -129,6 +129,7 @@ private:
 	Framebuffer m_GBufferFramebuffer;
 	Pipeline m_GBufferPipeline;
 	Pipeline m_GBufferNoAoPipeline;
+	Pipeline m_GBufferArmPipeline;
 	Pipeline m_DebugLightsPipeline;
 	Mesh m_DebugSphereLight{};
 	Pipeline m_PointLightPipeline;
@@ -166,7 +167,9 @@ private:
 
 	static void SetOpenGlCapability(bool enabled, GLenum capability, bool& field);
 
-	static ProcessMeshResult ProcessMesh(const aiMesh* assimpMesh, std::size_t materialIndexOffset);
+	static std::optional<stw::ProcessMeshResult> ProcessMesh(const aiMesh* assimpMesh,
+		std::size_t materialIndexOffset,
+		const std::vector<std::size_t>& loadedMaterialsIndices);
 	void RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrix);
 	void RenderBloomToBloomFramebuffer(GLuint hdrTexture, float filterRadius);
 	void RenderDownsample(GLuint hdrTexture);

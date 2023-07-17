@@ -13,18 +13,23 @@
 
 namespace stw
 {
+
+
 class MaterialManager
 {
 public:
-	std::size_t LoadMaterialsFromAssimpScene(
+	std::vector<std::size_t> LoadMaterialsFromAssimpScene(
 		const aiScene* assimpScene, const std::filesystem::path& workingDirectory, TextureManager& textureManager);
 	Material& operator[](std::size_t index);
 	const Material& operator[](std::size_t index) const;
+	[[nodiscard]] std::size_t Size() const;
 
 private:
 	void LoadPbrNormal(
 		const aiMaterial* material, const std::filesystem::path& workingDirectory, stw::TextureManager& textureManager);
 	void LoadPbrNormalNoAo(
+		const aiMaterial* material, const std::filesystem::path& workingDirectory, stw::TextureManager& textureManager);
+	void LoadPbrNormalArm(
 		const aiMaterial* material, const std::filesystem::path& workingDirectory, stw::TextureManager& textureManager);
 
 	std::vector<Material> m_Materials;

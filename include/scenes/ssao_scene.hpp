@@ -58,7 +58,7 @@ public:
 
 		UpdateProjection();
 
-		auto result = m_Renderer->LoadModel("./data/cat/cat.obj", true);
+		auto result = m_Renderer->LoadModel("./data/cat_gltf/cat.gltf", true);
 		if (!result.has_value())
 		{
 			spdlog::error("Error on model loading : {}", result.error());

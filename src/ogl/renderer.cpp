@@ -79,6 +79,13 @@ void stw::Renderer::InitPipelines()
 	m_GBufferNoAoPipeline.SetInt("texture_metallic", 3);
 	m_GBufferNoAoPipeline.UnBind();
 
+	m_GBufferArmPipeline.InitFromPath("shaders/pbr/gbuffer.vert", "shaders/pbr/gbuffer_arm.frag");
+	m_GBufferArmPipeline.Bind();
+	m_GBufferArmPipeline.SetInt("texture_base_color", 0);
+	m_GBufferArmPipeline.SetInt("texture_normal", 1);
+	m_GBufferArmPipeline.SetInt("texture_arm", 2);
+	m_GBufferArmPipeline.UnBind();
+
 	m_PointLightPipeline.InitFromPath("shaders/deferred/light_pass.vert", "shaders/pbr/point_light_pass.frag");
 	m_PointLightPipeline.Bind();
 	m_PointLightPipeline.SetInt("gPositionAmbientOcclusion", 0);
@@ -512,7 +519,8 @@ void stw::Renderer::RenderGBuffer()
 		m_MatricesUniformBuffer.Bind();
 		auto& material = m_MaterialManager[elementIndex.materialId];
 
-		BindMaterialForGBuffer(material, m_TextureManager, { m_GBufferPipeline, m_GBufferNoAoPipeline });
+		BindMaterialForGBuffer(
+			material, m_TextureManager, { m_GBufferPipeline, m_GBufferNoAoPipeline, m_GBufferArmPipeline });
 
 		auto& mesh = m_Meshes[elementIndex.meshId];
 		mesh.Bind(transformMatrices);
@@ -1023,6 +1031,7 @@ void stw::Renderer::Delete()
 	m_BrdfFramebuffer.Delete();
 	m_AmbientIblPipeline.Delete();
 	m_GBufferNoAoPipeline.Delete();
+	m_GBufferArmPipeline.Delete();
 }
 
 [[maybe_unused]] stw::TextureManager& stw::Renderer::GetTextureManager() { return m_TextureManager; }
@@ -1049,11 +1058,14 @@ std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const st
 		return std::unexpected(importer.GetErrorString());
 	}
 
-	spdlog::info("Assimp imported the model {} in {:0.0f} ms", pathString, timer.GetElapsedTime().GetInMilliseconds());
+	spdlog::info("Assimp imported the model {} in {:0.0f} ms", pathString, timer.RestartAndGetElapsedTime().GetInMilliseconds());
 
 	auto workingDirectory = path.parent_path();
-	const std::size_t materialIndexOffset =
+	const std::size_t materialIndexOffset = m_MaterialManager.Size();
+	const std::vector<std::size_t> materialIndicesLoaded =
 		m_MaterialManager.LoadMaterialsFromAssimpScene(assimpScene, workingDirectory, m_TextureManager);
+
+	spdlog::info("Loaded materials in {:0.0f} ms", timer.RestartAndGetElapsedTime().GetInMilliseconds());
 
 	m_Meshes.reserve(m_Meshes.size() + assimpScene->mNumMeshes);
 
@@ -1072,12 +1084,20 @@ std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const st
 		{
 			const aiMesh* assimpMesh = assimpSceneMeshes[meshIndex];
 
-			if (assimpMesh->mMaterialIndex == 0)
+			// Check if we loaded this material, if not, go to the next mesh
+			if (std::ranges::find(materialIndicesLoaded, assimpMesh->mMaterialIndex) == materialIndicesLoaded.end())
 			{
 				continue;
 			}
 
-			auto [mesh, meshMaterialIndex] = ProcessMesh(assimpMesh, materialIndexOffset);
+			auto processMeshResult = ProcessMesh(assimpMesh, materialIndexOffset, materialIndicesLoaded);
+
+			if (!processMeshResult)
+			{
+				assert(false);
+			}
+
+			auto& [mesh, meshMaterialIndex] = processMeshResult.value();
 
 			m_Meshes.push_back(std::move(mesh));
 
@@ -1095,12 +1115,13 @@ std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const st
 		}
 	}
 
-	spdlog::info("Converted model {} in {:0.0f} ms", pathString, timer.GetElapsedTime().GetInMilliseconds());
+	spdlog::info("Converted model {} in {:0.0f} ms", pathString, timer.RestartAndGetElapsedTime().GetInMilliseconds());
 
 	return { std::move(addedNodes) };
 }
 
-stw::ProcessMeshResult stw::Renderer::ProcessMesh(const aiMesh* assimpMesh, std::size_t materialIndexOffset)
+std::optional<stw::ProcessMeshResult> stw::Renderer::ProcessMesh(
+	const aiMesh* assimpMesh, std::size_t materialIndexOffset, const std::vector<std::size_t>& loadedMaterialsIndices)
 {
 	std::vector<Vertex> vertices{};
 	vertices.reserve(assimpMesh->mNumVertices);
@@ -1152,11 +1173,22 @@ stw::ProcessMeshResult stw::Renderer::ProcessMesh(const aiMesh* assimpMesh, std:
 		}
 	}
 
-	Mesh mesh;
-	const std::size_t materialIndex = materialIndexOffset + assimpMesh->mMaterialIndex - 1;
-	mesh.Init(std::move(vertices), std::move(indices));
+	for (usize i = 0; i < loadedMaterialsIndices.size(); i++)
+	{
+		if (loadedMaterialsIndices.at(i) == assimpMesh->mMaterialIndex)
+		{
+			Mesh mesh;
 
-	return { std::move(mesh), materialIndex };
+			const std::size_t materialIndex = materialIndexOffset + i;
+			mesh.Init(std::move(vertices), std::move(indices));
+
+			return stw::ProcessMeshResult{ std::move(mesh), materialIndex };
+		}
+	}
+
+	// We should not be here
+	spdlog::error("Did not find material index for this mesh {} {}", __LINE__, __FILE__);
+	return std::nullopt;
 }
 
 void stw::Renderer::SetDirectionalLight(stw::DirectionalLight directionalLight)
