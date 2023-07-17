@@ -116,11 +116,11 @@ void Window<T>::Loop()
 		m_Scene->Update(deltaTime);
 
 		frameCounter++;
-		frameDurationAccumulator += duration.GetInMilliseconds();
+		frameDurationAccumulator += duration.GetInSeconds();
 		if (frameCounter == frameCounterMax)
 		{
-			const f64 averageTime = frameDurationAccumulator / frameCounterMax;
-			const f64 fps = frameCounter / frameDurationAccumulator * 1000.0;
+			const f64 averageTime = (frameDurationAccumulator / frameCounterMax) * 1000.0;
+			const f64 fps = frameCounter / frameDurationAccumulator;
 			const auto title = fmt::format("{} | {:.2f} ms | {} fps", m_WindowName, averageTime, static_cast<i64>(fps));
 			SDL_SetWindowTitle(m_Window, title.c_str());
 

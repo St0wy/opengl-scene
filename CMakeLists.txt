@@ -34,7 +34,6 @@ add_executable(
 	"include/ogl/vertex_buffer.hpp"
 	"include/ogl/vertex_buffer_layout.hpp"
 	"include/scene_graph.hpp"
-	"include/scenes/deferred_shading_scene.hpp"
 	"include/scenes/scene.hpp"
 	"include/scenes/ssao_scene.hpp"
 	"include/texture.hpp"

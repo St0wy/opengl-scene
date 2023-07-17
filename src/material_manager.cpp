@@ -12,7 +12,6 @@ std::vector<std::size_t> stw::MaterialManager::LoadMaterialsFromAssimpScene(
 {
 	std::vector<std::size_t> assimpMaterialIndicesLoaded;
 
-	// TODO : Make sure the -1 thing is really working
 	const std::span<aiMaterial*> assimpMaterials{ assimpScene->mMaterials, assimpScene->mNumMaterials };
 
 	for (usize i = 0; i < assimpMaterials.size(); i++)

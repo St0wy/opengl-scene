@@ -85,6 +85,10 @@ public:
 	void Update(const f32 deltaTime) override
 	{
 		angle += deltaTime;
+		if (angle >= std::numbers::pi_v<float> * 2.0f)
+		{
+			angle = 0.0f;
+		}
 
 		const glm::mat4 model{ 1.0f };
 		m_Model->localTransformMatrix = glm::rotate(model, angle, glm::vec3{ 0.0f, 1.0f, 0.0f });

@@ -59,7 +59,7 @@ void stw::BindMaterialForGBuffer(const stw::Material& materialVariant,
 	};
 
 	const auto pbrNormalArm = [&textureManager, &gBufferPipelines](const MaterialPbrNormalArm& material) {
-		Pipeline const& pipeline = gBufferPipelines[1];
+		Pipeline const& pipeline = gBufferPipelines[2];
 		pipeline.Bind();
 
 		// Base Color
