@@ -26,7 +26,7 @@
 #ifdef _MSC_VER
 #define ASSERTD(x) \
 	if (!(x)) __debugbreak()
-#elifdef __clang__
+#elif defined(__clang__)
 #define ASSERTD(x) \
 	if (!(x)) __builtin_debugtrap()
 #endif

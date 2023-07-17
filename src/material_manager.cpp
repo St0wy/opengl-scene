@@ -26,7 +26,7 @@ std::vector<std::size_t> stw::MaterialManager::LoadMaterialsFromAssimpScene(
 		const auto metallicCount = material->GetTextureCount(aiTextureType_METALNESS);
 		const auto unknownCount = material->GetTextureCount(aiTextureType_UNKNOWN);
 
-		if ((diffuseCount > 0 || baseColorCount > 0) > 0 && normalCount > 0 && roughnessCount > 0 && metallicCount > 0)
+		if ((diffuseCount > 0 || baseColorCount > 0) && normalCount > 0 && roughnessCount > 0 && metallicCount > 0)
 		{
 			if (unknownCount == 0)
 			{

@@ -197,14 +197,14 @@ stw::Mesh stw::Mesh::CreateUvSphere(f32 radius, u32 latitudes, u32 longitudes)
 	const f32 deltaLatitude = std::numbers::pi_v<float> / static_cast<float>(latitudes);
 	const f32 deltaLongitude = 2.0f * std::numbers::pi_v<float> / static_cast<float>(longitudes);
 
-	for (i32 i = 0; i <= latitudes; i++)
+	for (i32 i = 0; i <= static_cast<i32>(latitudes); i++)
 	{
 		const f32 floatI = static_cast<f32>(i);
 		const f32 latitudeAngle = std::numbers::pi_v<float> / 2.0f - floatI * deltaLatitude;
 		const float xy = radius * std::cos(latitudeAngle);
 		const float z = radius * std::sin(latitudeAngle);
 
-		for (i32 j = 0; j <= longitudes; j++)
+		for (i32 j = 0; j <= static_cast<i32>(longitudes); j++)
 		{
 			const f32 floatJ = static_cast<float>(j);
 			const f32 longitudeAngle = floatJ * deltaLongitude;
@@ -222,12 +222,12 @@ stw::Mesh stw::Mesh::CreateUvSphere(f32 radius, u32 latitudes, u32 longitudes)
 		}
 	}
 
-	for (i32 i = 0; i < latitudes; i++)
+	for (i32 i = 0; i < static_cast<i32>(latitudes); i++)
 	{
 		u32 k1 = i * (longitudes + 1);
 		u32 k2 = k1 + longitudes + 1;
 
-		for (i32 j = 0; j < longitudes; ++j)
+		for (i32 j = 0; j < static_cast<i32>(longitudes); ++j)
 		{
 			if (i != 0)
 			{
