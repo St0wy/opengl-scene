@@ -19,6 +19,7 @@ static constexpr u32 SkyboxResolution = 4096;
 static constexpr u32 IrradianceMapResolution = 32;
 static constexpr u32 PrefilterMapResolution = 128;
 static constexpr u32 BrdfLutResolution = 512;
+static constexpr usize InvalidId = static_cast<usize>(-1);
 
 static constexpr f32 DefaultYaw = -90.0f;
 static constexpr f32 DefaultPitch = 0.0f;

@@ -49,7 +49,7 @@ std::vector<std::size_t> stw::MaterialManager::LoadMaterialsFromAssimpScene(
 		}
 		else
 		{
-			spdlog::warn("Unhandled material");
+			spdlog::debug("Unhandled material");
 		}
 	}
 

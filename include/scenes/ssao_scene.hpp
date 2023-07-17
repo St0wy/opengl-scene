@@ -63,18 +63,25 @@ public:
 		{
 			spdlog::error("Error on model loading : {}", result.error());
 		}
-
 		auto nodeVec = result.value();
+		m_CatNodeIndex = nodeVec[0];
+		m_Renderer->GetSceneGraph().ScaleElement(m_CatNodeIndex, glm::vec3{ 3.0f, 3.0f, 3.0f });
 
-		const auto& node = m_Renderer->GetSceneGraph().GetNodes()[0];
-		m_Model = &m_Renderer->GetSceneGraph().GetElements()[node.elementId];
+		result = m_Renderer->LoadModel("./data/backpack_gltf/backpack.gltf");
+		if (!result.has_value())
+		{
+			spdlog::error("Error on model loading : {}", result.error());
+		}
+		nodeVec = result.value();
+		auto nodeIdx = nodeVec[0];
+		m_Renderer->GetSceneGraph().TranslateElement(nodeIdx, glm::vec3{ 10.0f, 0.0f, 0.0f });
 
 		glm::vec3 direction{ 0.0f, -1.0f, -1.0f };
 		direction = glm::normalize(direction);
 		const DirectionalLight directionalLight{ direction, glm::vec3{ 5.0f } };
 		m_Renderer->SetDirectionalLight(directionalLight);
 
-		const PointLight p{ glm::vec3{ 0.0f, 0.0f, 4.0f }, glm::vec3{ 20.0f } };
+		const PointLight p{ glm::vec3{ 5.0f, 0.0f, 4.0f }, glm::vec3{ 20.0f } };
 		m_Renderer->PushPointLight(p);
 	}
 
@@ -90,14 +97,7 @@ public:
 			angle = 0.0f;
 		}
 
-		const glm::mat4 model{ 1.0f };
-		m_Model->localTransformMatrix = glm::rotate(model, angle, glm::vec3{ 0.0f, 1.0f, 0.0f });
-
-		auto& sceneGraphElems = m_Renderer->GetSceneGraph().GetElements();
-		for (usize i = 1; i < sceneGraphElems.size(); i++)
-		{
-			sceneGraphElems[i].parentTransformMatrix = m_Model->localTransformMatrix;
-		}
+		m_Renderer->GetSceneGraph().RotateElement(m_CatNodeIndex, deltaTime, glm::vec3{ 0.0f, 1.0f, 0.0f });
 
 		m_Renderer->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -168,6 +168,6 @@ private:
 	f32 angle = 0.0f;
 	Camera m_Camera{ glm::vec3{ 0.0f, 0.0f, 2.0f } };
 	std::unique_ptr<Renderer> m_Renderer{};
-	stw::SceneGraphElement* m_Model;
+	usize m_CatNodeIndex{};
 };
 }// namespace stw

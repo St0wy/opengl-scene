@@ -1058,7 +1058,8 @@ std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const st
 		return std::unexpected(importer.GetErrorString());
 	}
 
-	spdlog::info("Assimp imported the model {} in {:0.0f} ms", pathString, timer.RestartAndGetElapsedTime().GetInMilliseconds());
+	spdlog::info(
+		"Assimp imported the model {} in {:0.0f} ms", pathString, timer.RestartAndGetElapsedTime().GetInMilliseconds());
 
 	auto workingDirectory = path.parent_path();
 	const std::size_t materialIndexOffset = m_MaterialManager.Size();
@@ -1074,11 +1075,26 @@ std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const st
 	const std::span<aiMesh*> assimpSceneMeshes{ assimpScene->mMeshes, assimpScene->mNumMeshes };
 
 	std::vector<usize> addedNodes;
+
+	// Add the node that holds the mesh
+	std::optional<usize> currentParent = m_SceneGraph.AddElementToRoot(InvalidId, InvalidId, glm::mat4(1.0f));
+	addedNodes.push_back(currentParent.value());
+
+	std::optional<usize> currentSibling{};
 	while (!assimpNodes.empty())
 	{
 		const aiNode* currentAssimpNode = assimpNodes.front();
 		assimpNodes.pop();
 		const std::span<u32> nodeMeshIndices{ currentAssimpNode->mMeshes, currentAssimpNode->mNumMeshes };
+
+		// If this node has no mesh, we create an empty one
+		if (nodeMeshIndices.empty())
+		{
+			const usize nodeIndex =
+				m_SceneGraph.AddChild(currentParent.value(), InvalidId, InvalidId, glm::mat4{ 1.0f });
+			currentParent = nodeIndex;
+			addedNodes.emplace_back(nodeIndex);
+		}
 
 		for (const u32 meshIndex : nodeMeshIndices)
 		{
@@ -1101,17 +1117,39 @@ std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const st
 
 			m_Meshes.push_back(std::move(mesh));
 
-			// TODO: Take in account parents and children (right now there's only one level of nodes)
 			const glm::mat4 transformMatrix = ConvertMatAssimpToGlm(currentAssimpNode->mTransformation);
-			const usize nodeIndex =
-				m_SceneGraph.AddElementToRoot(m_Meshes.size() - 1, meshMaterialIndex, transformMatrix);
+
+			usize nodeIndex = InvalidId;
+
+			if (currentSibling)
+			{
+				nodeIndex = m_SceneGraph.AddSibling(
+					currentSibling.value(), m_Meshes.size() - 1, meshMaterialIndex, transformMatrix);
+				currentSibling = nodeIndex;
+			}
+
+			if (currentParent)
+			{
+				nodeIndex = m_SceneGraph.AddChild(
+					currentParent.value(), m_Meshes.size() - 1, meshMaterialIndex, transformMatrix);
+				currentParent = std::nullopt;
+				currentSibling = nodeIndex;
+			}
+
+			assert(nodeIndex != InvalidId);
 			addedNodes.emplace_back(nodeIndex);
 		}
 
 		const std::span<aiNode*> nodeChildren{ currentAssimpNode->mChildren, currentAssimpNode->mNumChildren };
-		for (const aiNode* child : nodeChildren)
+		for (usize i = 0; i < nodeChildren.size(); i++)
 		{
-			assimpNodes.push(child);
+			// Update current parent with the last added node on the first iteration
+			// and if the current node had meshes
+			if (i == 0 && !nodeMeshIndices.empty())
+			{
+				currentParent = addedNodes.size() - 1;
+			}
+			assimpNodes.push(nodeChildren[i]);
 		}
 	}
 

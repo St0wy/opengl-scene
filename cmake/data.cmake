@@ -67,6 +67,7 @@ file(
 	"data/*.fbx"
 	"data/*.gltf"
 	"data/*.bin"
+	"data/*.tga"
 )
 
 # Copy every data file
