@@ -9,8 +9,6 @@
 
 namespace stw
 {
-static constexpr u32 MaterialCount = 3;
-
 struct InvalidMaterial
 {
 };
@@ -40,6 +38,8 @@ struct MaterialPbrNormalArm
 };
 
 using Material = std::variant<InvalidMaterial, MaterialPbrNormal, MaterialPbrNormalNoAo, MaterialPbrNormalArm>;
+
+static constexpr u32 MaterialCount = std::variant_size_v<Material> - 1;
 
 void BindMaterialForGBuffer(const Material& materialVariant,
 	stw::TextureManager& textureManager,

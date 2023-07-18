@@ -10,9 +10,10 @@
 std::vector<std::size_t> stw::MaterialManager::LoadMaterialsFromAssimpScene(
 	const aiScene* assimpScene, const std::filesystem::path& workingDirectory, TextureManager& textureManager)
 {
-	std::vector<std::size_t> assimpMaterialIndicesLoaded;
-
 	const std::span<aiMaterial*> assimpMaterials{ assimpScene->mMaterials, assimpScene->mNumMaterials };
+
+	std::vector<std::size_t> assimpMaterialIndicesLoaded;
+	assimpMaterialIndicesLoaded.reserve(assimpMaterials.size());
 
 	for (usize i = 0; i < assimpMaterials.size(); i++)
 	{

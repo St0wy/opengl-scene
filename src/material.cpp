@@ -9,7 +9,7 @@ void stw::BindMaterialForGBuffer(const stw::Material& materialVariant,
 	const std::array<std::reference_wrapper<stw::Pipeline>, MaterialCount>& gBufferPipelines)
 {
 	const auto pbrNormal = [&textureManager, &gBufferPipelines](const MaterialPbrNormal& material) {
-		Pipeline const& pipeline = gBufferPipelines[0];
+		const Pipeline& pipeline = gBufferPipelines[0];
 		pipeline.Bind();
 
 		// Base Color
@@ -36,7 +36,7 @@ void stw::BindMaterialForGBuffer(const stw::Material& materialVariant,
 	};
 
 	const auto pbrNormalNoAo = [&textureManager, &gBufferPipelines](const MaterialPbrNormalNoAo& material) {
-		Pipeline const& pipeline = gBufferPipelines[1];
+		const Pipeline& pipeline = gBufferPipelines[1];
 		pipeline.Bind();
 
 		// Base Color
@@ -59,7 +59,7 @@ void stw::BindMaterialForGBuffer(const stw::Material& materialVariant,
 	};
 
 	const auto pbrNormalArm = [&textureManager, &gBufferPipelines](const MaterialPbrNormalArm& material) {
-		Pipeline const& pipeline = gBufferPipelines[2];
+		const Pipeline& pipeline = gBufferPipelines[2];
 		pipeline.Bind();
 
 		// Base Color

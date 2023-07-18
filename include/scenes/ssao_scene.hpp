@@ -69,6 +69,7 @@ public:
 		{
 			spdlog::error("Error on model loading : {}", result.error());
 		}
+
 		auto nodeVec = result.value();
 		m_CatNodeIndex = nodeVec[0];
 		m_Renderer->GetSceneGraph().TranslateElement(m_CatNodeIndex, glm::vec3{ 0.3f, 0.4f, 0.0f });
@@ -79,6 +80,7 @@ public:
 		{
 			spdlog::error("Error on model loading : {}", result.error());
 		}
+		
 		nodeVec = result.value();
 		auto nodeIdx = nodeVec[0];
 		m_Renderer->GetSceneGraph().TranslateElement(nodeIdx, glm::vec3{ -2.0f, 2.0f, 0.0f });
@@ -88,6 +90,7 @@ public:
 		{
 			spdlog::error("Error on model loading : {}", result.error());
 		}
+		
 		nodeVec = result.value();
 		nodeIdx = nodeVec[0];
 		m_Renderer->GetSceneGraph().TranslateElement(nodeIdx, glm::vec3{ 2.0f, 1.0f, 0.0f });

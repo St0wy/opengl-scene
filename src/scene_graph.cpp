@@ -122,24 +122,25 @@ void stw::SceneGraph::ForEachChildren(
 		return;
 	}
 
-	std::queue<std::size_t> nodes;
-	nodes.push(startNode.childId.value());
+	std::vector<std::size_t> nodes;
+	nodes.reserve(m_Nodes.size());
+	nodes.push_back(startNode.childId.value());
 	while (!nodes.empty())
 	{
-		const auto currentNode = nodes.front();
-		nodes.pop();
+		const auto currentNode = nodes.back();
+		nodes.pop_back();
 		auto& node = m_Nodes[currentNode];
 		auto& element = m_Elements[node.elementId];
 		function(element);
 
 		if (node.childId)
 		{
-			nodes.push(node.childId.value());
+			nodes.push_back(node.childId.value());
 		}
 
 		if (node.siblingId)
 		{
-			nodes.push(node.siblingId.value());
+			nodes.push_back(node.siblingId.value());
 		}
 	}
 }

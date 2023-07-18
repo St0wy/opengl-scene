@@ -22,7 +22,6 @@ struct SceneGraphElement
 	std::size_t materialId = InvalidId;
 	glm::mat4 localTransformMatrix{ 1.0f };
 	glm::mat4 parentTransformMatrix{ 1.0f };
-	// TODO : dirty flag ?
 };
 
 // This is a type used for caching when iterating over the scene graph

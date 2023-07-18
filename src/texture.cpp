@@ -65,6 +65,7 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadKtxFromPath(
 		return std::unexpected(fmt::format("Could not load KTX file with libktx error code : {}", result));
 	}
 
+	// TODO: Tell the texture to use mipmaps
 	GLCALL(glGenTextures(1, &texture));// Optional. GLUpload can generate a texture.
 	result = ktxTexture_GLUpload(kTexture, &texture, &target, &glError);
 	if (glError != GL_NO_ERROR)
