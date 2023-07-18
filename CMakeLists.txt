@@ -60,6 +60,9 @@ add_executable(
 	"src/texture_manager.cpp"
 	"src/timer.cpp"
 	"src/utils.cpp"
+	"include/thread_safe_ring_buffer.hpp"
+	"include/job_system.hpp"
+	"src/job_system.cpp"
 )
 
 target_include_directories(opengl_scene PRIVATE include/ external/)

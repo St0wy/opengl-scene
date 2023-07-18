@@ -38,6 +38,7 @@ public:
 	void SetAspectRatio(f32 aspectRatio);
 	void SetMovementSpeed(f32 speed);
 	void SetYaw(f32 yaw);
+	void SetPitch(f32 pitch);
 	void IncrementMovementSpeed(f32 speedDelta);
 
 	[[nodiscard]] glm::mat4 GetViewMatrix() const;

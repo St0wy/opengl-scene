@@ -58,14 +58,21 @@ public:
 
 		UpdateProjection();
 
-		auto result = m_Renderer->LoadModel("./data/cat_gltf/cat.gltf", true);
+		auto result = m_Renderer->LoadModel("./data/terrain/terrain.gltf", true);
+		if (!result.has_value())
+		{
+			spdlog::error("Error on model loading : {}", result.error());
+		}
+
+		result = m_Renderer->LoadModel("./data/cat_gltf/cat.gltf", true);
 		if (!result.has_value())
 		{
 			spdlog::error("Error on model loading : {}", result.error());
 		}
 		auto nodeVec = result.value();
 		m_CatNodeIndex = nodeVec[0];
-		m_Renderer->GetSceneGraph().ScaleElement(m_CatNodeIndex, glm::vec3{ 3.0f, 3.0f, 3.0f });
+		m_Renderer->GetSceneGraph().TranslateElement(m_CatNodeIndex, glm::vec3{ 0.3f, 0.4f, 0.0f });
+		m_Renderer->GetSceneGraph().ScaleElement(m_CatNodeIndex, glm::vec3{ 4.0f, 4.0f, 4.0f });
 
 		result = m_Renderer->LoadModel("./data/backpack_gltf/backpack.gltf");
 		if (!result.has_value())
@@ -74,7 +81,18 @@ public:
 		}
 		nodeVec = result.value();
 		auto nodeIdx = nodeVec[0];
-		m_Renderer->GetSceneGraph().TranslateElement(nodeIdx, glm::vec3{ 10.0f, 0.0f, 0.0f });
+		m_Renderer->GetSceneGraph().TranslateElement(nodeIdx, glm::vec3{ -2.0f, 2.0f, 0.0f });
+
+		result = m_Renderer->LoadModel("./data/ball/ball.gltf", true);
+		if (!result.has_value())
+		{
+			spdlog::error("Error on model loading : {}", result.error());
+		}
+		nodeVec = result.value();
+		nodeIdx = nodeVec[0];
+		m_Renderer->GetSceneGraph().TranslateElement(nodeIdx, glm::vec3{ 2.0f, 1.0f, 0.0f });
+		m_Renderer->GetSceneGraph().RotateElement(nodeIdx, glm::radians(-90.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+		m_Renderer->GetSceneGraph().ScaleElement(nodeIdx, glm::vec3{ 7.0f, 7.0f, 7.0f });
 
 		glm::vec3 direction{ 0.0f, -1.0f, -1.0f };
 		direction = glm::normalize(direction);
@@ -166,7 +184,7 @@ public:
 
 private:
 	f32 angle = 0.0f;
-	Camera m_Camera{ glm::vec3{ 0.0f, 0.0f, 2.0f } };
+	Camera m_Camera{ glm::vec3{ 0.0f, 1.5f, 5.0f } };
 	std::unique_ptr<Renderer> m_Renderer{};
 	usize m_CatNodeIndex{};
 };

@@ -133,6 +133,12 @@ void stw::Camera::SetYaw(f32 yaw)
 	UpdateViewMatrix();
 }
 
+void stw::Camera::SetPitch(f32 pitch) {
+	m_Pitch= pitch;
+	UpdateCameraVectors();
+	UpdateViewMatrix();
+}
+
 std::array<glm::vec3, 8> stw::Camera::GetFrustumCorners()
 {
 	return ComputeFrustumCorners(m_ProjectionMatrix, m_ViewMatrix);

@@ -1,0 +1,216 @@
+{
+  "accessors": [
+    {
+      "name": "8-Ball-Mesh_0_positions",
+      "componentType": 5126,
+      "count": 553,
+      "min": [
+        -0.05700000002980232,
+        -0.05700000002980232,
+        -0.05700000002980232
+      ],
+      "max": [
+        0.05700000002980232,
+        0.05700000002980232,
+        0.05700000002980232
+      ],
+      "type": "VEC3",
+      "bufferView": 0,
+      "byteOffset": 0
+    },
+    {
+      "name": "8-Ball-Mesh_0_normals",
+      "componentType": 5126,
+      "count": 553,
+      "min": [
+        -1,
+        -1,
+        -1
+      ],
+      "max": [
+        1,
+        1,
+        1
+      ],
+      "type": "VEC3",
+      "bufferView": 1,
+      "byteOffset": 0
+    },
+    {
+      "name": "8-Ball-Mesh_0_texcoords",
+      "componentType": 5126,
+      "count": 553,
+      "min": [
+        0.0014669999945908785,
+        0.49770399928092957
+      ],
+      "max": [
+        0.998528003692627,
+        0.9985299706459045
+      ],
+      "type": "VEC2",
+      "bufferView": 2,
+      "byteOffset": 0
+    },
+    {
+      "name": "8-Ball-Mesh_0_indices",
+      "componentType": 5123,
+      "count": 2880,
+      "min": [
+        0
+      ],
+      "max": [
+        552
+      ],
+      "type": "SCALAR",
+      "bufferView": 3,
+      "byteOffset": 0
+    }
+  ],
+  "asset": {
+    "generator": "obj2gltf",
+    "version": "2.0"
+  },
+  "buffers": [
+    {
+      "name": "8-ball",
+      "byteLength": 23456,
+      "uri": "8-ball.bin"
+    }
+  ],
+  "bufferViews": [
+    {
+      "name": "bufferView_0",
+      "buffer": 0,
+      "byteLength": 6636,
+      "byteOffset": 0,
+      "byteStride": 12,
+      "target": 34962
+    },
+    {
+      "name": "bufferView_1",
+      "buffer": 0,
+      "byteLength": 6636,
+      "byteOffset": 6636,
+      "byteStride": 12,
+      "target": 34962
+    },
+    {
+      "name": "bufferView_2",
+      "buffer": 0,
+      "byteLength": 4424,
+      "byteOffset": 13272,
+      "byteStride": 8,
+      "target": 34962
+    },
+    {
+      "name": "bufferView_3",
+      "buffer": 0,
+      "byteLength": 5760,
+      "byteOffset": 17696,
+      "target": 34963
+    }
+  ],
+  "images": [
+    {
+      "name": "8-Ball_8-Ball_BaseColor",
+      "uri": "8-Ball_8-Ball_BaseColor.png"
+    },
+    {
+      "name": "8-Ball_8-Ball_Metallic_8-Ball_8-Ball_Roughness_ao",
+      "uri": "8-Ball_8-Ball_Metallic_8-Ball_8-Ball_Roughness_ao.png"
+    },
+    {
+      "name": "8-Ball_8-Ball_Normal",
+      "uri": "8-Ball_8-Ball_Normal.png"
+    }
+  ],
+  "materials": [
+    {
+      "name": "8-Ball",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 1
+        },
+        "baseColorFactor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "metallicFactor": 1,
+        "roughnessFactor": 1
+      },
+      "normalTexture": {
+        "index": 2
+      },
+      "occlusionTexture": {
+        "index": 1
+      },
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "doubleSided": false
+    }
+  ],
+  "meshes": [
+    {
+      "name": "8-Ball-Mesh",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "8-Ball",
+      "mesh": 0
+    }
+  ],
+  "samplers": [
+    {
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "name": "8-Ball_8-Ball_BaseColor",
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "name": "8-Ball_8-Ball_Metallic_8-Ball_8-Ball_Roughness_ao",
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "name": "8-Ball_8-Ball_Normal",
+      "sampler": 0,
+      "source": 2
+    }
+  ]
+}

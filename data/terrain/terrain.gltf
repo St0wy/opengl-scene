@@ -1,0 +1,216 @@
+{
+  "accessors": [
+    {
+      "name": "Aset_nature_embankment_L_vjboab3mw_LOD0-Mesh_0_positions",
+      "componentType": 5126,
+      "count": 10184,
+      "min": [
+        -3.5190420150756836,
+        -0.02197900041937828,
+        -2.307504892349243
+      ],
+      "max": [
+        3.5385351181030273,
+        0.44238999485969543,
+        2.3382980823516846
+      ],
+      "type": "VEC3",
+      "bufferView": 0,
+      "byteOffset": 0
+    },
+    {
+      "name": "Aset_nature_embankment_L_vjboab3mw_LOD0-Mesh_0_normals",
+      "componentType": 5126,
+      "count": 10184,
+      "min": [
+        -0.9953005313873291,
+        -0.8674219846725464,
+        -0.996748149394989
+      ],
+      "max": [
+        0.9931939840316772,
+        0.9999955892562866,
+        0.9986149072647095
+      ],
+      "type": "VEC3",
+      "bufferView": 1,
+      "byteOffset": 0
+    },
+    {
+      "name": "Aset_nature_embankment_L_vjboab3mw_LOD0-Mesh_0_texcoords",
+      "componentType": 5126,
+      "count": 10184,
+      "min": [
+        0.0019529999699443579,
+        0.0019529999699443579
+      ],
+      "max": [
+        0.9971309900283813,
+        0.9980469942092896
+      ],
+      "type": "VEC2",
+      "bufferView": 2,
+      "byteOffset": 0
+    },
+    {
+      "name": "Aset_nature_embankment_L_vjboab3mw_LOD0-Mesh_0_indices",
+      "componentType": 5123,
+      "count": 56346,
+      "min": [
+        0
+      ],
+      "max": [
+        10183
+      ],
+      "type": "SCALAR",
+      "bufferView": 3,
+      "byteOffset": 0
+    }
+  ],
+  "asset": {
+    "generator": "obj2gltf",
+    "version": "2.0"
+  },
+  "buffers": [
+    {
+      "name": "terrain",
+      "byteLength": 438580,
+      "uri": "terrain.bin"
+    }
+  ],
+  "bufferViews": [
+    {
+      "name": "bufferView_0",
+      "buffer": 0,
+      "byteLength": 122208,
+      "byteOffset": 0,
+      "byteStride": 12,
+      "target": 34962
+    },
+    {
+      "name": "bufferView_1",
+      "buffer": 0,
+      "byteLength": 122208,
+      "byteOffset": 122208,
+      "byteStride": 12,
+      "target": 34962
+    },
+    {
+      "name": "bufferView_2",
+      "buffer": 0,
+      "byteLength": 81472,
+      "byteOffset": 244416,
+      "byteStride": 8,
+      "target": 34962
+    },
+    {
+      "name": "bufferView_3",
+      "buffer": 0,
+      "byteLength": 112692,
+      "byteOffset": 325888,
+      "target": 34963
+    }
+  ],
+  "images": [
+    {
+      "name": "vjboab3mw_4K_Albedo",
+      "uri": "vjboab3mw_4K_Albedo.jpg"
+    },
+    {
+      "name": "metalness_vjboab3mw_4K_Roughness_ao",
+      "uri": "metalness_vjboab3mw_4K_Roughness_ao.png"
+    },
+    {
+      "name": "vjboab3mw_4K_Normal_LOD0",
+      "uri": "vjboab3mw_4K_Normal_LOD0.jpg"
+    }
+  ],
+  "materials": [
+    {
+      "name": "lambert1.001",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 1
+        },
+        "baseColorFactor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "metallicFactor": 1,
+        "roughnessFactor": 1
+      },
+      "normalTexture": {
+        "index": 2
+      },
+      "occlusionTexture": {
+        "index": 1
+      },
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "doubleSided": false
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Aset_nature_embankment_L_vjboab3mw_LOD0-Mesh",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Aset_nature_embankment_L_vjboab3mw_LOD0",
+      "mesh": 0
+    }
+  ],
+  "samplers": [
+    {
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "name": "vjboab3mw_4K_Albedo",
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "name": "metalness_vjboab3mw_4K_Roughness_ao",
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "name": "vjboab3mw_4K_Normal_LOD0",
+      "sampler": 0,
+      "source": 2
+    }
+  ]
+}
