@@ -114,15 +114,15 @@
   "images": [
     {
       "name": "concrete_cat_statue_diff_4k",
-      "uri": "concrete_cat_statue_diff_4k.png"
+      "uri": "diffuse.ktx"
     },
     {
       "name": "concrete_cat_statue_metal_4k_concrete_cat_statue_rough_4k_ao_map",
-      "uri": "concrete_cat_statue_metal_4k_concrete_cat_statue_rough_4k_ao_map.png"
+      "uri": "arm.ktx"
     },
     {
       "name": "concrete_cat_statue_nor_gl_4k",
-      "uri": "concrete_cat_statue_nor_gl_4k.png"
+      "uri": "normal.ktx"
     }
   ],
   "materials": [

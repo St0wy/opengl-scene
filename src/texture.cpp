@@ -9,6 +9,7 @@
 #define STBI_FAILURE_USERMSG
 #endif
 #include <array>
+#include <ktx.h>
 #include <spdlog/spdlog.h>
 #include <stb_image/stb_image.h>
 
@@ -45,6 +46,37 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadFromPath(
 	stbi_image_free(data);
 
 	return { std::move(texture) };
+}
+
+std::expected<stw::Texture, std::string> stw::Texture::LoadKtxFromPath(
+	const std::filesystem::path& path, const TextureType type)
+{
+	// https://github.khronos.org/KTX-Software/libktx/index.html#overview
+	ktxTexture* kTexture = nullptr;
+	KTX_error_code result = KTX_error_code::KTX_NOT_FOUND;
+	GLuint texture = 0;
+	GLenum target = GL_INVALID_ENUM;
+	GLenum glError = GL_INVALID_ENUM;
+
+	result = ktxTexture_CreateFromNamedFile(path.string().c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, &kTexture);
+	if (result != KTX_error_code::KTX_SUCCESS)
+	{
+		ktxTexture_Destroy(kTexture);
+		return std::unexpected(fmt::format("Could not load KTX file with libktx error code : {}", result));
+	}
+
+	GLCALL(glGenTextures(1, &texture));// Optional. GLUpload can generate a texture.
+	result = ktxTexture_GLUpload(kTexture, &texture, &target, &glError);
+	if (glError != GL_NO_ERROR)
+	{
+		ktxTexture_Destroy(kTexture);
+		return std::unexpected(fmt::format("Could not load KTX file with opengl error code : {}", glError));
+	}
+
+	ktxTexture_Destroy(kTexture);
+
+	Texture t{ texture, target, type };
+	return t;
 }
 
 std::expected<stw::Texture, std::string> stw::Texture::LoadRadianceMapFromPath(const std::filesystem::path& path)
@@ -295,4 +327,12 @@ stw::Texture::Texture(GLuint textureId,
 	GLenum glTextureTarget)
 	: textureId(textureId), textureType(textureType), space(textureSpace), glFormat(glFormat),
 	  internalFormat(internalFormat), m_GlTextureTarget(glTextureTarget)
+{}
+
+stw::Texture::Texture(GLuint textureId, GLenum glFormat, GLint internalFormat, GLenum glTextureTarget)
+	: textureId(textureId), glFormat(glFormat), internalFormat(internalFormat), m_GlTextureTarget(glTextureTarget)
+{}
+
+stw::Texture::Texture(GLuint textureId, GLenum glTextureTarget, stw::TextureType textureType)
+	: textureId(textureId), textureType(textureType), m_GlTextureTarget(glTextureTarget)
 {}

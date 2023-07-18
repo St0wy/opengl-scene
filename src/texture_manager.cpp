@@ -19,7 +19,16 @@ std::optional<std::size_t> stw::TextureManager::LoadTextureFromPath(
 		return { result->second };
 	}
 
-	auto textureResult = Texture::LoadFromPath(path, type, space);
+	std::expected<stw::Texture, std::string> textureResult;
+	if (path.extension() == ".ktx")
+	{
+		textureResult = Texture::LoadKtxFromPath(path, type);
+	}
+	else
+	{
+		textureResult = Texture::LoadFromPath(path, type, space);
+	}
+
 
 	if (!textureResult.has_value())
 	{

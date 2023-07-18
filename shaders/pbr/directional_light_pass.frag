@@ -45,7 +45,7 @@ void main()
 	float roughness = texture(gNormalRoughness, TexCoords).a;
 	float metallic = texture(gBaseColorMetallic, TexCoords).a;
 
-	vec3 viewDir = normalize(viewPos - fragPos);
+	vec3 viewDir = normalize(-fragPos);
 
 	vec3 F0 = vec3(0.04);
 	F0 = mix(F0, baseColor, metallic);
@@ -102,6 +102,7 @@ void main()
 	//	} else {
 	//		hint = vec3(1.0, 1.0, 1.0);
 	//	}
+	//	color += hint;
 
 	FragColor = vec4(color, 1.0);
 }

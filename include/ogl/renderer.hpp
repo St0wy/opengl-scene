@@ -92,8 +92,7 @@ public:
 
 	void DrawScene();
 
-	std::expected<std::vector<usize>, std::string> LoadModel(
-		const std::filesystem::path& path, bool flipUVs = false);
+	std::expected<std::vector<usize>, std::string> LoadModel(const std::filesystem::path& path, bool flipUVs = false);
 	[[maybe_unused]] [[nodiscard]] TextureManager& GetTextureManager();
 
 	void Delete();

@@ -23,7 +23,7 @@ void main()
 	vec3 tangentNormal = texture(texture_normal, TexCoords).rgb;
 	tangentNormal = tangentNormal * 2.0 - 1.0;
 
-	gNormalRoughness.rgb = TangentToWorldMatrix * tangentNormal;
+	gNormalRoughness.rgb = normalize(TangentToWorldMatrix * tangentNormal);
 	gNormalRoughness.a = texture(texture_roughness, TexCoords).r;
 
 	gBaseColorMetallic.rgb = texture(texture_base_color, TexCoords).rgb;

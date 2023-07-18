@@ -31,19 +31,6 @@ cpmaddpackage(
 
 cpmaddpackage(
 	NAME
-	fmt
-	GIT_TAG
-	10.0.0
-	GITHUB_REPOSITORY
-	fmtlib/fmt
-	OPTIONS
-	"BUILD_SHARED_LIBS OFF"
-	EXCLUDE_FROM_ALL
-	SYSTEM
-)
-
-cpmaddpackage(
-	NAME
 	spdlog
 	VERSION
 	1.11.0
@@ -95,5 +82,34 @@ cpmaddpackage(
 	EXCLUDE_FROM_ALL
 	SYSTEM
 )
+
+cpmaddpackage(
+	NAME
+	KTX-Software
+	VERSION
+	4.2.1
+	GITHUB_REPOSITORY
+	KhronosGroup/KTX-Software
+	OPTIONS
+	"BUILD_SHARED_LIBS OFF"
+	KTX_FEATURE_STATIC_LIBRARY ON
+	EXCLUDE_FROM_ALL
+	SYSTEM
+)
+
+if(NOT TARGET fmt::fmt)
+	cpmaddpackage(
+		NAME
+		fmt
+		GIT_TAG
+		10.0.0
+		GITHUB_REPOSITORY
+		fmtlib/fmt
+		OPTIONS
+		"BUILD_SHARED_LIBS OFF"
+		EXCLUDE_FROM_ALL
+		SYSTEM
+	)
+endif()
 
 add_subdirectory(./external)

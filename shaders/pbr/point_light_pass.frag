@@ -17,7 +17,6 @@ uniform sampler2D gBaseColorMetallic;
 
 uniform PointLight pointLight;
 
-uniform vec3 viewPos;
 uniform vec2 screenSize;
 
 vec2 CalcTexCoord()
@@ -41,7 +40,7 @@ void main()
 	float metallic = texture(gBaseColorMetallic, texCoord).a;
 
 	// V
-	vec3 viewDir = normalize(viewPos - fragPos);
+	vec3 viewDir = normalize(-fragPos);
 
 	vec3 F0 = vec3(0.04);
 	F0 = mix(F0, baseColor, metallic);

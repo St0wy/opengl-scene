@@ -16,8 +16,6 @@ uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D brdfLut;
 
-uniform vec3 viewPos;
-
 vec3 FresnelSchlick(float cosTheta, vec3 F0);
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -34,7 +32,7 @@ void main()
 	float ambientOcclusion = texture(gSsao, TexCoords).r * texture(gPositionAmbientOcclusion, TexCoords).a;
 
 	// V
-	vec3 viewDir = normalize(viewPos - fragPos);
+	vec3 viewDir = normalize(-fragPos);
 	// R
 	vec3 reflection = reflect(-viewDir, normal);
 
@@ -56,7 +54,7 @@ void main()
 
 	vec3 ambient = (kDiffuse * diffuse + specular) * ambientOcclusion;
 
-//	ambient = vec3(kSpecular);
+	//	ambient = vec3(kSpecular);
 	FragColor = vec4(ambient, 1.0);
 }
 

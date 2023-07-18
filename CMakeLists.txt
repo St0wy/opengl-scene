@@ -80,6 +80,7 @@ target_link_system_libraries(
 	stb_image
 	Microsoft.GSL::GSL
 	absl::flat_hash_map
+	ktx_read
 )
 
 add_dependencies(opengl_scene shader_target data_target)

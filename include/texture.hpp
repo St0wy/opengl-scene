@@ -51,6 +51,8 @@ public:
 	static std::expected<Texture, std::string> LoadFromPath(
 		const std::filesystem::path& path, TextureType type, TextureSpace space);
 	static std::expected<Texture, std::string> LoadRadianceMapFromPath(const std::filesystem::path& path);
+	static std::expected<stw::Texture, std::string> LoadKtxFromPath(
+		const std::filesystem::path& path, TextureType type);
 	static std::expected<Texture, std::string> LoadCubeMap(
 		const std::array<std::filesystem::path, CubeMapTextureCount>& paths);
 
@@ -83,6 +85,8 @@ private:
 		GLenum glFormat,
 		GLint internalFormat,
 		GLenum glTextureTarget);
+	Texture(GLuint textureId, GLenum glFormat, GLint internalFormat, GLenum glTextureTarget);
+	Texture(GLuint textureId, GLenum glTextureTarget, TextureType textureType);
 	GLenum m_GlTextureTarget = GL_INVALID_ENUM;
 };
 }// namespace stw

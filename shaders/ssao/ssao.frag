@@ -24,9 +24,6 @@ layout (std140, binding = 0) uniform Matrices
 
 void main()
 {
-	//	vec3 fragPos = vec3(view * vec4(texture(gPosition, TexCoords).rgb, 1.0));
-	//	vec3 normal = vec3(view * vec4(texture(gNormal, TexCoords).rgb, 1.0));
-
 	vec3 fragPos = texture(gPositionAmbientOcclusion, TexCoords).rgb;
 	vec3 normal = texture(gNormalRoughness, TexCoords).rgb;
 
@@ -40,10 +37,9 @@ void main()
 	float occlusion = 0.0;
 	for (int i = 0; i < SAMPLES_COUNT; i++)
 	{
-		// TODO : Check if i need to multiply by the view mat
-		// From tangent space to world space
+		// From tangent space to view space
 		vec3 samplePos = TBN * samples[i];
-		samplePos = fragPos + samplePos * RADIUS;
+		samplePos = fragPos.xyz + samplePos * RADIUS;
 
 		vec4 offset = vec4(samplePos, 1.0);
 		// from view to clip-space
@@ -53,7 +49,7 @@ void main()
 		// transform to range 0.0 - 1.0
 		offset.xyz = offset.xyz * 0.5 + 0.5;
 
-		float sampleDepth = fragPos.z;
+		float sampleDepth = texture(gPositionAmbientOcclusion, TexCoords).z;
 		float rangeCheck = smoothstep(0.0, 1.0, RADIUS / abs(fragPos.z - sampleDepth));
 		occlusion += (sampleDepth >= samplePos.z + BIAS ? 1.0 : 0.0) * rangeCheck;
 	}

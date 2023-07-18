@@ -114,15 +114,15 @@
   "images": [
     {
       "name": "vjboab3mw_4K_Albedo",
-      "uri": "vjboab3mw_4K_Albedo.jpg"
+      "uri": "diffuse.ktx"
     },
     {
       "name": "metalness_vjboab3mw_4K_Roughness_ao",
-      "uri": "metalness_vjboab3mw_4K_Roughness_ao.png"
+      "uri": "arm.ktx"
     },
     {
       "name": "vjboab3mw_4K_Normal_LOD0",
-      "uri": "vjboab3mw_4K_Normal_LOD0.jpg"
+      "uri": "normal.ktx"
     }
   ],
   "materials": [

@@ -5262,15 +5262,15 @@
   "images": [
     {
       "name": "diffuse",
-      "uri": "diffuse.jpg"
+      "uri": "diffuse.ktx"
     },
     {
       "name": "metallic_roughness_ao",
-      "uri": "metallic_roughness_ao.png"
+      "uri": "arm.ktx"
     },
     {
       "name": "normal",
-      "uri": "normal.png"
+      "uri": "normal.ktx"
     }
   ],
   "materials": [
