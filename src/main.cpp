@@ -1,8 +1,10 @@
 #include <spdlog/spdlog.h>
+#include <SDL_main.h>
 
 #include "job_system.hpp"
 #include "scenes/ssao_scene.hpp"
 #include "window.hpp"
+
 
 int main(int, char*[])
 {

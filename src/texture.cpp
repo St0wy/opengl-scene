@@ -73,6 +73,9 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadKtxFromPath(
 		ktxTexture_Destroy(kTexture);
 		return std::unexpected(fmt::format("Could not load KTX file with opengl error code : {}", glError));
 	}
+	GLCALL(glBindTexture(target, texture));
+//	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
+	GLCALL(glBindTexture(target, 0));
 
 	ktxTexture_Destroy(kTexture);
 

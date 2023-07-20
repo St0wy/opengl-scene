@@ -114,15 +114,15 @@
   "images": [
     {
       "name": "8-Ball_8-Ball_BaseColor",
-      "uri": "diffuse.ktx"
+      "uri": "baseColor.ktx2"
     },
     {
       "name": "8-Ball_8-Ball_Metallic_8-Ball_8-Ball_Roughness_ao",
-      "uri": "arm.ktx"
+      "uri": "arm.ktx2"
     },
     {
       "name": "8-Ball_8-Ball_Normal",
-      "uri": "normal.ktx"
+      "uri": "normal.ktx2"
     }
   ],
   "materials": [

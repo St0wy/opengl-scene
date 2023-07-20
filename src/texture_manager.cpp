@@ -20,7 +20,8 @@ std::optional<std::size_t> stw::TextureManager::LoadTextureFromPath(
 	}
 
 	std::expected<stw::Texture, std::string> textureResult;
-	if (path.extension() == ".ktx")
+	auto extension = path.extension();
+	if (extension == ".ktx" || extension == ".ktx2")
 	{
 		textureResult = Texture::LoadKtxFromPath(path, type);
 	}
