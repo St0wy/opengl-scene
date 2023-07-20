@@ -28,7 +28,7 @@ void main()
 	vec3 normal = texture(gNormalRoughness, TexCoords).rgb;
 
 	vec2 noiseScale = screenSize / RANDOM_TEXTURE_SIZE;
-	vec3 randomVec = texture(texNoise, TexCoords * noiseScale).xyz;
+	vec3 randomVec = normalize(texture(texNoise, TexCoords * noiseScale).xyz);
 
 	vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
 	vec3 bitangent = cross(normal, tangent);
@@ -39,7 +39,7 @@ void main()
 	{
 		// From tangent space to view space
 		vec3 samplePos = TBN * samples[i];
-		samplePos = fragPos.xyz + samplePos * RADIUS;
+		samplePos = fragPos + samplePos * RADIUS;
 
 		vec4 offset = vec4(samplePos, 1.0);
 		// from view to clip-space
@@ -49,7 +49,8 @@ void main()
 		// transform to range 0.0 - 1.0
 		offset.xyz = offset.xyz * 0.5 + 0.5;
 
-		float sampleDepth = texture(gPositionAmbientOcclusion, TexCoords).z;
+		float sampleDepth = texture(gPositionAmbientOcclusion, offset.xy).z;
+
 		float rangeCheck = smoothstep(0.0, 1.0, RADIUS / abs(fragPos.z - sampleDepth));
 		occlusion += (sampleDepth >= samplePos.z + BIAS ? 1.0 : 0.0) * rangeCheck;
 	}
