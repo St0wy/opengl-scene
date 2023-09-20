@@ -87,7 +87,7 @@ void stw::Camera::ProcessMouseScroll(const f32 yOffset)
 	UpdateProjectionMatrix();
 }
 
-float stw::Camera::GetFovY() const { return m_FovY; }
+f32 stw::Camera::GetFovY() const { return m_FovY; }
 
 glm::vec3 stw::Camera::GetPosition() const { return m_Position; }
 

@@ -1,8 +1,6 @@
 #pragma once
 
 #include <array>
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <GL/glew.h>
 #include <glm/mat4x4.hpp>
@@ -13,14 +11,13 @@
 #include "bloom_framebuffer.hpp"
 #include "camera.hpp"
 #include "consts.hpp"
-#include "glm/gtc/bitfield.hpp"
-#include "material.hpp"
 #include "material_manager.hpp"
 #include "mesh.hpp"
-#include "ogl/framebuffer.hpp"
 #include "scene_graph.hpp"
 #include "texture_manager.hpp"
 #include "uniform_buffer.hpp"
+#include "glm/gtc/bitfield.hpp"
+#include "ogl/framebuffer.hpp"
 
 namespace stw
 {
@@ -47,7 +44,7 @@ struct PointLight
 
 struct ProcessMeshResult
 {
-	stw::Mesh mesh;
+	Mesh mesh;
 	std::size_t materialIndex;
 };
 
@@ -81,7 +78,7 @@ public:
 
 	SceneGraph& GetSceneGraph();
 
-	void SetDirectionalLight(stw::DirectionalLight directionalLight);
+	void SetDirectionalLight(DirectionalLight directionalLight);
 	[[maybe_unused]] void RemoveDirectionalLight();
 
 	[[maybe_unused]] void PushPointLight(const PointLight& pointLight);
@@ -166,12 +163,12 @@ private:
 
 	static void SetOpenGlCapability(bool enabled, GLenum capability, bool& field);
 
-	static std::optional<stw::ProcessMeshResult> ProcessMesh(const aiMesh* assimpMesh,
+	static std::optional<ProcessMeshResult> ProcessMesh(const aiMesh* assimpMesh,
 		std::size_t materialIndexOffset,
 		const std::vector<std::size_t>& loadedMaterialsIndices);
-	void RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrix);
+	void RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices);
 	void RenderBloomToBloomFramebuffer(GLuint hdrTexture, float filterRadius);
-	void RenderDownsample(GLuint hdrTexture);
+	void RenderDownsamples(GLuint hdrTexture);
 	void RenderUpsamples(float filterRadius);
 	void RenderGBuffer();
 	void RenderLightsToHdrFramebuffer();

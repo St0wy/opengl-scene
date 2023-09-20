@@ -5,9 +5,10 @@
 #pragma once
 
 #include <array>
-#include <assimp/matrix4x4.h>
 #include <cassert>
 #include <filesystem>
+#include <type_traits>
+#include <assimp/matrix4x4.h>
 #include <GL/glew.h>
 #include <glm/mat4x4.hpp>
 
@@ -51,6 +52,26 @@ struct Overloaded : Ts...
 
 template<class... Ts>
 Overloaded(Ts...) -> Overloaded<Ts...>;
+
+// Any callable type with a return type R and arguments Args
+//template<typename F, typename R, typename... Args>
+//concept Callable = std::same_as<std::invoke_result_t<F, Args...>, R>;
+//
+//// Anything that can be invoked and doesn't return anything with no parameters
+//template<typename T>
+//concept Runnable = Callable<T, void>;
+//
+//// Anything that can be invoked and returns something with no parameters
+//template<typename T, typename R>
+//concept Supplier = Callable<T, R>;
+//
+//// Anything that can be invoked and returns nothing with parameters
+//template<typename T, typename... Args>
+//concept Consumer = Callable<T, void, Args...>;
+//
+//// Anything that can be invoked and returns a bool with parameters
+//template<typename T, typename... Args>
+//concept Predicate = Callable<T, bool, Args...>;
 
 std::optional<std::string> OpenFile(const std::filesystem::path& filename);
 
