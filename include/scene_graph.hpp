@@ -61,22 +61,22 @@ public:
 	/// Will call `function` for each elements in the scene graph with the correct transform matrix.
 	/// \param function Function that will be called on each elements. Has these parameters :
 	/// `void(SceneGraphElementIndex elementIndex, std::span<const glm::mat4> transformMatrices)`.
-	void ForEach(auto&& function);
+	void ForEach(Consumer<SceneGraphElementIndex, std::span<const glm::mat4>> auto&& function);
 
 	/// Will call `function` for each elements in the scene graph with the correct transform matrix.
 	/// \param function Function that will be called on each elements. Has these parameters :
 	/// `void(SceneGraphElementIndex elementIndex, const glm::mat4& transformMatrix)`.
-	[[maybe_unused]] void ForEachNoInstancing(auto&& function);
+	[[maybe_unused]] void ForEachNoInstancing(Consumer<SceneGraphElementIndex, glm::mat4> auto&& function);
 
 private:
 	std::vector<SceneGraphElement> m_Elements{};
 	std::vector<SceneGraphNode> m_Nodes{};
 
-	void ForEachChildren(const SceneGraphNode& startNode, auto&& function);
+	void ForEachChildren(const SceneGraphNode& startNode, Consumer<const SceneGraphElement&> auto&& function);
 	void DispatchTransforms(SceneGraphNode& currentNode);
 };
 
-void SceneGraph::ForEach(auto&& function)
+void SceneGraph::ForEach(Consumer<SceneGraphElementIndex, std::span<const glm::mat4>> auto&& function)
 {
 	absl::flat_hash_map<SceneGraphElementIndex, std::vector<glm::mat4>> instancingMap{};
 
@@ -100,21 +100,21 @@ void SceneGraph::ForEach(auto&& function)
 	}
 }
 
-void SceneGraph::ForEachNoInstancing(auto&& function)
+void SceneGraph::ForEachNoInstancing(Consumer<SceneGraphElementIndex, glm::mat4> auto&& function)
 {
-	ForEachChildren(m_Nodes[0],
-		[&function](SceneGraphElement& element) {
-			if (element.materialId == InvalidId || element.meshId == InvalidId)
-			{
-				return;
-			}
+	const auto lambda = [&function](SceneGraphElement& element) {
+		if (element.materialId == InvalidId || element.meshId == InvalidId)
+		{
+			return;
+		}
 
-			const glm::mat4 transform = element.parentTransformMatrix * element.localTransformMatrix;
-			std::invoke(function, { element.meshId, element.materialId }, transform);
-		});
+		const glm::mat4 transform = element.parentTransformMatrix * element.localTransformMatrix;
+		std::invoke(function, { element.meshId, element.materialId }, transform);
+	};
+	ForEachChildren(m_Nodes[0], lambda);
 }
 
-void SceneGraph::ForEachChildren(const SceneGraphNode& startNode, auto&& function)
+void SceneGraph::ForEachChildren(const SceneGraphNode& startNode, Consumer<const SceneGraphElement&> auto&& function)
 {
 	if (!startNode.childId)
 	{
