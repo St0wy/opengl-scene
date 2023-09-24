@@ -33,7 +33,22 @@ struct SceneGraphElementIndex
 
 	bool operator==(const SceneGraphElementIndex& other) const;
 };
+}// namespace stw
 
+template<>
+struct std::hash<stw::SceneGraphElementIndex>
+{
+	std::size_t operator()(const stw::SceneGraphElementIndex& sceneGraphElementIndex) const noexcept
+	{
+		const std::size_t h1 = std::hash<std::size_t>{}(sceneGraphElementIndex.meshId);
+		const std::size_t h2 = std::hash<std::size_t>{}(sceneGraphElementIndex.materialId);
+		return h1 ^ (h2 << 1);
+	}
+};
+
+
+namespace stw
+{
 struct SceneGraphNode
 {
 	std::size_t elementId = InvalidId;
@@ -145,14 +160,3 @@ void SceneGraph::ForEachChildren(const SceneGraphNode& startNode, Consumer<const
 	}
 }
 }// namespace stw
-
-template<>
-struct std::hash<stw::SceneGraphElementIndex>
-{
-	std::size_t operator()(const stw::SceneGraphElementIndex& sceneGraphElementIndex) const noexcept
-	{
-		const std::size_t h1 = std::hash<std::size_t>{}(sceneGraphElementIndex.meshId);
-		const std::size_t h2 = std::hash<std::size_t>{}(sceneGraphElementIndex.materialId);
-		return h1 ^ (h2 << 1);
-	}
-};

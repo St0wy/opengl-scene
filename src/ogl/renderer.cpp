@@ -1417,5 +1417,5 @@ stw::PointLight::PointLight(glm::vec3 position, glm::vec3 color)
 	: position(position), color(color)
 {
 	const f32 maxColor = std::fmax(std::fmax(color.r, color.g), color.b);
-	radius = (std::sqrtf(-4.0f * (1.0f - (256.0f / MinLightIntensity) * maxColor))) / (2.0f);
+	radius = (std::sqrt(-4.0f * (1.0f - (256.0f / MinLightIntensity) * maxColor))) / (2.0f);
 }
