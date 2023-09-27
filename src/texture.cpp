@@ -62,7 +62,7 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadKtxFromPath(
 	if (result != KTX_error_code::KTX_SUCCESS)
 	{
 		ktxTexture_Destroy(kTexture);
-		return std::unexpected(fmt::format("Could not load KTX file with libktx error code : {}", result));
+		return std::unexpected(fmt::format("Could not load KTX file with libktx error code : {}", static_cast<int>(result)));
 	}
 
 	GLCALL(glGenTextures(1, &texture));// Optional. GLUpload can generate a texture.

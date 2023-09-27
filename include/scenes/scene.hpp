@@ -5,6 +5,7 @@
 #pragma once
 
 #include <SDL.h>
+#include <glm/vec2.hpp>
 
 #include "number_types.hpp"
 

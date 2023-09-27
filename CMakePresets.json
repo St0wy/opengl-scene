@@ -2,7 +2,7 @@
   "version": 3,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 21,
+    "minor": 25,
     "patch": 0
   },
   "configurePresets": [
@@ -105,14 +105,44 @@
       }
     },
     {
+      "name": "windows-msvc-reldeb-asan",
+      "displayName": "msvc RelWithDebInfo Sanitized (User Mode)",
+      "description": "Target Windows with the msvc compiler, release with debug info build type, with asan",
+      "inherits": "conf-windows-common",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ENABLE_DEVELOPER_MODE": "OFF",
+        "OGL_SCENE_ASAN": "On"
+      }
+    },
+    {
       "name": "windows-clang-debug",
       "displayName": "clang Debug",
       "description": "Target Windows with the clang compiler, debug build type",
       "inherits": "conf-windows-common",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "intelliSenseMode": "windows-clang-x64"
+        }
+      }
+    },
+    {
+      "name": "windows-clang-reldeb-asan",
+      "displayName": "clang RelWithDebInfo Sanitized",
+      "description": "Target Windows with the clang compiler, release with debug info build type, with asan",
+      "inherits": "conf-windows-common",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "OGL_SCENE_ASAN": "On"
       },
       "vendor": {
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
@@ -127,7 +157,7 @@
       "inherits": "conf-windows-common",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_BUILD_TYPE": "Release"
       },
       "vendor": {

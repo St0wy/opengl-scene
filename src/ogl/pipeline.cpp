@@ -5,22 +5,22 @@
 #include "ogl/pipeline.hpp"
 
 #include <array>
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/matrix.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <spdlog/spdlog.h>
 
-#include "ogl/shader.hpp"
 #include "utils.hpp"
+#include "ogl/shader.hpp"
 
 constexpr std::size_t LogSize = 512;
 
-void stw::Pipeline::Bind() const
+void stw::Pipeline::Bind()
 {
 	ASSERT_MESSAGE(m_IsInitialized, "Pipeline should be initialized before using it.");
 	GLCALL(glUseProgram(m_ProgramId));
 }
 
-void stw::Pipeline::UnBind() const
+void stw::Pipeline::UnBind()
 {
 	ASSERT_MESSAGE(m_IsInitialized, "Pipeline should be initialized when unbinding.");
 	GLCALL(glUseProgram(0));
@@ -68,20 +68,14 @@ void stw::Pipeline::SetMat4(const std::string_view name, const glm::mat4& mat)
 	GLCALL(glUniformMatrix4fv(location, 1, GL_FALSE, &mat[0][0]));
 }
 
-GLint stw::Pipeline::GetUniformLocation(const std::string_view name)
+GLint stw::Pipeline::GetUniformLocation(const std::string_view name) const
 {
-	if (const auto search = m_UniformsLocation.find(name); search != m_UniformsLocation.end())
-	{
-		return search->second;
-	}
-
 	GLCALL(const auto location = glGetUniformLocation(m_ProgramId, name.data()));
 	if (location == -1)
 	{
 		spdlog::warn("Uniform \"{}\" does not exist.", name);
 	}
 
-	m_UniformsLocation[name] = location;
 	return location;
 }
 
@@ -185,7 +179,7 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 
 	m_IsInitialized = true;
 
-	m_TexturesCount = GetTextureCountFromOpengl();
+	m_TexturesCount = GetTextureCountFromOpenGl();
 }
 
 void stw::Pipeline::Delete()
@@ -206,7 +200,7 @@ GLuint stw::Pipeline::Id() const
 	return m_ProgramId;
 }
 
-usize stw::Pipeline::GetTextureCountFromOpengl() const
+usize stw::Pipeline::GetTextureCountFromOpenGl() const
 {
 	usize textureCount = 0;
 	GLint numActiveUniforms = 0;

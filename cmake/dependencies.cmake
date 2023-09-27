@@ -7,7 +7,7 @@ cpmaddpackage(
 	NAME
 	boost-math
 	GIT_TAG
-	boost-1.82.0
+	boost-1.83.0
 	GITHUB_REPOSITORY
 	boostorg/math
 	OPTIONS
@@ -31,22 +31,9 @@ cpmaddpackage(
 
 cpmaddpackage(
 	NAME
-	spdlog
-	VERSION
-	1.11.0
-	GITHUB_REPOSITORY
-	gabime/spdlog
-	OPTIONS
-	"BUILD_SHARED_LIBS OFF"
-	EXCLUDE_FROM_ALL
-	SYSTEM
-)
-
-cpmaddpackage(
-	NAME
 	Assimp
 	VERSION
-	5.2.5
+	5.3.1
 	GITHUB_REPOSITORY
 	assimp/assimp
 	OPTIONS
@@ -85,31 +72,45 @@ cpmaddpackage(
 
 cpmaddpackage(
 	NAME
-	KTX-Software
-	VERSION
-	4.2.1
+	fmt
+	GIT_TAG
+	10.1.1
 	GITHUB_REPOSITORY
-	KhronosGroup/KTX-Software
+	fmtlib/fmt
+	OPTIONS
+	"BUILD_SHARED_LIBS OFF"
+	FMT_SYSTEM_HEADERS ON
+	FMT_OS OFF
+	EXCLUDE_FROM_ALL
+	SYSTEM
+)
+
+cpmaddpackage(
+	NAME
+	spdlog
+	VERSION
+	1.12.0
+	GITHUB_REPOSITORY
+	gabime/spdlog
+	OPTIONS
+	"BUILD_SHARED_LIBS OFF"
+	SPDLOG_FMT_EXTERNAL ON
+	EXCLUDE_FROM_ALL
+	SYSTEM
+)
+
+cpmaddpackage(
+	NAME
+	KTX-Software
+	GIT_TAG
+	88366e1709faa357ab5a33e079e4a2e8d8ec31ff
+	GITHUB_REPOSITORY
+	St0wy/KTX-Software
 	OPTIONS
 	"BUILD_SHARED_LIBS OFF"
 	KTX_FEATURE_STATIC_LIBRARY ON
 	EXCLUDE_FROM_ALL
 	SYSTEM
 )
-
-if(NOT TARGET fmt::fmt)
-	cpmaddpackage(
-		NAME
-		fmt
-		GIT_TAG
-		10.0.0
-		GITHUB_REPOSITORY
-		fmtlib/fmt
-		OPTIONS
-		"BUILD_SHARED_LIBS OFF"
-		EXCLUDE_FROM_ALL
-		SYSTEM
-	)
-endif()
 
 add_subdirectory(./external)

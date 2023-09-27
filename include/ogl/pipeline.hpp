@@ -33,8 +33,8 @@ public:
 
 	[[nodiscard]] GLuint Id() const;
 
-	void Bind() const;
-	void UnBind() const;
+	void Bind();
+	void UnBind();
 
 	void SetBool(std::string_view name, bool value);
 	void SetInt(std::string_view name, i32 value);
@@ -49,7 +49,8 @@ public:
 
 	[[nodiscard]] usize GetTextureCount() const;
 private:
-	std::unordered_map<std::string_view, GLint> m_UniformsLocation{};
+	// TODO : Rework the cache to not use string views because the end up pointing to garbage memory...
+	//std::unordered_map<std::string_view, GLint> m_UniformsLocation{};
 	bool m_IsInitialized = false;
 
 	GLuint m_ProgramId{};
@@ -57,7 +58,7 @@ private:
 	GLuint m_FragmentShaderId{};
 	usize m_TexturesCount{};
 
-	GLint GetUniformLocation(std::string_view name);
-	usize GetTextureCountFromOpengl() const;
+	GLint GetUniformLocation(std::string_view name) const;
+	[[nodiscard]] usize GetTextureCountFromOpenGl() const;
 };
 }

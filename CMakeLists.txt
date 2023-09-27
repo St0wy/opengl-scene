@@ -9,12 +9,24 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+option(OGL_SCENE_ASAN OFF)
+
+if (OGL_SCENE_ASAN)
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+		add_compile_options(-fsanitize=address)
+		add_link_options(-fsanitize=address)
+	elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+		add_compile_options(/fsanitize=address)
+		add_link_options(/fsanitize=address)
+	endif()
+endif()
+
 include(cmake/data.cmake)
 include(cmake/SystemLink.cmake)
 include(cmake/BCMProperties.cmake)
 include(cmake/dependencies.cmake)
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/external/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
-find_package(Sanitizers)
 
 add_executable(
 	opengl_scene
@@ -85,9 +97,8 @@ target_link_system_libraries(
 add_dependencies(opengl_scene shader_target data_target)
 
 set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION true)
-add_sanitizers(opengl_scene)
 
-#if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
+#if(WIN32 AND CMAKE_BUILelease")
 #	message("Setting flags to have no console")
 #	set_target_properties(opengl_scene PROPERTIES LINK_FLAGS "/subsystem:windows /entry:mainCRTStartup")
 #endif()
