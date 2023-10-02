@@ -19,20 +19,22 @@
 
 
 #ifndef NDEBUG
-#define GLCALL(x)    \
-	ClearGlErrors(); \
-	x;               \
-	ASSERTD(!CHECK_GL_ERROR())
+	#define GLCALL(x)    \
+		ClearGlErrors(); \
+		x;               \
+		ASSERTD(!CHECK_GL_ERROR())
 
-#ifdef _MSC_VER
-#define ASSERTD(x) \
-	if (!(x)) __debugbreak()
-#elif defined(__clang__)
-#define ASSERTD(x) \
-	if (!(x)) __builtin_debugtrap()
+	#ifdef _MSC_VER
+		#define ASSERTD(x) \
+			if (!(x)) __debugbreak()
+	#elif defined(__clang__)
+		#define ASSERTD(x) \
+			if (!(x)) __builtin_debugtrap()
+	#endif
 #endif
-#else
-#define GLCALL(x) x
+
+#ifndef GLCALL
+	#define GLCALL(x) x
 #endif
 
 #define ASSERT_MESSAGE(expression, message) assert(((void)(message), expression))
