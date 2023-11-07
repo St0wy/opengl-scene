@@ -1,6 +1,13 @@
-//
-// Created by stowy on 13/07/2023.
-//
+/**
+ * @file consts.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the various constants of the project.
+ * @version 1.0
+ * @date 13/07/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 
 #pragma once
 

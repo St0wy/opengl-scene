@@ -1,3 +1,14 @@
+/**
+ * @file vertex_buffer_layout.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the abstraction for Vertex Buffer Layouts.
+ * @version 1.0
+ * @date 04/05/2023
+ * 
+ * @copyright SAE (c) 2023
+ *
+ */
+
 #pragma once
 
 #include <optional>

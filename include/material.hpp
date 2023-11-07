@@ -1,11 +1,21 @@
+/**
+ * @file material.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the material variant.
+ * @version 1.0
+ * @date 28/06/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
+
 #pragma once
 
 #include <array>
 #include <variant>
 
-#include "ogl/pipeline.hpp"
-#include "texture.hpp"
 #include "texture_manager.hpp"
+#include "ogl/pipeline.hpp"
 
 namespace stw
 {
@@ -42,6 +52,6 @@ using Material = std::variant<InvalidMaterial, MaterialPbrNormal, MaterialPbrNor
 static constexpr u32 MaterialCount = std::variant_size_v<Material> - 1;
 
 void BindMaterialForGBuffer(const Material& materialVariant,
-	stw::TextureManager& textureManager,
-	const std::array<std::reference_wrapper<stw::Pipeline>, MaterialCount>& gBufferPipelines);
+	TextureManager& textureManager,
+	const std::array<std::reference_wrapper<Pipeline>, MaterialCount>& gBufferPipelines);
 }// namespace stw

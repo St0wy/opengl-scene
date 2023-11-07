@@ -1,15 +1,21 @@
-//
-// Created by stowy on 04/05/2023.
-//
+/**
+ * @file pipeline.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the Pipeline class.
+ * @version 1.0
+ * @date 04/05/2023
+ * 
+ * @copyright SAE (c) 2023
+ *
+ */
 
 #pragma once
 
 #include <filesystem>
-#include <unordered_map>
+#include <span>
 #include <GL/glew.h>
 #include <glm/fwd.hpp>
 #include <glm/vec3.hpp>
-#include <span>
 
 #include "number_types.hpp"
 
@@ -58,7 +64,7 @@ private:
 	GLuint m_FragmentShaderId{};
 	usize m_TexturesCount{};
 
-	GLint GetUniformLocation(std::string_view name) const;
+	[[nodiscard]] GLint GetUniformLocation(std::string_view name) const;
 	[[nodiscard]] usize GetTextureCountFromOpenGl() const;
 };
 }

@@ -1,15 +1,22 @@
-//
-// Created by stowy on 05/05/2023.
-//
+/**
+ * @file texture.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the Texture class.
+ * @version 1.0
+ * @date 28/06/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 
 #pragma once
 
-#include <assimp/material.h>
 #include <expected>
 #include <filesystem>
-#include <GL/glew.h>
 #include <string>
 #include <string_view>
+#include <assimp/material.h>
+#include <GL/glew.h>
 
 namespace stw
 {

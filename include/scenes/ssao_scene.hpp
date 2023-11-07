@@ -1,7 +1,14 @@
+/**
+ * @file ssao_scene.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the SsaoScene class.
+ * @version 1.0
+ * @date 14/07/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 
-//
-// Created by stowy on 14/07/2023.
-//
 #pragma once
 
 #include <numbers>

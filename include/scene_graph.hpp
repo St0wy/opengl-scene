@@ -1,6 +1,13 @@
-//
-// Created by stowy on 30/06/2023.
-//
+/**
+ * @file scene_graph.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the Scene Graph of the project.
+ * @version 1.0
+ * @date 30/06/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 
 #pragma once
 

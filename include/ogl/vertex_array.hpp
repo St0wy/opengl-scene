@@ -1,3 +1,14 @@
+/**
+ * @file vertex_array.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the VertexArray class.
+ * @version 1.0
+ * @date 04/05/2023
+ * 
+ * @copyright SAE (c) 2023
+ *
+ */
+
 #pragma once
 
 #include "ogl/vertex_buffer.hpp"

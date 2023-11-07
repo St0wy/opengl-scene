@@ -1,3 +1,14 @@
+/**
+ * @file shader.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains various shaders utility structs.
+ * @version 1.0
+ * @date 04/05/2023
+ * 
+ * @copyright SAE (c) 2023
+ *
+ */
+
 #pragma once
 
 #include <filesystem>

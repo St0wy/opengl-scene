@@ -1,12 +1,19 @@
-//
-// Created by stowy on 28/06/2023.
-//
+/**
+ * @file texture_manager.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the TextureManager class.
+ * @version 1.0
+ * @date 28/06/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 #pragma once
 
-#include <vector>
-#include <optional>
 #include <filesystem>
+#include <optional>
 #include <unordered_map>
+#include <vector>
 
 #include "texture.hpp"
 

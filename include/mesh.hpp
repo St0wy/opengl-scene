@@ -1,16 +1,25 @@
+/**
+ * @file mesh.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains Mesh class.
+ * @version 1.0
+ * @date 07/11/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
+
 #pragma once
 
-#include <glm/fwd.hpp>
-#include <glm/vec2.hpp>
 #include <span>
 #include <vector>
+#include <glm/fwd.hpp>
+#include <glm/vec2.hpp>
 
 #include "number_types.hpp"
 #include "ogl/index_buffer.hpp"
-#include "ogl/pipeline.hpp"
 #include "ogl/vertex_array.hpp"
 #include "ogl/vertex_buffer.hpp"
-#include "texture.hpp"
 
 namespace stw
 {

@@ -1,12 +1,20 @@
-//
-// Created by stowy on 10/07/2023.
-//
+/**
+ * @file bloom_framebuffer.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the Camera class.
+ * @version 1.0
+ * @date 10/07/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
+
 #pragma once
 
-#include <GL/glew.h>
-#include <glm/vec2.hpp>
 #include <span>
 #include <vector>
+#include <GL/glew.h>
+#include <glm/vec2.hpp>
 
 #include "number_types.hpp"
 

@@ -1,3 +1,14 @@
+/**
+ * @file camera.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the Camera class.
+ * @version 1.0
+ * @date 13/07/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
+
 #pragma once
 
 #include <array>
@@ -5,8 +16,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
-#include "number_types.hpp"
 #include "consts.hpp"
+#include "number_types.hpp"
 
 namespace stw
 {

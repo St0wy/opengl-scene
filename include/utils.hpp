@@ -1,6 +1,13 @@
-//
-// Created by stowy on 03/05/2023.
-//
+/**
+ * @file utils.hpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains some utility stuff for this project.
+ * @version 1.0
+ * @date 03/05/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 
 #pragma once
 
