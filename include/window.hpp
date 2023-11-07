@@ -5,15 +5,15 @@
 #pragma once
 #define SDL_MAIN_HANDLED
 #include <cassert>
-#include <GL/glew.h>
 #include <memory>
 #include <SDL.h>
+#include <GL/glew.h>
 #include <spdlog/spdlog.h>
 
 #include "number_types.hpp"
-#include "scenes/scene.hpp"
 #include "timer.hpp"
 #include "utils.hpp"
+#include "scenes/scene.hpp"
 
 namespace stw
 {
@@ -72,7 +72,7 @@ Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 window
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
 
 	m_GlRenderContext = SDL_GL_CreateContext(m_Window);// NOLINT(cppcoreguidelines-prefer-member-initializer)
-	SDL_GL_SetSwapInterval(-1);
+	SDL_GL_SetSwapInterval(0);
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	if (glewInit() != GLEW_OK)
