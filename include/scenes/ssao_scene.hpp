@@ -4,20 +4,16 @@
 //
 #pragma once
 
-#include <GL/glew.h>
-#include <glm/ext.hpp>
-#include <glm/mat4x4.hpp>
-#include <glm/vec4.hpp>
 #include <numbers>
 #include <random>
-#include <variant>
+#include <GL/glew.h>
+#include <glm/ext.hpp>
 
 #include "camera.hpp"
-#include "material.hpp"
 #include "number_types.hpp"
+#include "scene.hpp"
 #include "ogl/pipeline.hpp"
 #include "ogl/renderer.hpp"
-#include "scene.hpp"
 
 namespace stw
 {
@@ -42,7 +38,7 @@ public:
 					severity,
 					std::string_view(message, length));
 			};
-			GLCALL(glDebugMessageCallback(messageCallback, nullptr));
+			glDebugMessageCallback(messageCallback, nullptr);
 		}
 
 		m_Camera.SetMovementSpeed(4.0f);

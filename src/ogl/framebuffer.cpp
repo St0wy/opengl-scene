@@ -19,7 +19,7 @@ void stw::Framebuffer::Init(const FramebufferDescription& description)
 
 	m_Description = description;
 
-	GLCALL(glCreateFramebuffers(1, &m_Fbo));
+	glCreateFramebuffers(1, &m_Fbo);
 	Bind();
 
 	m_ColorAttachmentsCount = m_Description.colorAttachmentsCount;
@@ -37,38 +37,38 @@ void stw::Framebuffer::Init(const FramebufferDescription& description)
 		if (depthAttachmentInfo.isRenderbufferObject)
 		{
 			GLuint index = 0;
-			GLCALL(glGenRenderbuffers(1, &index));
+			glGenRenderbuffers(1, &index);
 			m_DepthStencilAttachment = index;
 
-			GLCALL(glBindRenderbuffer(GL_RENDERBUFFER, m_DepthStencilAttachment.value()));
-			GLCALL(glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat, width, height));
+			glBindRenderbuffer(GL_RENDERBUFFER, m_DepthStencilAttachment.value());
+			glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat, width, height);
 			const auto attachmentEnum = depthAttachmentInfo.hasStencil
 				                            ? GL_DEPTH_STENCIL_ATTACHMENT
 				                            : GL_DEPTH_ATTACHMENT;
-			GLCALL(glFramebufferRenderbuffer(
-				GL_FRAMEBUFFER, attachmentEnum, GL_RENDERBUFFER, m_DepthStencilAttachment.value()));
+			glFramebufferRenderbuffer(
+				GL_FRAMEBUFFER, attachmentEnum, GL_RENDERBUFFER, m_DepthStencilAttachment.value());
 		}
 		else
 		{
 			GLuint index = 0;
-			GLCALL(glCreateTextures(GL_TEXTURE_2D, 1, &index));
+			glCreateTextures(GL_TEXTURE_2D, 1, &index);
 			m_DepthStencilAttachment = index;
 
-			GLCALL(glBindTexture(GL_TEXTURE_2D, m_DepthStencilAttachment.value()));
-			GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-			GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-			GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-			GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+			glBindTexture(GL_TEXTURE_2D, m_DepthStencilAttachment.value());
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-			GLCALL(glTexImage2D(GL_TEXTURE_2D,
+			glTexImage2D(GL_TEXTURE_2D,
 				0, attachmentType.internalFormat, width, height, 0, attachmentType.format, attachmentType.type, nullptr
-			));
+			);
 
 			const auto attachmentEnum = depthAttachmentInfo.hasStencil
 				                            ? GL_DEPTH_STENCIL_ATTACHMENT
 				                            : GL_DEPTH_ATTACHMENT;
-			GLCALL(glFramebufferTexture2D(
-				GL_FRAMEBUFFER, attachmentEnum, GL_TEXTURE_2D, m_DepthStencilAttachment.value(), 0));
+			glFramebufferTexture2D(
+				GL_FRAMEBUFFER, attachmentEnum, GL_TEXTURE_2D, m_DepthStencilAttachment.value(), 0);
 		}
 	}
 
@@ -95,41 +95,41 @@ void stw::Framebuffer::HandleColorAttachments(const stw::FramebufferDescription&
 
 		if (colorAttachmentInfo.isRenderbufferObject)
 		{
-			GLCALL(glGenRenderbuffers(1, &colorAttachmentId));
-			GLCALL(glBindRenderbuffer(GL_RENDERBUFFER, colorAttachmentId));
-			GLCALL(glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat, width, height));
+			glGenRenderbuffers(1, &colorAttachmentId);
+			glBindRenderbuffer(GL_RENDERBUFFER, colorAttachmentId);
+			glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat, width, height);
 
-			GLCALL(glFramebufferRenderbuffer(
-				GL_FRAMEBUFFER, static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i), GL_RENDERBUFFER, colorAttachmentId));
+			glFramebufferRenderbuffer(
+				GL_FRAMEBUFFER, static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i), GL_RENDERBUFFER, colorAttachmentId);
 		}
 		else
 		{
-			GLCALL(glGenTextures(1, &colorAttachmentId));
-			GLCALL(glBindTexture(GL_TEXTURE_2D, colorAttachmentId));
+			glGenTextures(1, &colorAttachmentId);
+			glBindTexture(GL_TEXTURE_2D, colorAttachmentId);
 
-			GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-			GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-			GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-			GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		}
 
-		GLCALL(glTexStorage2D(GL_TEXTURE_2D, 1, attachmentType.internalFormat, width, height));
-		GLCALL(
+		glTexStorage2D(GL_TEXTURE_2D, 1, attachmentType.internalFormat, width, height);
+		
 			glFramebufferTexture2D(GL_FRAMEBUFFER, static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i), GL_TEXTURE_2D,
-				colorAttachmentId, 0));
+				colorAttachmentId, 0);
 	}
 
 	if (m_ColorAttachmentsCount == 0)
 	{
-		GLCALL(glDrawBuffer(GL_NONE));
-		GLCALL(glReadBuffer(GL_NONE));
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
 	}
 	else
 	{
 		// If this assert fails, add more attachments bellow and increase the value accordingly
 		constexpr usize colorAttachmentsInArray = 16;
 		static_assert(FramebufferDescription::MaxColorAttachments == colorAttachmentsInArray);
-		static constexpr std::array<GLenum, FramebufferDescription::MaxColorAttachments> v = {
+		static constexpr std::array<GLenum, FramebufferDescription::MaxColorAttachments> V = {
 			GL_COLOR_ATTACHMENT0,
 			GL_COLOR_ATTACHMENT1,
 			GL_COLOR_ATTACHMENT2,
@@ -146,7 +146,7 @@ void stw::Framebuffer::HandleColorAttachments(const stw::FramebufferDescription&
 			GL_COLOR_ATTACHMENT13,
 			GL_COLOR_ATTACHMENT14,
 			GL_COLOR_ATTACHMENT15, };
-		GLCALL(glDrawBuffers(static_cast<GLsizei>(m_ColorAttachmentsCount), v.data()));
+		glDrawBuffers(static_cast<GLsizei>(m_ColorAttachmentsCount), V.data());
 	}
 }
 
@@ -157,7 +157,7 @@ void stw::Framebuffer::Bind() const
 		spdlog::error("Binding framebuffer that is not initialized");
 	}
 
-	GLCALL(glBindFramebuffer(GL_FRAMEBUFFER, m_Fbo));
+	glBindFramebuffer(GL_FRAMEBUFFER, m_Fbo);
 }
 
 void stw::Framebuffer::UnBind() const
@@ -167,12 +167,12 @@ void stw::Framebuffer::UnBind() const
 		spdlog::error("Unbinding framebuffer that is not initialized");
 	}
 
-	GLCALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void stw::Framebuffer::Delete()
 {
-	GLCALL(glDeleteFramebuffers(1, &m_Fbo));
+	glDeleteFramebuffers(1, &m_Fbo);
 	m_Fbo = 0;
 }
 
@@ -196,12 +196,12 @@ void stw::Framebuffer::Resize(glm::uvec2 newSize)
 
 void stw::Framebuffer::BindRead() const
 {
-	GLCALL(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_Fbo));
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_Fbo);
 }
 
 void stw::Framebuffer::BindWrite() const
 {
-	GLCALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Fbo));
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Fbo);
 }
 
 std::expected<stw::AttachmentType, std::string> stw::FramebufferColorAttachment::GetAttachmentType() const

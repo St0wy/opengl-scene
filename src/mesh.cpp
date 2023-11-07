@@ -76,7 +76,7 @@ void stw::Mesh::UnBind() const
 {
 	m_VertexArray.UnBind();
 
-	GLCALL(glActiveTexture(GL_TEXTURE0));
+	glActiveTexture(GL_TEXTURE0);
 }
 
 void stw::Mesh::SetupMesh()

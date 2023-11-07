@@ -13,26 +13,26 @@ void stw::BindMaterialForGBuffer(const stw::Material& materialVariant,
 		pipeline.Bind();
 
 		// Base Color
-		GLCALL(glActiveTexture(GL_TEXTURE0));
+		glActiveTexture(GL_TEXTURE0);
 		textureManager.GetTexture(material.baseColorMapIndex).Bind();
 
 		// Normal
-		GLCALL(glActiveTexture(GL_TEXTURE1));
+		glActiveTexture(GL_TEXTURE1);
 		textureManager.GetTexture(material.normalMapIndex).Bind();
 
 		// Ambient Occlusion
-		GLCALL(glActiveTexture(GL_TEXTURE2));
+		glActiveTexture(GL_TEXTURE2);
 		textureManager.GetTexture(material.ambientOcclusionMapIndex).Bind();
 
 		// Roughness
-		GLCALL(glActiveTexture(GL_TEXTURE3));
+		glActiveTexture(GL_TEXTURE3);
 		textureManager.GetTexture(material.roughnessMapIndex).Bind();
 
 		// Metallic
-		GLCALL(glActiveTexture(GL_TEXTURE4));
+		glActiveTexture(GL_TEXTURE4);
 		textureManager.GetTexture(material.metallicMapIndex).Bind();
 
-		GLCALL(glActiveTexture(GL_TEXTURE0));
+		glActiveTexture(GL_TEXTURE0);
 	};
 
 	const auto pbrNormalNoAo = [&textureManager, &gBufferPipelines](const MaterialPbrNormalNoAo& material) {
@@ -40,22 +40,22 @@ void stw::BindMaterialForGBuffer(const stw::Material& materialVariant,
 		pipeline.Bind();
 
 		// Base Color
-		GLCALL(glActiveTexture(GL_TEXTURE0));
+		glActiveTexture(GL_TEXTURE0);
 		textureManager.GetTexture(material.baseColorMapIndex).Bind();
 
 		// Normal
-		GLCALL(glActiveTexture(GL_TEXTURE1));
+		glActiveTexture(GL_TEXTURE1);
 		textureManager.GetTexture(material.normalMapIndex).Bind();
 
 		// Roughness
-		GLCALL(glActiveTexture(GL_TEXTURE2));
+		glActiveTexture(GL_TEXTURE2);
 		textureManager.GetTexture(material.roughnessMapIndex).Bind();
 
 		// Metallic
-		GLCALL(glActiveTexture(GL_TEXTURE3));
+		glActiveTexture(GL_TEXTURE3);
 		textureManager.GetTexture(material.metallicMapIndex).Bind();
 
-		GLCALL(glActiveTexture(GL_TEXTURE0));
+		glActiveTexture(GL_TEXTURE0);
 	};
 
 	const auto pbrNormalArm = [&textureManager, &gBufferPipelines](const MaterialPbrNormalArm& material) {
@@ -63,18 +63,18 @@ void stw::BindMaterialForGBuffer(const stw::Material& materialVariant,
 		pipeline.Bind();
 
 		// Base Color
-		GLCALL(glActiveTexture(GL_TEXTURE0));
+		glActiveTexture(GL_TEXTURE0);
 		textureManager.GetTexture(material.baseColorMapIndex).Bind();
 
 		// Normal
-		GLCALL(glActiveTexture(GL_TEXTURE1));
+		glActiveTexture(GL_TEXTURE1);
 		textureManager.GetTexture(material.normalMapIndex).Bind();
 
 		// ARM
-		GLCALL(glActiveTexture(GL_TEXTURE2));
+		glActiveTexture(GL_TEXTURE2);
 		textureManager.GetTexture(material.armMapIndex).Bind();
 
-		GLCALL(glActiveTexture(GL_TEXTURE0));
+		glActiveTexture(GL_TEXTURE0);
 	};
 
 	constexpr auto invalid = [](const InvalidMaterial&) {

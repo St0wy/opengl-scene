@@ -17,60 +17,60 @@ constexpr std::size_t LogSize = 512;
 void stw::Pipeline::Bind()
 {
 	ASSERT_MESSAGE(m_IsInitialized, "Pipeline should be initialized before using it.");
-	GLCALL(glUseProgram(m_ProgramId));
+	glUseProgram(m_ProgramId);
 }
 
 void stw::Pipeline::UnBind()
 {
 	ASSERT_MESSAGE(m_IsInitialized, "Pipeline should be initialized when unbinding.");
-	GLCALL(glUseProgram(0));
+	glUseProgram(0);
 }
 
 void stw::Pipeline::SetBool(const std::string_view name, const bool value)
 {
 	const auto location = GetUniformLocation(name);
-	GLCALL(glUniform1i(location, static_cast<int>(value)));
+	glUniform1i(location, static_cast<int>(value));
 }
 
 void stw::Pipeline::SetInt(const std::string_view name, const int value)
 {
 	const auto location = GetUniformLocation(name);
-	GLCALL(glUniform1i(location, value));
+	glUniform1i(location, value);
 }
 
 void stw::Pipeline::SetUnsignedInt(const std::string_view name, const u32 value)
 {
 	const auto location = GetUniformLocation(name);
-	GLCALL(glUniform1ui(location, value));
+	glUniform1ui(location, value);
 }
 
 void stw::Pipeline::SetFloat(const std::string_view name, const float value)
 {
 	const auto location = GetUniformLocation(name);
-	GLCALL(glUniform1f(location, value));
+	glUniform1f(location, value);
 }
 
 void stw::Pipeline::SetVec3(const std::string_view name, const glm::vec3 value)
 {
 	const auto location = GetUniformLocation(name);
-	GLCALL(glUniform3f(location, value.x, value.y, value.z));
+	glUniform3f(location, value.x, value.y, value.z);
 }
 
 void stw::Pipeline::SetMat3(const std::string_view name, const glm::mat3& mat)
 {
 	const auto location = GetUniformLocation(name);
-	GLCALL(glUniformMatrix3fv(location, 1, GL_FALSE, &mat[0][0]));
+	glUniformMatrix3fv(location, 1, GL_FALSE, &mat[0][0]);
 }
 
 void stw::Pipeline::SetMat4(const std::string_view name, const glm::mat4& mat)
 {
 	const auto location = GetUniformLocation(name);
-	GLCALL(glUniformMatrix4fv(location, 1, GL_FALSE, &mat[0][0]));
+	glUniformMatrix4fv(location, 1, GL_FALSE, &mat[0][0]);
 }
 
 GLint stw::Pipeline::GetUniformLocation(const std::string_view name) const
 {
-	GLCALL(const auto location = glGetUniformLocation(m_ProgramId, name.data()));
+	const auto location = glGetUniformLocation(m_ProgramId, name.data());
 	if (location == -1)
 	{
 		spdlog::warn("Uniform \"{}\" does not exist.", name);
@@ -131,11 +131,11 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 {
 	const char* vertexSourcePtr = vertexSource.data();
 	m_VertexShaderId = glCreateShader(GL_VERTEX_SHADER);
-	GLCALL(glShaderSource(m_VertexShaderId, 1, &vertexSourcePtr, nullptr));
-	GLCALL(glCompileShader(m_VertexShaderId));
+	glShaderSource(m_VertexShaderId, 1, &vertexSourcePtr, nullptr);
+	glCompileShader(m_VertexShaderId);
 
 	GLint success = 0;
-	GLCALL(glGetShaderiv(m_VertexShaderId, GL_COMPILE_STATUS, &success));
+	glGetShaderiv(m_VertexShaderId, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
 		std::array<char, LogSize> infoLog{};
@@ -146,36 +146,36 @@ void stw::Pipeline::InitFromSource(const std::string_view vertexSource, const st
 
 	const char* fragmentSourcePtr = fragmentSource.data();
 	m_FragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
-	GLCALL(glShaderSource(m_FragmentShaderId, 1, &fragmentSourcePtr, nullptr));
-	GLCALL(glCompileShader(m_FragmentShaderId));
+	glShaderSource(m_FragmentShaderId, 1, &fragmentSourcePtr, nullptr);
+	glCompileShader(m_FragmentShaderId);
 
-	GLCALL(glGetShaderiv(m_FragmentShaderId, GL_COMPILE_STATUS, &success));
+	glGetShaderiv(m_FragmentShaderId, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
 		std::array<char, LogSize> infoLog{};
-		GLCALL(glGetShaderInfoLog(m_FragmentShaderId, LogSize, nullptr, infoLog.data()));
+		glGetShaderInfoLog(m_FragmentShaderId, LogSize, nullptr, infoLog.data());
 		spdlog::error("Error while loading fragment shader.\n{}", infoLog.data());
 		return;
 	}
 
 	m_ProgramId = glCreateProgram();
-	GLCALL(glAttachShader(m_ProgramId, m_VertexShaderId));
-	GLCALL(glAttachShader(m_ProgramId, m_FragmentShaderId));
-	GLCALL(glLinkProgram(m_ProgramId));
+	glAttachShader(m_ProgramId, m_VertexShaderId);
+	glAttachShader(m_ProgramId, m_FragmentShaderId);
+	glLinkProgram(m_ProgramId);
 
-	GLCALL(glGetProgramiv(m_ProgramId, GL_LINK_STATUS, &success));
+	glGetProgramiv(m_ProgramId, GL_LINK_STATUS, &success);
 	if (!success)
 	{
 		std::array<char, LogSize> infoLog{};
-		GLCALL(glGetProgramInfoLog(m_ProgramId, LogSize, nullptr, infoLog.data()));
+		glGetProgramInfoLog(m_ProgramId, LogSize, nullptr, infoLog.data());
 		spdlog::error("Error while linking shader program.\n{}", infoLog.data());
-		GLCALL(glDeleteShader(m_FragmentShaderId));
-		GLCALL(glDeleteShader(m_VertexShaderId));
+		glDeleteShader(m_FragmentShaderId);
+		glDeleteShader(m_VertexShaderId);
 		return;
 	}
 
-	GLCALL(glDeleteShader(m_FragmentShaderId));
-	GLCALL(glDeleteShader(m_VertexShaderId));
+	glDeleteShader(m_FragmentShaderId);
+	glDeleteShader(m_VertexShaderId);
 
 	m_IsInitialized = true;
 
@@ -191,7 +191,7 @@ void stw::Pipeline::Delete()
 		return;
 	}
 
-	GLCALL(glDeleteProgram(m_ProgramId));
+	glDeleteProgram(m_ProgramId);
 	m_ProgramId = 0;
 }
 
@@ -236,23 +236,23 @@ usize stw::Pipeline::GetTextureCount() const
 	return m_TexturesCount;
 }
 
-void stw::Pipeline::SetVec2(std::string_view name, glm::vec2 value)
+void stw::Pipeline::SetVec2(const std::string_view name, const glm::vec2 value)
 {
 	const auto location = GetUniformLocation(name);
 
-	GLCALL(glUniform2f(location, value.x, value.y));
+	glUniform2f(location, value.x, value.y);
 }
 
-void stw::Pipeline::SetVec4(std::string_view name, glm::vec4 value)
+void stw::Pipeline::SetVec4(const std::string_view name, const glm::vec4 value)
 {
 	const auto location = GetUniformLocation(name);
 
-	GLCALL(glUniform4f(location, value.x, value.y, value.z, value.w));
+	glUniform4f(location, value.x, value.y, value.z, value.w);
 }
 
-void stw::Pipeline::SetVec3V(std::string_view name, std::span<const glm::vec3> values)
+void stw::Pipeline::SetVec3V(const std::string_view name, const std::span<const glm::vec3> values)
 {
 	const auto location = GetUniformLocation(name);
 
-	GLCALL(glUniform3fv(location, static_cast<GLsizei>(values.size()), glm::value_ptr(values[0])));
+	glUniform3fv(location, static_cast<GLsizei>(values.size()), glm::value_ptr(values[0]));
 }

@@ -14,13 +14,13 @@ std::optional<std::size_t> stw::TextureManager::LoadTextureFromPath(
 {
 	spdlog::debug("Loading texture {}...", path.string());
 
-	if (auto result = m_TexturesCache.find(path); result != m_TexturesCache.end())
+	if (const auto result = m_TexturesCache.find(path); result != m_TexturesCache.end())
 	{
 		return { result->second };
 	}
 
 	std::expected<stw::Texture, std::string> textureResult;
-	auto extension = path.extension();
+	const auto extension = path.extension();
 	if (extension == ".ktx" || extension == ".ktx2")
 	{
 		textureResult = Texture::LoadKtxFromPath(path, type);

@@ -6,7 +6,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #ifndef NDEBUG
-#define STBI_FAILURE_USERMSG
+	#define STBI_FAILURE_USERMSG
 #endif
 #include <array>
 #include <ktx.h>
@@ -53,24 +53,30 @@ std::expected<stw::Texture, std::string> stw::Texture::LoadKtxFromPath(
 {
 	// https://github.khronos.org/KTX-Software/libktx/index.html#overview
 	ktxTexture* kTexture = nullptr;
-	KTX_error_code result = KTX_error_code::KTX_NOT_FOUND;
+	KTX_error_code result = KTX_NOT_FOUND;
 	GLuint texture = 0;
 	GLenum target = GL_INVALID_ENUM;
-	GLenum glError = GL_INVALID_ENUM;
+	
 
 	result = ktxTexture_CreateFromNamedFile(path.string().c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, &kTexture);
-	if (result != KTX_error_code::KTX_SUCCESS)
+	if (result != KTX_SUCCESS)
 	{
-		ktxTexture_Destroy(kTexture);
 		return std::unexpected(fmt::format("Could not load KTX file with libktx error code : {}", static_cast<int>(result)));
 	}
 
-	GLCALL(glGenTextures(1, &texture));// Optional. GLUpload can generate a texture.
+	GLenum glError = GL_INVALID_ENUM;
 	result = ktxTexture_GLUpload(kTexture, &texture, &target, &glError);
-	if (glError != GL_NO_ERROR)
+
+	if(result == KTX_GL_ERROR)
 	{
 		ktxTexture_Destroy(kTexture);
-		return std::unexpected(fmt::format("Could not load KTX file with opengl error code : {}", glError));
+		return std::unexpected(fmt::format("Could not upload OpenGl image with OpenGL error code : {}", glError));
+	}
+
+	if (result != KTX_SUCCESS)
+	{
+		ktxTexture_Destroy(kTexture);
+		return std::unexpected(fmt::format("Could not upload OpenGl image with libktx error code : {}", static_cast<int>(result)));
 	}
 
 	ktxTexture_Destroy(kTexture);
@@ -201,7 +207,7 @@ void stw::Texture::Bind() const
 		spdlog::error("Binding texture that is not initialized");
 	}
 
-	GLCALL(glBindTexture(m_GlTextureTarget, textureId));
+	glBindTexture(m_GlTextureTarget, textureId);
 }
 
 void stw::Texture::Specify(const GLsizei width,
@@ -212,15 +218,15 @@ void stw::Texture::Specify(const GLsizei width,
 {
 	if (optionalTarget.has_value())
 	{
-		GLCALL(glTexImage2D(optionalTarget.value(), 0, internalFormat, width, height, 0, glFormat, dataType, data));
+		glTexImage2D(optionalTarget.value(), 0, internalFormat, width, height, 0, glFormat, dataType, data);
 	}
 	else
 	{
-		GLCALL(glTexImage2D(m_GlTextureTarget, 0, internalFormat, width, height, 0, glFormat, dataType, data));
+		glTexImage2D(m_GlTextureTarget, 0, internalFormat, width, height, 0, glFormat, dataType, data);
 	}
 }
 
-void stw::Texture::GenerateMipmap() const { GLCALL(glGenerateMipmap(m_GlTextureTarget)); }
+void stw::Texture::GenerateMipmap() const { glGenerateMipmap(m_GlTextureTarget); }
 
 void stw::Texture::SetMinFilter(const GLint filter) const
 {
@@ -234,7 +240,7 @@ void stw::Texture::SetMagFilter(const GLint filter) const
 
 void stw::Texture::SetWrapS(const GLint wrap) const
 {
-	GLCALL(glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_S, wrap));
+	glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_S, wrap);
 }
 
 void stw::Texture::SetWrapT(const GLint wrap) const { glTexParameteri(m_GlTextureTarget, GL_TEXTURE_WRAP_T, wrap); }
@@ -243,7 +249,7 @@ void stw::Texture::SetWrapR(const GLint wrap) const { glTexParameteri(m_GlTextur
 
 void stw::Texture::Delete()
 {
-	GLCALL(glDeleteTextures(1, &textureId));
+	glDeleteTextures(1, &textureId);
 	textureId = 0;
 }
 

@@ -8,7 +8,7 @@
 
 namespace stw
 {
-template <class T>
+template<class T>
 class VertexBuffer
 {
 public:
@@ -32,7 +32,7 @@ private:
 	bool m_IsInitialized = false;
 };
 
-template <class T>
+template<class T>
 VertexBuffer<T>::VertexBuffer(VertexBuffer&& other) noexcept
 	: m_BufferId(other.m_BufferId), m_IsInitialized(other.m_IsInitialized)
 {
@@ -40,7 +40,7 @@ VertexBuffer<T>::VertexBuffer(VertexBuffer&& other) noexcept
 	other.m_IsInitialized = false;
 }
 
-template <class T>
+template<class T>
 VertexBuffer<T>::~VertexBuffer()
 {
 	if (m_IsInitialized)
@@ -49,11 +49,10 @@ VertexBuffer<T>::~VertexBuffer()
 	}
 }
 
-template <class T>
+template<class T>
 VertexBuffer<T>& VertexBuffer<T>::operator=(VertexBuffer&& other) noexcept
 {
-	if (this == &other)
-		return *this;
+	if (this == &other) return *this;
 
 	m_BufferId = other.m_BufferId;
 	m_IsInitialized = other.m_IsInitialized;
@@ -63,47 +62,47 @@ VertexBuffer<T>& VertexBuffer<T>::operator=(VertexBuffer&& other) noexcept
 	return *this;
 }
 
-template <class T>
+template<class T>
 void VertexBuffer<T>::Init(std::span<const T> data)
 {
 	Init();
 	SetData(data);
 }
 
-template <class T>
+template<class T>
 void VertexBuffer<T>::Init()
 {
-	GLCALL(glGenBuffers(1, &m_BufferId));
+	glGenBuffers(1, &m_BufferId);
 	m_IsInitialized = true;
 }
 
-template <class T>
+template<class T>
 void VertexBuffer<T>::SetData(std::span<const T> data) const
 {
 	assert(m_IsInitialized);
 	Bind();
-	GLCALL(glBufferData(GL_ARRAY_BUFFER, data.size_bytes(), data.data(), GL_STATIC_DRAW));
+	glBufferData(GL_ARRAY_BUFFER, data.size_bytes(), data.data(), GL_STATIC_DRAW);
 	UnBind();
 }
 
-template <class T>
+template<class T>
 void VertexBuffer<T>::Bind() const
 {
 	assert(m_IsInitialized);
-	GLCALL(glBindBuffer(GL_ARRAY_BUFFER, m_BufferId));
+	glBindBuffer(GL_ARRAY_BUFFER, m_BufferId);
 }
 
-template <class T>
+template<class T>
 // ReSharper disable once CppMemberFunctionMayBeStatic
 void VertexBuffer<T>::UnBind() const
 {
-	GLCALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-template <class T>
+template<class T>
 void VertexBuffer<T>::Delete()
 {
-	GLCALL(glDeleteBuffers(1, &m_BufferId));
+	glDeleteBuffers(1, &m_BufferId);
 
 	m_IsInitialized = false;
 }

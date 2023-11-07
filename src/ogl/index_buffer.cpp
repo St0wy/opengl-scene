@@ -36,9 +36,9 @@ stw::IndexBuffer& stw::IndexBuffer::operator=(IndexBuffer&& other) noexcept
 void stw::IndexBuffer::Init(const std::span<u32> data)
 {
 	m_Count = static_cast<u32>(data.size());
-	GLCALL(glGenBuffers(1, &m_BufferId));
-	GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BufferId));
-	GLCALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.size_bytes(), data.data(), GL_STATIC_DRAW));
+	glGenBuffers(1, &m_BufferId);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BufferId);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), GL_STATIC_DRAW);
 
 	m_IsInitialized = true;
 }
@@ -46,17 +46,17 @@ void stw::IndexBuffer::Init(const std::span<u32> data)
 void stw::IndexBuffer::Bind() const
 {
 	assert(m_IsInitialized);
-	GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BufferId));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BufferId);
 }
 
 void stw::IndexBuffer::UnBind()
 {
-	GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void stw::IndexBuffer::Delete()
 {
-	GLCALL(glDeleteBuffers(1, &m_BufferId));
+	glDeleteBuffers(1, &m_BufferId);
 
 	m_IsInitialized = false;
 }
