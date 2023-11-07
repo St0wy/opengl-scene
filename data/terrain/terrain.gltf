@@ -114,15 +114,15 @@
   "images": [
     {
       "name": "vjboab3mw_4K_Albedo",
-      "uri": "baseColor.ktx2"
+      "uri": "baseColor2.ktx2"
     },
     {
       "name": "metalness_vjboab3mw_4K_Roughness_ao",
-      "uri": "arm.ktx2"
+      "uri": "arm2.ktx2"
     },
     {
       "name": "vjboab3mw_4K_Normal_LOD0",
-      "uri": "normal.ktx2"
+      "uri": "normal2.ktx2"
     }
   ],
   "materials": [

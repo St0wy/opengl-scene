@@ -3,6 +3,8 @@ include(cmake/download-cpm.cmake)
 cpmaddpackage("gh:libsdl-org/SDL#release-2.28.0")
 cpmaddpackage("gh:Perlmint/glew-cmake#glew-cmake-2.2.0")
 
+# BUILD_SHARED_LIBS must stay in comments otherwise it's ignored (idk why)
+
 cpmaddpackage(
 	NAME
 	boost-math
@@ -37,7 +39,7 @@ cpmaddpackage(
 	GITHUB_REPOSITORY
 	assimp/assimp
 	OPTIONS
-	"ASSIMP_WARNINGS_AS_ERRORS OFF"
+	ASSIMP_WARNINGS_AS_ERRORS OFF
 	"BUILD_SHARED_LIBS OFF"
 	EXCLUDE_FROM_ALL
 	SYSTEM
@@ -57,11 +59,12 @@ cpmaddpackage(
 )
 
 set(ABSL_PROPAGATE_CXX_STD ON)
+set(ABSL_USE_SYSTEM_INCLUDES ON)
 cpmaddpackage(
 	NAME
 	abseil
 	GIT_TAG
-	master
+	20230802.1
 	GITHUB_REPOSITORY
 	abseil/abseil-cpp
 	OPTIONS
@@ -103,12 +106,16 @@ cpmaddpackage(
 	NAME
 	KTX-Software
 	GIT_TAG
-	88366e1709faa357ab5a33e079e4a2e8d8ec31ff
+	22706420d4fff081e1323134c5356f5d031b5a74
 	GITHUB_REPOSITORY
 	St0wy/KTX-Software
 	OPTIONS
 	"BUILD_SHARED_LIBS OFF"
 	KTX_FEATURE_STATIC_LIBRARY ON
+	KTX_FEATURE_TOOLS OFF
+	KTX_FEATURE_TESTS OFF
+	KTX_FEATURE_KTX1 OFF
+	KTX_FEATURE_VK_UPLOAD OFF
 	EXCLUDE_FROM_ALL
 	SYSTEM
 )
