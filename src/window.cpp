@@ -8,19 +8,24 @@
  * @copyright SAE (c) 2023
  *
  */
+module;
 
-#pragma once
-#define SDL_MAIN_HANDLED
 #include <cassert>
 #include <memory>
-#include <SDL.h>
+
+#define SDL_MAIN_HANDLED
 #include <GL/glew.h>
+#include <SDL.h>
 #include <spdlog/spdlog.h>
 
-#include "number_types.hpp"
-#include "timer.hpp"
-#include "utils.hpp"
-#include "scenes/scene.hpp"
+#include "macros.hpp"
+
+export module window;
+
+import utils;
+import number_types;
+import timer;
+import scene;
 
 namespace stw
 {
