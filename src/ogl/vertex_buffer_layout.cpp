@@ -1,9 +1,9 @@
 /**
- * @file vertex_buffer_layout.hpp
+ * @file vertex_buffer_layout.cpp
  * @author Fabian Huber (fabian.hbr@protonmail.ch)
  * @brief Contains the abstraction for Vertex Buffer Layouts.
  * @version 1.0
- * @date 04/05/2023
+ * @date 09/11/2023
  *
  * @copyright SAE (c) 2023
  *
@@ -67,14 +67,14 @@ export
 		GLsizei m_Stride{};
 	};
 
-	template<typename T>
-	void VertexBufferLayout::Push(GLint)
+	template<typename>
+	void VertexBufferLayout::Push([[maybe_unused]] GLint count)
 	{
 		spdlog::error("Push of an unknown type in vertex buffer layout");
 	}
 
-	template<typename T>
-	void VertexBufferLayout::Push(GLint, GLuint)
+	template<typename>
+	void VertexBufferLayout::Push([[maybe_unused]] GLint count, [[maybe_unused]] GLuint divisor)
 	{
 		spdlog::error("Push of an unknown type in vertex buffer layout with divisor");
 	}

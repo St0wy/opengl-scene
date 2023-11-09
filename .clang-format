@@ -98,3 +98,4 @@ Standard: Latest
 TabWidth: 4
 UseTab: Always
 QualifierAlignment: Left
+IndentPPDirectives: BeforeHash
