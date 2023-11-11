@@ -12,11 +12,11 @@
 module;
 
 #include <array>
-
 #include <filesystem>
 #include <fstream>
 #include <optional>
 #include <random>
+#include <concepts>
 
 #include <assimp/matrix4x4.h>
 #include <GL/glew.h>

@@ -1,5 +1,5 @@
 /**
- * @file scene_graph.hpp
+ * @file scene_graph.cpp
  * @author Fabian Huber (fabian.hbr@protonmail.ch)
  * @brief Contains the Scene Graph of the project.
  * @version 1.0
@@ -11,6 +11,7 @@
 
 module;
 
+#include <concepts>
 #include <cstddef>
 #include <optional>
 #include <span>
@@ -74,8 +75,6 @@ export
 	class SceneGraph
 	{
 	public:
-		SceneGraph() = default;
-
 		void Init();
 		usize AddElementToRoot(std::size_t meshId, std::size_t materialId, const glm::mat4& transformMatrix);
 		usize AddChild(usize parentId, std::size_t meshId, std::size_t materialId, const glm::mat4& transformMatrix);
@@ -258,7 +257,7 @@ export
 		nodes.emplace_back(true, currentNode.childId.value());
 		while (!nodes.empty())
 		{
-			auto top = nodes.back();
+			const auto top = nodes.back();
 			auto& node = m_Nodes[top.second];
 			nodes.pop_back();
 			auto& element = m_Elements[node.elementId];
