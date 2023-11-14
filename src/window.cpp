@@ -1,5 +1,5 @@
 /**
- * @file window.hpp
+ * @file window.cpp
  * @author Fabian Huber (fabian.hbr@protonmail.ch)
  * @brief Contains the Window class.
  * @version 1.0
@@ -14,8 +14,9 @@ module;
 #include <memory>
 
 #define SDL_MAIN_HANDLED
-#include <GL/glew.h>
 #include <SDL.h>
+
+#include <GL/glew.h>
 #include <spdlog/spdlog.h>
 
 #include "macros.hpp"
@@ -27,7 +28,7 @@ import number_types;
 import timer;
 import scene;
 
-namespace stw
+export namespace stw
 {
 template<Derived<Scene> T>
 class Window
@@ -153,7 +154,7 @@ template<Derived<Scene> T>
 bool Window<T>::HandleEvents()
 {
 	SDL_Event event;
-	while (SDL_PollEvent(&event))
+	while (SDL_PollEvent(&event) != 0)
 	{
 		switch (event.type)
 		{

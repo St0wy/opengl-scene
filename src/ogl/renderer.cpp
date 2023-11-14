@@ -39,10 +39,13 @@ import camera;
 import texture_manager;
 import scene_graph;
 import bloom_framebuffer;
+import material;
 import material_manager;
 import framebuffer;
 import uniform_buffer;
 import pipeline;
+import scene_graph;
+import texture;
 
 export namespace stw
 {
@@ -433,7 +436,7 @@ void Renderer::InitFramebuffers(glm::uvec2 screenSize)
 		m_SkyboxCaptureFramebuffer.Init(framebufferDescription);
 		m_SkyboxCaptureFramebuffer.Bind();
 		constexpr GLenum buf = GL_COLOR_ATTACHMENT0;
-		glDrawBuffers(static_cast<GLsizei>(1), &buf);
+		glDrawBuffers(1, &buf);
 	}
 	{
 		FramebufferDepthStencilAttachment depthStencilAttachment{};
@@ -860,7 +863,8 @@ void Renderer::RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCascades
 
 		Clear(GL_DEPTH_BUFFER_BIT);
 		// Render meshes on light depth buffer
-		m_SceneGraph.ForEach([this](SceneGraphElementIndex elementIndex, std::span<const glm::mat4> transformMatrices) {
+		m_SceneGraph.ForEach([this](SceneGraphElementIndex elementIndex,
+								 const std::span<const glm::mat4> transformMatrices) {
 			m_MatricesUniformBuffer.Bind();
 			const auto& mesh = m_Meshes[elementIndex.meshId];
 			mesh.Bind(transformMatrices);
@@ -1309,7 +1313,7 @@ std::expected<std::vector<usize>, std::string> Renderer::LoadModel(const std::fi
 	std::vector<usize> addedNodes;
 
 	// Add the node that holds the mesh
-	std::optional currentParent = m_SceneGraph.AddElementToRoot(InvalidId, InvalidId, glm::mat4(1.0f));
+	std::optional<usize> currentParent = m_SceneGraph.AddElementToRoot(InvalidId, InvalidId, glm::mat4(1.0f));
 	addedNodes.push_back(currentParent.value());
 
 	std::optional<usize> currentSibling{};

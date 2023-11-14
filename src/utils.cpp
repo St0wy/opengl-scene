@@ -1,5 +1,5 @@
 /**
- * @file utils.hpp
+ * @file utils.cpp
  * @author Fabian Huber (fabian.hbr@protonmail.ch)
  * @brief Contains some utility stuff for this project.
  * @version 1.0
@@ -12,11 +12,11 @@
 module;
 
 #include <array>
+#include <concepts>
 #include <filesystem>
 #include <fstream>
 #include <optional>
 #include <random>
-#include <concepts>
 
 #include <assimp/matrix4x4.h>
 #include <GL/glew.h>
@@ -62,8 +62,7 @@ export
 	template<typename T, typename... Args>
 	concept Predicate = Callable<T, bool, Args...>;
 
-	template<typename T>
-	constexpr T MapRange(T value, T a, T b, T c, T d)
+	constexpr auto MapRange(auto value, auto a, auto b, auto c, auto d)
 	{
 		// first map value from (a..b) to (0..1)
 		value = (value - a) / (b - a);
@@ -83,11 +82,7 @@ return glm::mat4{
 		// clang-format on
 	}
 
-	template<typename T>
-	constexpr T Lerp(T a, T b, T f)
-	{
-		return a + f * (b - a);
-	}
+	constexpr auto Lerp(auto a, auto b, auto f) { return a + f * (b - a); }
 
 	std::optional<std::string> OpenFile(const std::filesystem::path& filename)
 	{
@@ -104,7 +99,8 @@ return glm::mat4{
 
 	GLenum GetTextureFromId(const i32 id)
 	{
-		if (id > 19)
+		static constexpr i32 AssumedMaxNumberOfTexturesInOGL = 31;
+		if (id > AssumedMaxNumberOfTexturesInOGL)
 		{
 			return GL_INVALID_ENUM;
 		}
@@ -193,7 +189,7 @@ return glm::mat4{
 	{
 		std::random_device rd;
 		std::default_random_engine generator(rd());
-		std::uniform_real_distribution<f32> randomFloats(0.0f, 1.0f);
+		std::uniform_real_distribution randomFloats(0.0f, 1.0f);
 		std::array<glm::vec3, SsaoKernelSize> ssaoKernel{};
 		for (usize i = 0; i < SsaoKernelSize; i++)
 		{

@@ -1,5 +1,5 @@
 /**
-* @file consts.hpp
+* @file consts.cpp
 * @author Fabian Huber (fabian.hbr@protonmail.ch)
 * @brief Contains the various constants of the project.
 * @version 1.0

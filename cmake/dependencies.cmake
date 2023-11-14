@@ -1,7 +1,20 @@
 include(cmake/download-cpm.cmake)
 
-cpmaddpackage("gh:libsdl-org/SDL#release-2.28.0")
-cpmaddpackage("gh:Perlmint/glew-cmake#glew-cmake-2.2.0")
+cpmaddpackage("gh:libsdl-org/SDL#release-2.28.5")
+
+cpmaddpackage(
+	NAME
+	glew
+	GIT_TAG
+	glew-cmake-2.2.0
+	GITHUB_REPOSITORY
+	Perlmint/glew-cmake
+	OPTIONS
+	"BUILD_SHARED_LIBS OFF"
+	"ONLY_LIBS ON"
+	EXCLUDE_FROM_ALL
+	SYSTEM
+)
 
 # BUILD_SHARED_LIBS must stay in comments otherwise it's ignored (idk why)
 
@@ -39,8 +52,8 @@ cpmaddpackage(
 	GITHUB_REPOSITORY
 	assimp/assimp
 	OPTIONS
-	ASSIMP_WARNINGS_AS_ERRORS OFF
 	"BUILD_SHARED_LIBS OFF"
+	"ASSIMP_WARNINGS_AS_ERRORS OFF"
 	EXCLUDE_FROM_ALL
 	SYSTEM
 )
@@ -82,8 +95,8 @@ cpmaddpackage(
 	fmtlib/fmt
 	OPTIONS
 	"BUILD_SHARED_LIBS OFF"
-	FMT_SYSTEM_HEADERS ON
-	FMT_OS OFF
+	"FMT_SYSTEM_HEADERS ON"
+	"FMT_OS OFF"
 	EXCLUDE_FROM_ALL
 	SYSTEM
 )
@@ -97,7 +110,7 @@ cpmaddpackage(
 	gabime/spdlog
 	OPTIONS
 	"BUILD_SHARED_LIBS OFF"
-	SPDLOG_FMT_EXTERNAL ON
+	"SPDLOG_FMT_EXTERNAL ON"
 	EXCLUDE_FROM_ALL
 	SYSTEM
 )
@@ -111,12 +124,12 @@ cpmaddpackage(
 	St0wy/KTX-Software
 	OPTIONS
 	"BUILD_SHARED_LIBS OFF"
-	KTX_FEATURE_STATIC_LIBRARY ON
-	KTX_FEATURE_TOOLS OFF
-	KTX_FEATURE_TESTS OFF
-	KTX_FEATURE_KTX1 OFF
-	KTX_FEATURE_VK_UPLOAD OFF
-	KTX_INSTALL_TARGETS ON
+	"KTX_FEATURE_STATIC_LIBRARY ON"
+	"KTX_FEATURE_TOOLS OFF"
+	"KTX_FEATURE_TESTS OFF"
+	"KTX_FEATURE_KTX1 OFF"
+	"KTX_FEATURE_VK_UPLOAD OFF"
+	"KTX_INSTALL_TARGETS ON"
 	EXCLUDE_FROM_ALL
 	SYSTEM
 )

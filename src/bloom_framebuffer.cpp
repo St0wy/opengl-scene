@@ -1,5 +1,5 @@
 /**
- * @file bloom_framebuffer.hpp
+ * @file bloom_framebuffer.cpp
  * @author Fabian Huber (fabian.hbr@protonmail.ch)
  * @brief Contains the Camera class.
  * @version 1.0
@@ -59,14 +59,14 @@ export
 		std::vector<BloomMip> m_MipChain{};
 	};
 
-	stw::BloomFramebuffer::~BloomFramebuffer()
+	BloomFramebuffer::~BloomFramebuffer()
 	{
 		if (m_IsInitialized)
 		{
 			spdlog::error("Destructor called on bloom framebuffer that is still initialized");
 		}
 	}
-	bool stw::BloomFramebuffer::Init(glm::uvec2 screenSize, u32 mipChainLength)
+	bool BloomFramebuffer::Init(const glm::uvec2 screenSize, const u32 mipChainLength)
 	{
 		assert(!m_IsInitialized);
 
@@ -116,7 +116,7 @@ export
 		return true;
 	}
 
-	void stw::BloomFramebuffer::Delete()
+	void BloomFramebuffer::Delete()
 	{
 		assert(m_IsInitialized);
 
@@ -131,11 +131,11 @@ export
 		m_IsInitialized = false;
 	}
 
-	void stw::BloomFramebuffer::Bind() const { glBindFramebuffer(GL_FRAMEBUFFER, m_FramebufferIndex); }
+	void BloomFramebuffer::Bind() const { glBindFramebuffer(GL_FRAMEBUFFER, m_FramebufferIndex); }
 
-	std::span<const stw::BloomMip> stw::BloomFramebuffer::MipChain() const { return m_MipChain; }
+	std::span<const BloomMip> BloomFramebuffer::MipChain() const { return m_MipChain; }
 
-	void stw::BloomFramebuffer::UnBind() const
+	void BloomFramebuffer::UnBind() const
 	{
 		assert(m_IsInitialized);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);

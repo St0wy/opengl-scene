@@ -1,20 +1,21 @@
 /**
-* @file timer.cpp
-* @author Fabian Huber (fabian.hbr@protonmail.ch)
-* @brief Contains the Timer and Duration classes.
-* @version 1.0
-* @date 08/11/2023
-*
-* @copyright SAE (c) 2023
-*
-*/
+ * @file timer.cpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the Timer and Duration classes.
+ * @version 1.0
+ * @date 08/11/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 
 module;
 
-#include <chrono>
+//#include <chrono>
 
 export module timer;
 
+import <chrono>;
 import number_types;
 
 namespace stw
@@ -23,6 +24,11 @@ namespace stw
 export class Duration
 {
 public:
+	static constexpr f64 MicroToSecond = 0.000001;
+	static constexpr f64 MicroToMilli = 0.001;
+	static constexpr f64 MilliToMicro = 1'000;
+	static constexpr f64 SecondToMicro = 1'000'000;
+
 	[[nodiscard]] static constexpr Duration FromMicroSeconds(f64 microseconds);
 	[[nodiscard]] static constexpr Duration FromMilliseconds(f64 milliseconds);
 	[[nodiscard]] static constexpr Duration FromSeconds(f64 seconds);
@@ -37,9 +43,9 @@ private:
 	double m_DurationInMicroSeconds = 0.0;
 };
 
-constexpr f64 Duration::GetInSeconds() const { return GetInMicroseconds() * 0.000001; }
+constexpr f64 Duration::GetInSeconds() const { return GetInMicroseconds() * MicroToSecond; }
 
-constexpr f64 Duration::GetInMilliseconds() const { return GetInMicroseconds() * 0.001; }
+constexpr f64 Duration::GetInMilliseconds() const { return GetInMicroseconds() * MicroToMilli; }
 
 constexpr f64 Duration::GetInMicroseconds() const { return m_DurationInMicroSeconds; }
 
@@ -47,9 +53,12 @@ constexpr Duration::Duration(const f64 microseconds) : m_DurationInMicroSeconds(
 
 constexpr Duration Duration::FromMicroSeconds(const f64 microseconds) { return Duration{ microseconds }; }
 
-constexpr Duration Duration::FromMilliseconds(const f64 milliseconds) { return Duration{ milliseconds * 1'000 }; }
+constexpr Duration Duration::FromMilliseconds(const f64 milliseconds)
+{
+	return Duration{ milliseconds * MilliToMicro };
+}
 
-constexpr Duration Duration::FromSeconds(const f64 seconds) { return Duration{ seconds * 1'000'000 }; }
+constexpr Duration Duration::FromSeconds(const f64 seconds) { return Duration{ seconds * SecondToMicro }; }
 #pragma endregion duration
 
 export class Timer

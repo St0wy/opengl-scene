@@ -1,5 +1,5 @@
 /**
- * @file number_types.hpp
+ * @file number_types.cpp
  * @author Fabian Huber (fabian.hbr@protonmail.ch)
  * @brief Contains the various fixed-width number types used in this project.
  * @version 1.1
