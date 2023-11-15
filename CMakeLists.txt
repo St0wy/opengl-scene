@@ -10,6 +10,11 @@ endif()
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>)
+	add_link_options($<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>)
+endif()
+
 option(OGL_SCENE_ASAN OFF)
 
 if(OGL_SCENE_ASAN)
@@ -102,8 +107,10 @@ set_target_properties(opengl_scene PROPERTIES
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-	target_compile_options(opengl_scene PUBLIC -stdlib=libc++)
-	target_link_options(opengl_scene PUBLIC -stdlib=libc++)
+	add_compile_options(-stdlib=libc++)
+	add_link_options(-stdlib=libc++)
+	# target_compile_options(opengl_scene PRIVATE -stdlib=libc++)
+	# target_link_options(opengl_scene PRIVATE -stdlib=libc++)
 endif()
 
 

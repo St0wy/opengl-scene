@@ -15,6 +15,8 @@
 #include <cassert>
 #include <filesystem>
 #include <type_traits>
+#include <optional>
+
 #include <assimp/matrix4x4.h>
 #include <GL/glew.h>
 #include <glm/mat4x4.hpp>

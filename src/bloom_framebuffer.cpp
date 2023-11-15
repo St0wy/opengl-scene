@@ -6,8 +6,6 @@
 #include <array>
 #include <spdlog/spdlog.h>
 
-#include "utils.hpp"
-
 stw::BloomFramebuffer::~BloomFramebuffer()
 {
 	if (m_IsInitialized)
