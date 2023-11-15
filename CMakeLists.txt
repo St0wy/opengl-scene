@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.25)
 project(opengl_scene)
 
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 if(NOT CMAKE_BUILD_TYPE)
 	message("Build Type not set, defaulting to Debug...")
@@ -13,19 +12,20 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 option(OGL_SCENE_ASAN OFF)
 
-if (OGL_SCENE_ASAN)
-	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if(OGL_SCENE_ASAN)
+	if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		add_compile_options(-fsanitize=address)
 		add_link_options(-fsanitize=address)
-	elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 		add_compile_options(/fsanitize=address)
 		add_link_options(/fsanitize=address)
 	endif()
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(cmake/data.cmake)
 include(cmake/SystemLink.cmake)
-include(cmake/BCMProperties.cmake)
 include(cmake/dependencies.cmake)
 
 add_executable(
@@ -95,7 +95,17 @@ target_link_system_libraries(
 
 add_dependencies(opengl_scene shader_target data_target)
 
-set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION true)
+set_target_properties(opengl_scene PROPERTIES
+	INTERPROCEDURAL_OPTIMIZATION ON
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	target_compile_options(opengl_scene PUBLIC -stdlib=libc++)
+	target_link_options(opengl_scene PUBLIC -stdlib=libc++)
+endif()
+
 
 #if(WIN32 AND CMAKE_BUILelease")
 #	message("Setting flags to have no console")

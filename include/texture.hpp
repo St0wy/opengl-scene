@@ -15,6 +15,8 @@
 #include <filesystem>
 #include <string>
 #include <string_view>
+#include <optional>
+
 #include <assimp/material.h>
 #include <GL/glew.h>
 

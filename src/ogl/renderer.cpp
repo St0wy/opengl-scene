@@ -5,6 +5,7 @@
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <spdlog/spdlog.h>
+#include <expected>
 
 #include "timer.hpp"
 #include "utils.hpp"

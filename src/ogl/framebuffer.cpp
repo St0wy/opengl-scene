@@ -2,6 +2,7 @@
 
 #include <SDL_assert.h>
 #include <spdlog/spdlog.h>
+#include <expected>
 
 #include "utils.hpp"
 

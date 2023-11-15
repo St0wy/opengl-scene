@@ -18,6 +18,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <gsl/pointers>
+#include <expected>
 
 #include "bloom_framebuffer.hpp"
 #include "camera.hpp"
