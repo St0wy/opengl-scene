@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(
-	opengl_scene
-)
+project(opengl_scene)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -33,7 +31,7 @@ add_executable(
 	"src/main.cpp"
 )
 
-if (MSVC)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif ()
 
@@ -88,9 +86,7 @@ target_link_system_libraries(
 
 add_dependencies(opengl_scene shader_target data_target)
 
-set_target_properties(opengl_scene PROPERTIES
-	INTERPROCEDURAL_OPTIMIZATION true
-)
+set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION true)
 
 #Setting flags to have no console
 #set_target_properties(opengl_scene PROPERTIES LINK_FLAGS "/subsystem:windows /entry:mainCRTStartup")
