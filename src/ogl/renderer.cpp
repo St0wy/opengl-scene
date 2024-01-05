@@ -13,6 +13,7 @@ module;
 
 #include <array>
 #include <expected>
+#include <filesystem>
 #include <queue>
 #include <span>
 
@@ -49,6 +50,7 @@ import texture;
 
 export namespace stw
 {
+struct SceneGraphElementIndex;
 constexpr f32 MinLightIntensity = 5.0f;
 
 struct DirectionalLight

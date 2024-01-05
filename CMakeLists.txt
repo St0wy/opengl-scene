@@ -11,8 +11,6 @@ if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug)
 endif ()
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-
 option(OGL_SCENE_ASAN OFF)
 
 if (OGL_SCENE_ASAN)
@@ -27,20 +25,23 @@ endif ()
 
 include(cmake/data.cmake)
 include(cmake/SystemLink.cmake)
-include(cmake/BCMProperties.cmake)
 include(cmake/dependencies.cmake)
 
 add_executable(
 	opengl_scene
 	"include/macros.hpp"
+	"src/main.cpp"
 )
+
+if (MSVC)
+	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif ()
 
 target_sources(
 	opengl_scene
 	PRIVATE
 	FILE_SET CXX_MODULES
 	FILES
-	"src/main.cpp"
 	"src/timer.cpp"
 	"src/number_types.cpp"
 	"src/window.cpp"
@@ -87,7 +88,9 @@ target_link_system_libraries(
 
 add_dependencies(opengl_scene shader_target data_target)
 
-set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION true)
+set_target_properties(opengl_scene PROPERTIES
+	INTERPROCEDURAL_OPTIMIZATION true
+)
 
 #Setting flags to have no console
 #set_target_properties(opengl_scene PROPERTIES LINK_FLAGS "/subsystem:windows /entry:mainCRTStartup")

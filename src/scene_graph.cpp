@@ -87,6 +87,7 @@ public:
 	/// Will call `function` for each elements in the scene graph with the correct transform matrix.
 	/// \param function Function that will be called on each elements. Has these parameters :
 	/// `void(SceneGraphElementIndex elementIndex, std::span<const glm::mat4> transformMatrices)`.
+	// void ForEach(std::function<void(SceneGraphElementIndex, std::span<const glm::mat4>)>&& function)
 	void ForEach(Consumer<SceneGraphElementIndex, std::span<const glm::mat4>> auto&& function)
 	{
 		absl::flat_hash_map<SceneGraphElementIndex, std::vector<glm::mat4>> instancingMap{};
