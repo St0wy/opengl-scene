@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.28)
 project(opengl_scene)
 
 set(CMAKE_CXX_STANDARD 23)
@@ -112,7 +112,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	# target_compile_options(opengl_scene PRIVATE -stdlib=libc++)
 	# target_link_options(opengl_scene PRIVATE -stdlib=libc++)
 endif()
-
 
 #if(WIN32 AND CMAKE_BUILelease")
 #	message("Setting flags to have no console")

@@ -1,8 +1,8 @@
 #include <SDL_main.h>
 #include <spdlog/spdlog.h>
 
-#include "window.hpp"
 #include "scenes/ssao_scene.hpp"
+#include "window.hpp"
 
 
 int main(int, char*[])
