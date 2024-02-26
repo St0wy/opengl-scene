@@ -12,15 +12,15 @@
 #pragma once
 #define SDL_MAIN_HANDLED
 #include <cassert>
+#include <GL/glew.h>
 #include <memory>
 #include <SDL.h>
-#include <GL/glew.h>
 #include <spdlog/spdlog.h>
 
 #include "number_types.hpp"
+#include "scenes/scene.hpp"
 #include "timer.hpp"
 #include "utils.hpp"
-#include "scenes/scene.hpp"
 
 namespace stw
 {
@@ -46,7 +46,8 @@ private:
 	SDL_Window* m_Window;
 	SDL_GLContext m_GlRenderContext;
 	bool m_IsActive = true;
-	std::string m_WindowName{};
+	bool m_IsFullscreen = false;
+	std::string m_WindowName;
 };
 
 template<Derived<Scene> T>
@@ -113,6 +114,8 @@ void Window<T>::Loop()
 	f64 frameDurationAccumulator = 0.0;
 
 	bool isOpen = true;
+
+
 	while (isOpen)
 	{
 		const Duration duration = timer.RestartAndGetElapsedTime();
@@ -137,7 +140,7 @@ void Window<T>::Loop()
 
 		if (CHECK_GL_ERROR())
 		{
-			assert(false);
+			isOpen = false;
 		}
 
 		SDL_GL_SwapWindow(m_Window);
@@ -176,6 +179,12 @@ bool Window<T>::HandleEvents()
 			{
 				SDL_SetRelativeMouseMode(SDL_FALSE);
 				m_IsActive = false;
+			}
+			else if (event.key.keysym.sym == SDLK_F11)
+			{
+				u32 sdlFlags = m_IsFullscreen ? 0 : SDL_WINDOW_FULLSCREEN;
+				m_IsFullscreen = !m_IsFullscreen;
+				SDL_SetWindowFullscreen(m_Window, sdlFlags);
 			}
 			break;
 		case SDL_MOUSEBUTTONDOWN:

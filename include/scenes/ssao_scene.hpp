@@ -193,5 +193,6 @@ private:
 	Camera m_Camera{ glm::vec3{ 0.0f, 1.5f, 5.0f } };
 	std::unique_ptr<Renderer> m_Renderer{};
 	usize m_CatNodeIndex{};
+	bool isFullscreen = false;
 };
 }// namespace stw
