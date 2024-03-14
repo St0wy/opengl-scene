@@ -50,7 +50,6 @@ import texture;
 
 export namespace stw
 {
-struct SceneGraphElementIndex;
 constexpr f32 MinLightIntensity = 5.0f;
 
 struct DirectionalLight

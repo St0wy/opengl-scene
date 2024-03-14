@@ -21,6 +21,9 @@ if (OGL_SCENE_ASAN)
 	endif ()
 endif ()
 
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(cmake/data.cmake)
 include(cmake/SystemLink.cmake)
 include(cmake/dependencies.cmake)
