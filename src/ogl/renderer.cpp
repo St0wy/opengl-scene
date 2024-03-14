@@ -978,7 +978,7 @@ void Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMapNumCa
 
 	for (usize i = 0; i < lightViewProjMatrices.size(); i++)
 	{
-		m_DirectionalLightPipeline.SetMat4(fmt::format("lightViewProjMatrix[{}]", i), lightViewProjMatrices.at(i));
+		m_DirectionalLightPipeline.SetMat4(std::format("lightViewProjMatrix[{}]", i), lightViewProjMatrices.at(i));
 	}
 
 	// GetPosition

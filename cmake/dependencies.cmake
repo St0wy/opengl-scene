@@ -1,6 +1,8 @@
 include(cmake/download-cpm.cmake)
 
-cpmaddpackage("gh:libsdl-org/SDL#release-2.28.5")
+# BUILD_SHARED_LIBS must stay in comments otherwise it's ignored (idk why)
+
+cpmaddpackage("gh:libsdl-org/SDL#release-2.30.1")
 
 cpmaddpackage(
 	NAME
@@ -10,23 +12,8 @@ cpmaddpackage(
 	GITHUB_REPOSITORY
 	Perlmint/glew-cmake
 	OPTIONS
-	"BUILD_SHARED_LIBS OFF"
 	"ONLY_LIBS ON"
-	EXCLUDE_FROM_ALL
-	SYSTEM
-)
-
-# BUILD_SHARED_LIBS must stay in comments otherwise it's ignored (idk why)
-
-cpmaddpackage(
-	NAME
-	boost-math
-	GIT_TAG
-	boost-1.83.0
-	GITHUB_REPOSITORY
-	boostorg/math
-	OPTIONS
-	"BUILD_SHARED_LIBS OFF"
+	"glew-cmake_BUILD_SHARED FALSE"
 	EXCLUDE_FROM_ALL
 	SYSTEM
 )
@@ -35,7 +22,7 @@ cpmaddpackage(
 	NAME
 	glm
 	GIT_TAG
-	0.9.9.8
+	1.0.1
 	GITHUB_REPOSITORY
 	g-truc/glm
 	OPTIONS
@@ -77,26 +64,13 @@ cpmaddpackage(
 	NAME
 	abseil
 	GIT_TAG
-	20230802.1
+	20240116.1
 	GITHUB_REPOSITORY
 	abseil/abseil-cpp
 	OPTIONS
 	"BUILD_SHARED_LIBS OFF"
-	EXCLUDE_FROM_ALL
-	SYSTEM
-)
-
-cpmaddpackage(
-	NAME
-	fmt
-	GIT_TAG
-	10.1.1
-	GITHUB_REPOSITORY
-	fmtlib/fmt
-	OPTIONS
-	"BUILD_SHARED_LIBS OFF"
-	"FMT_SYSTEM_HEADERS ON"
-	"FMT_OS OFF"
+	"ABSL_PROPAGATE_CXX_STD ON"
+	"ABSL_USE_SYSTEM_INCLUDES ON"
 	EXCLUDE_FROM_ALL
 	SYSTEM
 )
@@ -105,12 +79,12 @@ cpmaddpackage(
 	NAME
 	spdlog
 	VERSION
-	1.12.0
+	1.13.0
 	GITHUB_REPOSITORY
 	gabime/spdlog
 	OPTIONS
 	"BUILD_SHARED_LIBS OFF"
-	"SPDLOG_FMT_EXTERNAL ON"
+	"SPDLOG_FMT_EXTERNAL OFF"
 	EXCLUDE_FROM_ALL
 	SYSTEM
 )
@@ -118,8 +92,8 @@ cpmaddpackage(
 cpmaddpackage(
 	NAME
 	KTX-Software
-	GIT_TAG
-	97feeae15db211fab5798174f4d2d03b08e428ef
+	VERSION
+	4.3.1
 	GITHUB_REPOSITORY
 	KhronosGroup/KTX-Software
 	OPTIONS

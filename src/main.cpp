@@ -1,4 +1,4 @@
-#include <SDL_main.h>
+// #include <SDL_main.h>
 #include <spdlog/spdlog.h>
 
 import number_types;

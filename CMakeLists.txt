@@ -4,9 +4,8 @@ project(opengl_scene)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-if (NOT CMAKE_BUILD_TYPE)
-	message("Build Type not set, defaulting to Debug...")
-	set(CMAKE_BUILD_TYPE Debug)
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose Release or Debug" FORCE)
 endif ()
 
 option(OGL_SCENE_ASAN OFF)
@@ -78,13 +77,11 @@ target_include_directories(opengl_scene PRIVATE include/ external/)
 target_link_system_libraries(
 	opengl_scene
 	PRIVATE
-	fmt::fmt
 	SDL2::SDL2-static
 	SDL2::SDL2main
 	spdlog::spdlog
 	libglew_static
 	glm::glm
-	Boost::math
 	assimp::assimp
 	stb_image
 	Microsoft.GSL::GSL
@@ -94,6 +91,7 @@ target_link_system_libraries(
 
 add_dependencies(opengl_scene shader_target data_target)
 
-set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION "$<IF:$<CONFIG:Debug>,TRUE,FALSE>")
+set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+
 #Setting flags to have no console
 #set_target_properties(opengl_scene PROPERTIES LINK_FLAGS "/subsystem:windows /entry:mainCRTStartup")

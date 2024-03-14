@@ -11,8 +11,8 @@
 // ReSharper disable CppInconsistentNaming
 module;
 
+#include <cstddef>
 #include <cstdint>
-#include <boost/cstdfloat.hpp>
 
 export module number_types;
 
@@ -28,5 +28,9 @@ export using u64 = std::uint64_t;
 
 export using usize = std::size_t;
 
-export using f32 = boost::float32_t;
-export using f64 = boost::float64_t;
+// If one day this project is compiled on a platform where this is not true please change accordingly
+static_assert(sizeof(float) == 4);
+export using f32 = float;
+
+static_assert(sizeof(double) == 8);
+export using f64 = double;

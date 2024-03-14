@@ -148,7 +148,7 @@ std::expected<Texture, std::string> Texture::LoadFromPath(
 	{
 		stbi_image_free(data);
 		return std::unexpected(
-			fmt::format("Texture failed to load at path: {}\n{}", stringPath, stbi_failure_reason()));
+			std::format("Texture failed to load at path: {}\n{}", stringPath, stbi_failure_reason()));
 	}
 
 	Texture texture;
@@ -182,7 +182,7 @@ std::expected<Texture, std::string> Texture::LoadKtxFromPath(
 	if (result != KTX_SUCCESS)
 	{
 		return std::unexpected(
-			fmt::format("Could not load KTX file with libktx error code : {}", static_cast<int>(result)));
+			std::format("Could not load KTX file with libktx error code : {}", static_cast<int>(result)));
 	}
 
 	GLenum glError = GL_INVALID_ENUM;
@@ -191,14 +191,14 @@ std::expected<Texture, std::string> Texture::LoadKtxFromPath(
 	if (result == KTX_GL_ERROR)
 	{
 		ktxTexture_Destroy(kTexture);
-		return std::unexpected(fmt::format("Could not upload OpenGl image with OpenGL error code : {}", glError));
+		return std::unexpected(std::format("Could not upload OpenGl image with OpenGL error code : {}", glError));
 	}
 
 	if (result != KTX_SUCCESS)
 	{
 		ktxTexture_Destroy(kTexture);
 		return std::unexpected(
-			fmt::format("Could not upload OpenGl image with libktx error code : {}", static_cast<int>(result)));
+			std::format("Could not upload OpenGl image with libktx error code : {}", static_cast<int>(result)));
 	}
 
 	ktxTexture_Destroy(kTexture);
@@ -221,7 +221,7 @@ std::expected<Texture, std::string> Texture::LoadRadianceMapFromPath(const std::
 	{
 		stbi_image_free(data);
 		return std::unexpected(
-			fmt::format("Radiance map failed to load at path: {}\n{}", stringPath, stbi_failure_reason()));
+			std::format("Radiance map failed to load at path: {}\n{}", stringPath, stbi_failure_reason()));
 	}
 
 	GLuint hdrTexture = 0;
@@ -260,7 +260,7 @@ std::expected<Texture, std::string> Texture::LoadCubeMap(
 		{
 			stbi_image_free(data);
 			texture.Delete();
-			return std::unexpected(fmt::format("Texture failed to load at path: {}", stringPath));
+			return std::unexpected(std::format("Texture failed to load at path: {}", stringPath));
 		}
 
 		texture.SetFormat(nbrComponents);
