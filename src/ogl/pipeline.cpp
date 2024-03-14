@@ -27,7 +27,6 @@ export module pipeline;
 import consts;
 import utils;
 import number_types;
-import shader;
 
 export namespace stw
 {
@@ -44,7 +43,6 @@ public:
 	~Pipeline();
 
 	void InitFromPath(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath);
-	void InitFromPathSingleFile(const std::filesystem::path& shaderFile);
 	void InitFromSource(std::string_view vertexSource, std::string_view fragmentSource);
 
 	void Delete();
@@ -58,10 +56,10 @@ public:
 	void SetInt(std::string_view name, i32 value);
 	void SetUnsignedInt(std::string_view name, u32 value);
 	void SetFloat(std::string_view name, f32 value);
-	void SetVec4(std::string_view name, glm::vec4 value);
-	void SetVec3(std::string_view name, glm::vec3 value);
+	void SetVec4(std::string_view name, const glm::vec4& value);
+	void SetVec3(std::string_view name, const glm::vec3& value);
 	void SetVec3V(std::string_view name, std::span<const glm::vec3> values);
-	void SetVec2(std::string_view name, glm::vec2 value);
+	void SetVec2(std::string_view name, const glm::vec2& value);
 	void SetMat3(std::string_view name, const glm::mat3& mat);
 	void SetMat4(std::string_view name, const glm::mat4& mat);
 
@@ -117,7 +115,7 @@ void Pipeline::SetFloat(const std::string_view name, const float value)
 	glUniform1f(location, value);
 }
 
-void Pipeline::SetVec3(const std::string_view name, const glm::vec3 value)
+void Pipeline::SetVec3(const std::string_view name, const glm::vec3& value)
 {
 	const auto location = GetUniformLocation(name);
 	glUniform3f(location, value.x, value.y, value.z);
@@ -174,24 +172,6 @@ void Pipeline::InitFromPath(const std::filesystem::path& vertexPath, const std::
 	}
 
 	InitFromSource(vertexResult.value(), fragmentResult.value());
-}
-
-void Pipeline::InitFromPathSingleFile(const std::filesystem::path& shaderFile)
-{
-	const auto [vertex, fragment] = ShaderProgramSource::LoadFromFile(shaderFile);
-	if (!vertex.has_value())
-	{
-		spdlog::error("Could not load vertex from shader file {}", shaderFile.string());
-		return;
-	}
-
-	if (!fragment.has_value())
-	{
-		spdlog::error("Could not load fragment from shader file {}", shaderFile.string());
-		return;
-	}
-
-	InitFromSource(vertex.value(), fragment.value());
 }
 
 void Pipeline::InitFromSource(const std::string_view vertexSource, const std::string_view fragmentSource)
@@ -297,14 +277,14 @@ usize Pipeline::GetTextureCountFromOpenGl() const
 
 usize Pipeline::GetTextureCount() const { return m_TexturesCount; }
 
-void Pipeline::SetVec2(const std::string_view name, const glm::vec2 value)
+void Pipeline::SetVec2(const std::string_view name, const glm::vec2& value)
 {
 	const auto location = GetUniformLocation(name);
 
 	glUniform2f(location, value.x, value.y);
 }
 
-void Pipeline::SetVec4(const std::string_view name, const glm::vec4 value)
+void Pipeline::SetVec4(const std::string_view name, const glm::vec4& value)
 {
 	const auto location = GetUniformLocation(name);
 

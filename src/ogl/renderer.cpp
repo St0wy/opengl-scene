@@ -11,6 +11,9 @@
 
 module;
 
+#include "glm/detail/_noise.hpp"
+
+
 #include <array>
 #include <expected>
 #include <filesystem>
@@ -28,7 +31,6 @@ module;
 #include <glm/vec4.hpp>
 #include <gsl/pointers>
 #include <spdlog/spdlog.h>
-#include <expected>
 
 export module renderer;
 
@@ -62,7 +64,7 @@ struct DirectionalLight
 struct PointLight
 {
 	PointLight() = default;
-	PointLight(glm::vec3 position, glm::vec3 color);
+	PointLight(const glm::vec3& position, const glm::vec3& color);
 	glm::vec3 position{};
 	f32 radius{};
 	glm::vec3 color{};
@@ -85,7 +87,7 @@ public:
 	Renderer& operator=(const Renderer&) = delete;
 	Renderer& operator=(Renderer&&) = delete;
 
-	void Init(glm::uvec2 screenSize);
+	void Init(const glm::uvec2& screenSize);
 	void InitPipelines();
 	void InitFramebuffers(glm::uvec2 screenSize);
 	void InitSsao();
@@ -100,7 +102,7 @@ public:
 	[[maybe_unused]] void SetClearColor(const glm::vec4& clearColor);
 	void UpdateProjectionMatrix();
 	void UpdateViewMatrix();
-	void SetViewport(glm::ivec2 pos, glm::uvec2 size);
+	void SetViewport(const glm::ivec2& pos, const glm::uvec2& size);
 
 	SceneGraph& GetSceneGraph();
 
@@ -216,7 +218,7 @@ Renderer::~Renderer()
 	}
 }
 
-void Renderer::Init(const glm::uvec2 screenSize)
+void Renderer::Init(const glm::uvec2& screenSize)
 {
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	m_IsInitialized = true;
@@ -1189,7 +1191,7 @@ void Renderer::UpdateViewMatrix()
 	m_MatricesUniformBuffer.UnBind();
 }
 
-void Renderer::SetViewport(const glm::ivec2 pos, const glm::uvec2 size)
+void Renderer::SetViewport(const glm::ivec2& pos, const glm::uvec2& size)
 {
 	m_ViewportSize = size;
 	glViewport(pos.x, pos.y, static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y));
@@ -1607,7 +1609,7 @@ glm::mat4 Renderer::ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane)
 	return lightProjection * lightView;
 }
 
-PointLight::PointLight(const glm::vec3 position, const glm::vec3 color) : position(position), color(color)
+PointLight::PointLight(const glm::vec3& position, const glm::vec3& color) : position(position), color(color)
 {
 	const f32 maxColor = std::fmax(std::fmax(color.r, color.g), color.b);
 	radius = (std::sqrt(-4.0f * (1.0f - (256.0f / MinLightIntensity) * maxColor))) / (2.0f);

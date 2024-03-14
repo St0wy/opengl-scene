@@ -11,7 +11,8 @@
 
 module;
 
-#include <concepts>
+#include "glm/detail/_noise.hpp"
+
 #include <cstddef>
 #include <optional>
 #include <span>
@@ -80,9 +81,9 @@ public:
 	[[maybe_unused]] [[nodiscard]] std::span<const SceneGraphElement> GetElements() const;
 	[[maybe_unused]] [[nodiscard]] std::span<const SceneGraphNode> GetNodes() const;
 
-	void TranslateElement(std::size_t nodeIndex, glm::vec3 translation);
-	void RotateElement(std::size_t nodeIndex, f32 angle, glm::vec3 axis);
-	void ScaleElement(std::size_t nodeIndex, glm::vec3 scale);
+	void TranslateElement(std::size_t nodeIndex, const glm::vec3& translation);
+	void RotateElement(std::size_t nodeIndex, f32 angle, const glm::vec3& axis);
+	void ScaleElement(std::size_t nodeIndex, const glm::vec3& scale);
 
 	/// Will call `function` for each elements in the scene graph with the correct transform matrix.
 	/// \param function Function that will be called on each elements. Has these parameters :
@@ -209,7 +210,7 @@ void SceneGraph::Init()
 	m_Nodes.emplace_back(m_Elements.size() - 1, std::nullopt, std::nullopt, std::nullopt);
 }
 
-void SceneGraph::TranslateElement(const std::size_t nodeIndex, const glm::vec3 translation)
+void SceneGraph::TranslateElement(const std::size_t nodeIndex, const glm::vec3& translation)
 {
 	auto& node = m_Nodes[nodeIndex];
 	auto& element = m_Elements[node.elementId];
@@ -218,7 +219,7 @@ void SceneGraph::TranslateElement(const std::size_t nodeIndex, const glm::vec3 t
 	DispatchTransforms(node);
 }
 
-void SceneGraph::RotateElement(const std::size_t nodeIndex, const f32 angle, const glm::vec3 axis)
+void SceneGraph::RotateElement(const std::size_t nodeIndex, const f32 angle, const glm::vec3& axis)
 {
 	auto& node = m_Nodes[nodeIndex];
 	auto& element = m_Elements[node.elementId];
@@ -227,7 +228,7 @@ void SceneGraph::RotateElement(const std::size_t nodeIndex, const f32 angle, con
 	DispatchTransforms(node);
 }
 
-void SceneGraph::ScaleElement(const std::size_t nodeIndex, const glm::vec3 scale)
+void SceneGraph::ScaleElement(const std::size_t nodeIndex, const glm::vec3& scale)
 {
 	auto& node = m_Nodes[nodeIndex];
 	auto& element = m_Elements[node.elementId];

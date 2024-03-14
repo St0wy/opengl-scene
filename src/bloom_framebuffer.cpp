@@ -11,6 +11,9 @@
 
 module;
 
+#include "glm/detail/_noise.hpp"
+
+
 #include <array>
 #include <span>
 #include <vector>
@@ -47,7 +50,7 @@ export
 		BloomFramebuffer& operator=(const BloomFramebuffer&) = delete;
 		BloomFramebuffer& operator=(BloomFramebuffer&&) = delete;
 
-		bool Init(glm::uvec2 screenSize, u32 mipChainLength);
+		bool Init(const glm::uvec2& screenSize, u32 mipChainLength);
 		void Delete();
 		void Bind() const;
 		void UnBind() const;
@@ -66,7 +69,7 @@ export
 			spdlog::error("Destructor called on bloom framebuffer that is still initialized");
 		}
 	}
-	bool BloomFramebuffer::Init(const glm::uvec2 screenSize, const u32 mipChainLength)
+	bool BloomFramebuffer::Init(const glm::uvec2& screenSize, const u32 mipChainLength)
 	{
 		assert(!m_IsInitialized);
 

@@ -66,7 +66,6 @@ target_sources(
 	"src/ogl/index_buffer.cpp"
 	"src/ogl/pipeline.cpp"
 	"src/ogl/renderer.cpp"
-	"src/ogl/shader.cpp"
 	"src/ogl/uniform_buffer.cpp"
 	"src/ogl/vertex_array.cpp"
 	"src/ogl/vertex_buffer.cpp"

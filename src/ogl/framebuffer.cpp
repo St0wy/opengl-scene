@@ -11,6 +11,9 @@
 
 module;
 
+#include "glm/detail/_noise.hpp"
+
+
 #include <array>
 #include <expected>
 
@@ -18,7 +21,6 @@ module;
 #include <glm/vec2.hpp>
 #include <SDL_assert.h>
 #include <spdlog/spdlog.h>
-#include <expected>
 
 export module framebuffer;
 
@@ -108,7 +110,7 @@ public:
 	[[nodiscard]] GLuint GetColorAttachment(usize index) const;
 	void UnBind() const;
 	void Delete();
-	void Resize(glm::uvec2 newSize);
+	void Resize(const glm::uvec2& newSize);
 
 private:
 	FramebufferDescription m_Description;
@@ -302,7 +304,7 @@ std::optional<GLuint> Framebuffer::GetDepthStencilAttachment() const { return m_
 
 GLuint Framebuffer::GetColorAttachment(const usize index) const { return m_ColorAttachments.at(index); }
 
-void Framebuffer::Resize(const glm::uvec2 newSize)
+void Framebuffer::Resize(const glm::uvec2& newSize)
 {
 	auto descriptionCopy = m_Description;
 	descriptionCopy.framebufferSize = newSize;
