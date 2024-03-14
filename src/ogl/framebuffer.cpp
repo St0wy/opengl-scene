@@ -32,6 +32,9 @@ import texture;
 
 export namespace stw
 {
+/**
+ * Contains metadata about an OpenGL framebuffer attachment.
+ */
 struct AttachmentType
 {
 	GLint internalFormat{};
@@ -39,8 +42,16 @@ struct AttachmentType
 	GLenum type{};
 };
 
+/**
+ * Represents a color attachment on a framebuffer.
+ * Used in the Framebuffer class.
+ * @note Some combination of size and format are not compatible. Like size = Eight and format = Rgba.
+ */
 struct FramebufferColorAttachment
 {
+	/**
+	 * Color format of the framebuffer.
+	 */
 	enum class Format : u8
 	{
 		Red,
@@ -49,6 +60,9 @@ struct FramebufferColorAttachment
 		Rgba,
 	};
 
+	/**
+	 * Size in bytes of the framebuffer.
+	 */
 	enum class Size : u8
 	{
 		Eight,
@@ -56,6 +70,9 @@ struct FramebufferColorAttachment
 		ThirtyTwo,
 	};
 
+	/**
+	 * Type of each color channel of the framebuffer.
+	 */
 	enum class Type : u8
 	{
 		Unsigned,
@@ -66,8 +83,16 @@ struct FramebufferColorAttachment
 	Format format = Format::Rgb;
 	Size size = Size::Eight;
 	Type type = Type::Unsigned;
+
+	/**
+	 * Set this to true if the framebuffer is going to be used as a render target.
+	 */
 	bool isRenderbufferObject = false;
 
+	/**
+	 * Gets the attachment type. May fail if the size and format are not compatible.
+	 * @return The attachment type or an error message.
+	 */
 	[[nodiscard]] std::expected<AttachmentType, std::string> GetAttachmentType() const;
 };
 
@@ -79,18 +104,26 @@ struct FramebufferDepthStencilAttachment
 	[[nodiscard]] AttachmentType GetAttachmentType() const;
 };
 
+/**
+ * Struct used to create a new framebuffer.
+ */
 struct FramebufferDescription
 {
+	/**
+	 * Maximum ammount of attachments that a framebuffer can carry. The real number can vary from an implementation to
+	 * another.
+	 */
 	static constexpr usize MaxColorAttachments = 16;
-	static constexpr glm::uvec2 DefaultFramebufferSize{ 1280, 720 };
 
 	usize colorAttachmentsCount = 0;
 	std::array<FramebufferColorAttachment, MaxColorAttachments> colorAttachments{};
 	std::optional<FramebufferDepthStencilAttachment> depthStencilAttachment{};
-	glm::uvec2 framebufferSize = DefaultFramebufferSize;
+	glm::uvec2 framebufferSize = glm::uvec2{ 0, 0 };
 };
 
-// TODO : Rule of five
+/**
+ * Wrapper around an OpenGL framebuffer. It does not free the object, so don't forget to call Framebuffer::Delete()
+ */
 class Framebuffer
 {
 public:
@@ -102,14 +135,35 @@ public:
 	Framebuffer& operator=(const Framebuffer& other) = delete;
 	Framebuffer& operator=(Framebuffer&&) = delete;
 
+	/**
+	 * Initializes and creates the framebuffer with the provided description.
+	 * @param description Description of the different attributes of the framebuffer.
+	 */
 	void Init(const FramebufferDescription& description);
 	void Bind() const;
 	void BindRead() const;
 	void BindWrite() const;
+
+	/**
+	 * Gets the depth / stencil attachment.
+	 * @return The ID of the depth / stencil attachment if there is one attached to this framebuffer.
+	 */
 	[[nodiscard]] std::optional<GLuint> GetDepthStencilAttachment() const;
+
+	/**
+	 * Gets the requested color attachment. Will error if index < 0 or index >=
+	 * FramebufferDescription::MaxColorAttachments.
+	 * @param index Index of the requested color attachment
+	 * @return The ID of the requested color attachment
+	 */
 	[[nodiscard]] GLuint GetColorAttachment(usize index) const;
 	void UnBind() const;
 	void Delete();
+
+	/**
+	 * Resizes the framebuffer to the requested size. For now this just destroys and recreates it.
+	 * @param newSize New size of the framebuffer.
+	 */
 	void Resize(const glm::uvec2& newSize);
 
 private:
@@ -306,6 +360,8 @@ GLuint Framebuffer::GetColorAttachment(const usize index) const { return m_Color
 
 void Framebuffer::Resize(const glm::uvec2& newSize)
 {
+	if (m_Description.framebufferSize == newSize) return;
+
 	auto descriptionCopy = m_Description;
 	descriptionCopy.framebufferSize = newSize;
 	Delete();

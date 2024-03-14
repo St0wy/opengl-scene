@@ -70,12 +70,21 @@ struct PointLight
 	glm::vec3 color{};
 };
 
+/**
+ * Represents a mesh and its materials.
+ * This is what you get after processing an assimp mesh in Renderer::ProcessMesh.
+ */
 struct ProcessMeshResult
 {
 	Mesh mesh;
 	std::size_t materialIndex;
 };
 
+/**
+ * This class is the mastermind of this OpenGL renderer.
+ * It is a bit monolithic but makes the user code quite simple, although with very little control on how things are
+ * rendered.
+ */
 class Renderer
 {
 public:

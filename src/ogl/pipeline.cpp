@@ -32,6 +32,10 @@ export namespace stw
 {
 constexpr std::size_t LogSize = 512;
 
+/**
+ * This is equivalent to the Shader class in LearnOpenGL.
+ * It represents a pair of vertex and fragment shaders that will be used for rendering.
+ */
 class Pipeline
 {
 public:
@@ -52,22 +56,82 @@ public:
 	void Bind();
 	void UnBind();
 
+	/**
+	 * Sets a bool uniform in the pipeline.
+	 * @param name Name of the uniform.
+	 * @param value Value of the uniform.
+	 */
 	void SetBool(std::string_view name, bool value);
+
+	/**
+	 * Sets an int uniform in the pipeline.
+	 * @param name Name of the uniform.
+	 * @param value Value of the uniform.
+	 */
 	void SetInt(std::string_view name, i32 value);
+
+	/**
+	 * Sets an unsigned int uniform in the pipeline.
+	 * @param name Name of the uniform.
+	 * @param value Value of the uniform.
+	 */
 	void SetUnsignedInt(std::string_view name, u32 value);
+
+	/**
+	 * Sets a float uniform in the pipeline.
+	 * @param name Name of the uniform.
+	 * @param value Value of the uniform.
+	 */
 	void SetFloat(std::string_view name, f32 value);
+
+	/**
+	 * Sets a vec4 uniform in the pipeline.
+	 * @param name Name of the uniform.
+	 * @param value Value of the uniform.
+	 */
 	void SetVec4(std::string_view name, const glm::vec4& value);
+
+	/**
+	 * Sets a vec3 uniform in the pipeline.
+	 * @param name Name of the uniform.
+	 * @param value Value of the uniform.
+	 */
 	void SetVec3(std::string_view name, const glm::vec3& value);
+
+	/**
+	 * Sets an array of vec3 uniform in the pipeline.
+	 * @param name Name of the uniform.
+	 * @param values Value of the uniform.
+	 */
 	void SetVec3V(std::string_view name, std::span<const glm::vec3> values);
+
+	/**
+	 * Sets a vec2 uniform in the pipeline.
+	 * @param name Name of the uniform.
+	 * @param value Value of the uniform.
+	 */
 	void SetVec2(std::string_view name, const glm::vec2& value);
+
+	/**
+	 * Sets a mat3 uniform in the pipeline.
+	 * @param name Name of the uniform.
+	 * @param mat Value of the uniform.
+	 */
 	void SetMat3(std::string_view name, const glm::mat3& mat);
+
+	/**
+	 * Sets a mat4 uniform in the pipeline.
+	 * @param name Name of the uniform.
+	 * @param mat Value of the uniform.
+	 */
 	void SetMat4(std::string_view name, const glm::mat4& mat);
 
+	/**
+	 * Gets the number of texture uniforms in the pipeline.
+	 */
 	[[nodiscard]] usize GetTextureCount() const;
 
 private:
-	// TODO : Rework the cache to not use string views because the end up pointing to garbage memory...
-	// std::unordered_map<std::string_view, GLint> m_UniformsLocation{};
 	bool m_IsInitialized = false;
 
 	GLuint m_ProgramId{};

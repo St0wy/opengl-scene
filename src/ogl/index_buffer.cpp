@@ -23,6 +23,9 @@ import number_types;
 
 export namespace stw
 {
+/**
+ * Wrapper arround an OpenGL index buffer (GL_ELEMENT_ARRAY_BUFFER).
+ */
 class IndexBuffer
 {
 public:
@@ -34,11 +37,18 @@ public:
 	IndexBuffer& operator=(const IndexBuffer&) = delete;
 	IndexBuffer& operator=(IndexBuffer&& other) noexcept;
 
-	void Init(std::span<GLuint> data);
+	/**
+	 * Creates the index buffer with the provided indices.
+	 * @param indices Indices that will be in the buffer.
+	 */
+	void Init(std::span<GLuint> indices);
 	void Bind() const;
 	static void UnBind();
 	void Delete();
 
+	/**
+	 * Gets the number of indices in the buffer.
+	 */
 	[[nodiscard]] u32 GetCount() const;
 
 private:
@@ -76,12 +86,13 @@ IndexBuffer& IndexBuffer::operator=(IndexBuffer&& other) noexcept
 	return *this;
 }
 
-void IndexBuffer::Init(const std::span<u32> data)
+void IndexBuffer::Init(const std::span<u32> indices)
 {
-	m_Count = static_cast<u32>(data.size());
+	m_Count = static_cast<u32>(indices.size());
 	glGenBuffers(1, &m_BufferId);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BufferId);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), GL_STATIC_DRAW);
+	glBufferData(
+		GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(indices.size_bytes()), indices.data(), GL_STATIC_DRAW);
 
 	m_IsInitialized = true;
 }
