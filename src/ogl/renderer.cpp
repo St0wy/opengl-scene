@@ -28,6 +28,7 @@ module;
 #include <glm/vec4.hpp>
 #include <gsl/pointers>
 #include <spdlog/spdlog.h>
+#include <expected>
 
 export module renderer;
 

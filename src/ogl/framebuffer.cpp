@@ -18,6 +18,7 @@ module;
 #include <glm/vec2.hpp>
 #include <SDL_assert.h>
 #include <spdlog/spdlog.h>
+#include <expected>
 
 export module framebuffer;
 
