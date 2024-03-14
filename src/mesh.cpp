@@ -1,13 +1,86 @@
-#include "mesh.hpp"
+/**
+ * @file mesh.cpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains Mesh class.
+ * @version 1.0
+ * @date 07/11/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 
-#include <GL/glew.h>
+module;
+
 #include <numbers>
 #include <span>
+#include <vector>
+
+#include <GL/glew.h>
+#include <glm/mat4x4.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 #include <spdlog/spdlog.h>
 
-#include "utils.hpp"
+export module mesh;
 
-stw::Mesh::Mesh(Mesh&& other) noexcept
+import number_types;
+import consts;
+import utils;
+import index_buffer;
+import vertex_array;
+import vertex_buffer;
+import vertex_buffer_layout;
+
+export namespace stw
+{
+struct Vertex
+{
+	glm::vec3 position;
+	glm::vec3 normal;
+	glm::vec2 texCoords;
+	glm::vec3 tangent;
+};
+
+class Mesh
+{
+public:
+	Mesh() = default;
+	Mesh(const Mesh&) = delete;
+	Mesh(Mesh&& other) noexcept;
+	~Mesh();
+
+	Mesh& operator=(const Mesh&) = delete;
+	Mesh& operator=(Mesh&& other) noexcept;
+
+	static Mesh CreateQuad();
+	static Mesh CreateCube();
+	static Mesh CreateInsideCube();
+	static Mesh CreateUvSphere(f32 radius, u32 latitudes, u32 longitudes);
+
+	void Init(std::vector<Vertex> vertices, std::vector<u32> indices);
+	void Delete();
+
+	[[nodiscard]] std::size_t GetIndicesSize() const;
+	[[nodiscard]] const VertexArray& GetVertexArray() const;
+
+	void Bind(std::span<const glm::mat4> modelMatrices) const;
+	void UnBind() const;
+
+private:
+	std::vector<Vertex> m_Vertices{};
+	std::vector<u32> m_Indices{};
+
+	VertexArray m_VertexArray{};
+	VertexBuffer<Vertex> m_VertexBuffer{};
+	VertexBuffer<glm::mat4> m_ModelMatrixBuffer{};
+	IndexBuffer m_IndexBuffer{};
+
+	bool m_IsInitialized = false;
+
+	void SetupMesh();
+};
+
+Mesh::Mesh(Mesh&& other) noexcept
 	: m_Vertices(std::move(other.m_Vertices)), m_Indices(std::move(other.m_Indices)),
 	  m_VertexArray(std::move(other.m_VertexArray)), m_VertexBuffer(std::move(other.m_VertexBuffer)),
 	  m_ModelMatrixBuffer(std::move(other.m_ModelMatrixBuffer)), m_IndexBuffer(std::move(other.m_IndexBuffer)),
@@ -16,7 +89,7 @@ stw::Mesh::Mesh(Mesh&& other) noexcept
 	other.m_IsInitialized = false;
 }
 
-stw::Mesh::~Mesh()
+Mesh::~Mesh()
 {
 	if (m_IsInitialized)
 	{
@@ -24,9 +97,12 @@ stw::Mesh::~Mesh()
 	}
 }
 
-stw::Mesh& stw::Mesh::operator=(Mesh&& other) noexcept
+Mesh& Mesh::operator=(Mesh&& other) noexcept
 {
-	if (this == &other) return *this;
+	if (this == &other)
+	{
+		return *this;
+	}
 
 	m_Vertices = std::move(other.m_Vertices);
 	m_Indices = std::move(other.m_Indices);
@@ -40,7 +116,7 @@ stw::Mesh& stw::Mesh::operator=(Mesh&& other) noexcept
 	return *this;
 }
 
-void stw::Mesh::Init(std::vector<Vertex> vertices, std::vector<u32> indices)
+void Mesh::Init(std::vector<Vertex> vertices, std::vector<u32> indices)
 {
 	m_Vertices = std::move(vertices);
 	m_Indices = std::move(indices);
@@ -49,7 +125,7 @@ void stw::Mesh::Init(std::vector<Vertex> vertices, std::vector<u32> indices)
 	m_IsInitialized = true;
 }
 
-void stw::Mesh::Delete()
+void Mesh::Delete()
 {
 	if (!m_IsInitialized)
 	{
@@ -64,22 +140,22 @@ void stw::Mesh::Delete()
 	m_IsInitialized = false;
 }
 
-std::size_t stw::Mesh::GetIndicesSize() const { return m_Indices.size(); }
+std::size_t Mesh::GetIndicesSize() const { return m_Indices.size(); }
 
-void stw::Mesh::Bind(const std::span<const glm::mat4> modelMatrices) const
+void Mesh::Bind(const std::span<const glm::mat4> modelMatrices) const
 {
 	m_VertexArray.Bind();
 	m_ModelMatrixBuffer.SetData(modelMatrices);
 }
 
-void stw::Mesh::UnBind() const
+void Mesh::UnBind() const
 {
 	m_VertexArray.UnBind();
 
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void stw::Mesh::SetupMesh()
+void Mesh::SetupMesh()
 {
 	m_VertexArray.Init();
 
@@ -103,9 +179,9 @@ void stw::Mesh::SetupMesh()
 
 	m_VertexArray.AddBuffer(m_ModelMatrixBuffer, modelMatrixLayout);
 }
-stw::Mesh stw::Mesh::CreateQuad()
+Mesh Mesh::CreateQuad()
 {
-	std::vector<Vertex> vertices = {
+	std::vector vertices = {
 		Vertex{ glm::vec3{ -1.0f, 1.0f, 0.0f }, glm::vec3{}, glm::vec2{ 0.0f, 1.0f }, glm::vec3{} },
 		Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{}, glm::vec2{ 0.0f, 0.0f }, glm::vec3{} },
 		Vertex{ glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{}, glm::vec2{ 1.0f, 1.0f }, glm::vec3{} },
@@ -119,9 +195,9 @@ stw::Mesh stw::Mesh::CreateQuad()
 	return mesh;
 }
 
-const stw::VertexArray& stw::Mesh::GetVertexArray() const { return m_VertexArray; }
+const VertexArray& Mesh::GetVertexArray() const { return m_VertexArray; }
 
-stw::Mesh stw::Mesh::CreateCube()
+Mesh Mesh::CreateCube()
 {
 	constexpr f32 size = 1.0f;
 	std::vector<Vertex> vertices = {
@@ -152,7 +228,7 @@ stw::Mesh stw::Mesh::CreateCube()
 	return mesh;
 }
 
-stw::Mesh stw::Mesh::CreateInsideCube()
+Mesh Mesh::CreateInsideCube()
 {
 	constexpr f32 size = 1.0f;
 	std::vector<Vertex> vertices = {
@@ -183,7 +259,7 @@ stw::Mesh stw::Mesh::CreateInsideCube()
 	return mesh;
 }
 
-stw::Mesh stw::Mesh::CreateUvSphere(f32 radius, u32 latitudes, u32 longitudes)
+Mesh Mesh::CreateUvSphere(f32 radius, u32 latitudes, u32 longitudes)
 {
 	constexpr u32 minLatitudes = 3;
 	constexpr u32 minLongitudes = 2;
@@ -252,3 +328,4 @@ stw::Mesh stw::Mesh::CreateUvSphere(f32 radius, u32 latitudes, u32 longitudes)
 
 	return mesh;
 }
+}// namespace stw

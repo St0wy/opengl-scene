@@ -1,12 +1,129 @@
-#include "ogl/framebuffer.hpp"
+/**
+ * @file framebuffer.cpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the Framebuffer class.
+ * @version 1.0
+ * @date 09/11/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 
+module;
+
+#include <array>
+#include <expected>
+
+#include <GL/glew.h>
+#include <glm/vec2.hpp>
 #include <SDL_assert.h>
 #include <spdlog/spdlog.h>
 #include <expected>
 
-#include "utils.hpp"
+export module framebuffer;
 
-stw::Framebuffer::~Framebuffer()
+import number_types;
+import consts;
+import utils;
+import texture;
+
+
+export namespace stw
+{
+struct AttachmentType
+{
+	GLint internalFormat{};
+	GLenum format{};
+	GLenum type{};
+};
+
+struct FramebufferColorAttachment
+{
+	enum class Format : u8
+	{
+		Red,
+		Rg,
+		Rgb,
+		Rgba,
+	};
+
+	enum class Size : u8
+	{
+		Eight,
+		Sixteen,
+		ThirtyTwo,
+	};
+
+	enum class Type : u8
+	{
+		Unsigned,
+		Int,
+		Float,
+	};
+
+	Format format = Format::Rgb;
+	Size size = Size::Eight;
+	Type type = Type::Unsigned;
+	bool isRenderbufferObject = false;
+
+	[[nodiscard]] std::expected<AttachmentType, std::string> GetAttachmentType() const;
+};
+
+struct FramebufferDepthStencilAttachment
+{
+	bool hasStencil = true;
+	bool isRenderbufferObject = false;
+
+	[[nodiscard]] AttachmentType GetAttachmentType() const;
+};
+
+struct FramebufferDescription
+{
+	static constexpr usize MaxColorAttachments = 16;
+	static constexpr glm::uvec2 DefaultFramebufferSize{ 1280, 720 };
+
+	usize colorAttachmentsCount = 0;
+	std::array<FramebufferColorAttachment, MaxColorAttachments> colorAttachments{};
+	std::optional<FramebufferDepthStencilAttachment> depthStencilAttachment{};
+	glm::uvec2 framebufferSize = DefaultFramebufferSize;
+};
+
+// TODO : Rule of five
+class Framebuffer
+{
+public:
+	Framebuffer() = default;
+	Framebuffer(const Framebuffer& other) = delete;
+	Framebuffer(Framebuffer&&) = delete;
+	~Framebuffer();
+
+	Framebuffer& operator=(const Framebuffer& other) = delete;
+	Framebuffer& operator=(Framebuffer&&) = delete;
+
+	void Init(const FramebufferDescription& description);
+	void Bind() const;
+	void BindRead() const;
+	void BindWrite() const;
+	[[nodiscard]] std::optional<GLuint> GetDepthStencilAttachment() const;
+	[[nodiscard]] GLuint GetColorAttachment(usize index) const;
+	void UnBind() const;
+	void Delete();
+	void Resize(glm::uvec2 newSize);
+
+private:
+	FramebufferDescription m_Description;
+
+	GLuint m_Fbo = 0;
+	usize m_ColorAttachmentsCount = 0;
+	std::array<GLuint, FramebufferDescription::MaxColorAttachments> m_ColorAttachments{};
+	std::optional<GLuint> m_DepthStencilAttachment{};
+
+	void HandleColorAttachments(const FramebufferDescription& description);
+};
+
+bool CheckFramebufferStatus();
+
+Framebuffer::~Framebuffer()
 {
 	if (m_Fbo != 0)
 	{
@@ -14,7 +131,7 @@ stw::Framebuffer::~Framebuffer()
 	}
 }
 
-void stw::Framebuffer::Init(const FramebufferDescription& description)
+void Framebuffer::Init(const FramebufferDescription& description)
 {
 	assert(m_Fbo == 0);
 
@@ -43,9 +160,8 @@ void stw::Framebuffer::Init(const FramebufferDescription& description)
 
 			glBindRenderbuffer(GL_RENDERBUFFER, m_DepthStencilAttachment.value());
 			glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat, width, height);
-			const auto attachmentEnum = depthAttachmentInfo.hasStencil
-				                            ? GL_DEPTH_STENCIL_ATTACHMENT
-				                            : GL_DEPTH_ATTACHMENT;
+			const auto attachmentEnum =
+				depthAttachmentInfo.hasStencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
 			glFramebufferRenderbuffer(
 				GL_FRAMEBUFFER, attachmentEnum, GL_RENDERBUFFER, m_DepthStencilAttachment.value());
 		}
@@ -62,14 +178,18 @@ void stw::Framebuffer::Init(const FramebufferDescription& description)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 			glTexImage2D(GL_TEXTURE_2D,
-				0, attachmentType.internalFormat, width, height, 0, attachmentType.format, attachmentType.type, nullptr
-			);
+				0,
+				attachmentType.internalFormat,
+				width,
+				height,
+				0,
+				attachmentType.format,
+				attachmentType.type,
+				nullptr);
 
-			const auto attachmentEnum = depthAttachmentInfo.hasStencil
-				                            ? GL_DEPTH_STENCIL_ATTACHMENT
-				                            : GL_DEPTH_ATTACHMENT;
-			glFramebufferTexture2D(
-				GL_FRAMEBUFFER, attachmentEnum, GL_TEXTURE_2D, m_DepthStencilAttachment.value(), 0);
+			const auto attachmentEnum =
+				depthAttachmentInfo.hasStencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
+			glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentEnum, GL_TEXTURE_2D, m_DepthStencilAttachment.value(), 0);
 		}
 	}
 
@@ -77,7 +197,7 @@ void stw::Framebuffer::Init(const FramebufferDescription& description)
 	UnBind();
 }
 
-void stw::Framebuffer::HandleColorAttachments(const stw::FramebufferDescription& description)
+void Framebuffer::HandleColorAttachments(const FramebufferDescription& description)
 {
 	for (usize i = 0; i < m_ColorAttachmentsCount; i++)
 	{
@@ -115,9 +235,9 @@ void stw::Framebuffer::HandleColorAttachments(const stw::FramebufferDescription&
 		}
 
 		glTexStorage2D(GL_TEXTURE_2D, 1, attachmentType.internalFormat, width, height);
-		
-			glFramebufferTexture2D(GL_FRAMEBUFFER, static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i), GL_TEXTURE_2D,
-				colorAttachmentId, 0);
+
+		glFramebufferTexture2D(
+			GL_FRAMEBUFFER, static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i), GL_TEXTURE_2D, colorAttachmentId, 0);
 	}
 
 	if (m_ColorAttachmentsCount == 0)
@@ -130,7 +250,7 @@ void stw::Framebuffer::HandleColorAttachments(const stw::FramebufferDescription&
 		// If this assert fails, add more attachments bellow and increase the value accordingly
 		constexpr usize colorAttachmentsInArray = 16;
 		static_assert(FramebufferDescription::MaxColorAttachments == colorAttachmentsInArray);
-		static constexpr std::array<GLenum, FramebufferDescription::MaxColorAttachments> V = {
+		static constexpr std::array<GLenum, FramebufferDescription::MaxColorAttachments> AvailableColorAttachments = {
 			GL_COLOR_ATTACHMENT0,
 			GL_COLOR_ATTACHMENT1,
 			GL_COLOR_ATTACHMENT2,
@@ -146,12 +266,13 @@ void stw::Framebuffer::HandleColorAttachments(const stw::FramebufferDescription&
 			GL_COLOR_ATTACHMENT12,
 			GL_COLOR_ATTACHMENT13,
 			GL_COLOR_ATTACHMENT14,
-			GL_COLOR_ATTACHMENT15, };
-		glDrawBuffers(static_cast<GLsizei>(m_ColorAttachmentsCount), V.data());
+			GL_COLOR_ATTACHMENT15,
+		};
+		glDrawBuffers(static_cast<GLsizei>(m_ColorAttachmentsCount), AvailableColorAttachments.data());
 	}
 }
 
-void stw::Framebuffer::Bind() const
+void Framebuffer::Bind() const
 {
 	if (m_Fbo == 0)
 	{
@@ -161,7 +282,7 @@ void stw::Framebuffer::Bind() const
 	glBindFramebuffer(GL_FRAMEBUFFER, m_Fbo);
 }
 
-void stw::Framebuffer::UnBind() const
+void Framebuffer::UnBind() const
 {
 	if (m_Fbo == 0)
 	{
@@ -171,23 +292,17 @@ void stw::Framebuffer::UnBind() const
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void stw::Framebuffer::Delete()
+void Framebuffer::Delete()
 {
 	glDeleteFramebuffers(1, &m_Fbo);
 	m_Fbo = 0;
 }
 
-std::optional<GLuint> stw::Framebuffer::GetDepthStencilAttachment() const
-{
-	return m_DepthStencilAttachment;
-}
+std::optional<GLuint> Framebuffer::GetDepthStencilAttachment() const { return m_DepthStencilAttachment; }
 
-GLuint stw::Framebuffer::GetColorAttachment(usize index) const
-{
-	return m_ColorAttachments.at(index);
-}
+GLuint Framebuffer::GetColorAttachment(const usize index) const { return m_ColorAttachments.at(index); }
 
-void stw::Framebuffer::Resize(glm::uvec2 newSize)
+void Framebuffer::Resize(const glm::uvec2 newSize)
 {
 	auto descriptionCopy = m_Description;
 	descriptionCopy.framebufferSize = newSize;
@@ -195,17 +310,11 @@ void stw::Framebuffer::Resize(glm::uvec2 newSize)
 	Init(descriptionCopy);
 }
 
-void stw::Framebuffer::BindRead() const
-{
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_Fbo);
-}
+void Framebuffer::BindRead() const { glBindFramebuffer(GL_READ_FRAMEBUFFER, m_Fbo); }
 
-void stw::Framebuffer::BindWrite() const
-{
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Fbo);
-}
+void Framebuffer::BindWrite() const { glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Fbo); }
 
-std::expected<stw::AttachmentType, std::string> stw::FramebufferColorAttachment::GetAttachmentType() const
+std::expected<AttachmentType, std::string> FramebufferColorAttachment::GetAttachmentType() const
 {
 	GLint glInternalFormat{};
 	GLenum glFormat{};
@@ -455,22 +564,19 @@ std::expected<stw::AttachmentType, std::string> stw::FramebufferColorAttachment:
 	return AttachmentType{ glInternalFormat, glFormat, glType };
 }
 
-stw::AttachmentType stw::FramebufferDepthStencilAttachment::GetAttachmentType() const
+AttachmentType FramebufferDepthStencilAttachment::GetAttachmentType() const
 {
 	if (hasStencil)
 	{
 		return { GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8 };
 	}
-	else
-	{
-		return { GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT };
-	}
+
+	return { GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT };
 }
 
-bool stw::CheckFramebufferStatus()
+bool CheckFramebufferStatus()
 {
-	const auto framebufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	switch (framebufferStatus)
+	switch (const auto framebufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER))
 	{
 	case GL_FRAMEBUFFER_COMPLETE:
 		spdlog::debug("Check Framebuffer: Complete");
@@ -496,3 +602,4 @@ bool stw::CheckFramebufferStatus()
 	}
 	return false;
 }
+}// namespace stw

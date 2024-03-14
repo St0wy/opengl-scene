@@ -1,5 +1,5 @@
 /**
- * @file window.hpp
+ * @file window.cpp
  * @author Fabian Huber (fabian.hbr@protonmail.ch)
  * @brief Contains the Window class.
  * @version 1.0
@@ -8,21 +8,27 @@
  * @copyright SAE (c) 2023
  *
  */
+module;
 
-#pragma once
-#define SDL_MAIN_HANDLED
 #include <cassert>
-#include <GL/glew.h>
 #include <memory>
+
+#define SDL_MAIN_HANDLED
 #include <SDL.h>
+
+#include <GL/glew.h>
 #include <spdlog/spdlog.h>
 
-#include "number_types.hpp"
-#include "scenes/scene.hpp"
-#include "timer.hpp"
-#include "utils.hpp"
+#include "macros.hpp"
 
-namespace stw
+export module window;
+
+import utils;
+import number_types;
+import timer;
+import scene;
+
+export namespace stw
 {
 template<Derived<Scene> T>
 class Window
@@ -47,7 +53,7 @@ private:
 	SDL_GLContext m_GlRenderContext;
 	bool m_IsActive = true;
 	bool m_IsFullscreen = false;
-	std::string m_WindowName;
+	std::string m_WindowName{};
 };
 
 template<Derived<Scene> T>
@@ -114,8 +120,6 @@ void Window<T>::Loop()
 	f64 frameDurationAccumulator = 0.0;
 
 	bool isOpen = true;
-
-
 	while (isOpen)
 	{
 		const Duration duration = timer.RestartAndGetElapsedTime();
@@ -151,7 +155,7 @@ template<Derived<Scene> T>
 bool Window<T>::HandleEvents()
 {
 	SDL_Event event;
-	while (SDL_PollEvent(&event))
+	while (SDL_PollEvent(&event) != 0)
 	{
 		switch (event.type)
 		{
@@ -182,7 +186,7 @@ bool Window<T>::HandleEvents()
 			}
 			else if (event.key.keysym.sym == SDLK_F11)
 			{
-				u32 sdlFlags = m_IsFullscreen ? 0 : SDL_WINDOW_FULLSCREEN;
+				const u32 sdlFlags = m_IsFullscreen ? 0 : SDL_WINDOW_FULLSCREEN;
 				m_IsFullscreen = !m_IsFullscreen;
 				SDL_SetWindowFullscreen(m_Window, sdlFlags);
 			}

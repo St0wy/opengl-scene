@@ -1,23 +1,27 @@
 /**
- * @file vertex_buffer.hpp
+ * @file vertex_buffer.cpp
  * @author Fabian Huber (fabian.hbr@protonmail.ch)
  * @brief Contains the VertexBuffer class.
  * @version 1.0
- * @date 04/05/2023
- * 
+ * @date 09/11/2023
+ *
  * @copyright SAE (c) 2023
  *
  */
 
-#pragma once
+module;
 
 #include <span>
+
 #include <GL/glew.h>
 #include <spdlog/spdlog.h>
 
-#include "utils.hpp"
+export module vertex_buffer;
 
-namespace stw
+import number_types;
+import utils;
+
+export namespace stw
 {
 template<class T>
 class VertexBuffer
@@ -63,7 +67,10 @@ VertexBuffer<T>::~VertexBuffer()
 template<class T>
 VertexBuffer<T>& VertexBuffer<T>::operator=(VertexBuffer&& other) noexcept
 {
-	if (this == &other) return *this;
+	if (this == &other)
+	{
+		return *this;
+	}
 
 	m_BufferId = other.m_BufferId;
 	m_IsInitialized = other.m_IsInitialized;
@@ -117,4 +124,4 @@ void VertexBuffer<T>::Delete()
 
 	m_IsInitialized = false;
 }
-}
+}// namespace stw

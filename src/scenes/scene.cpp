@@ -1,22 +1,24 @@
 /**
- * @file scene.hpp
+ * @file scene.cpp
  * @author Fabian Huber (fabian.hbr@protonmail.ch)
  * @brief Contains the Scene class.
  * @version 1.0
- * @date 03/05/2023
+ * @date 09/11/2023
  *
  * @copyright SAE (c) 2023
  *
  */
 
-#pragma once
+module;
 
-#include <SDL.h>
 #include <glm/vec2.hpp>
+#include <SDL.h>
 
-#include "number_types.hpp"
+export module scene;
 
-namespace stw
+import number_types;
+
+export namespace stw
 {
 class Scene
 {
@@ -32,12 +34,8 @@ public:
 	virtual void Update(f32 deltaTime) = 0;
 	virtual void Delete() = 0;
 
-	virtual void OnEvent(const SDL_Event&)
-	{
-	}
+	virtual void OnEvent(const SDL_Event& event) {}
 
-	virtual void OnResize(const i32, const i32)
-	{
-	}
+	virtual void OnResize(const i32 sizeX, const i32 sizeY) {}
 };
-}
+}// namespace stw

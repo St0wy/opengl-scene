@@ -1,7 +1,5 @@
 include(cmake/download-cpm.cmake)
 
-# OPTIONS must be passed in a string to not be ignored
-
 cpmaddpackage("gh:libsdl-org/SDL#release-2.28.5")
 
 cpmaddpackage(
@@ -17,6 +15,8 @@ cpmaddpackage(
 	EXCLUDE_FROM_ALL
 	SYSTEM
 )
+
+# BUILD_SHARED_LIBS must stay in comments otherwise it's ignored (idk why)
 
 cpmaddpackage(
 	NAME
@@ -95,8 +95,8 @@ cpmaddpackage(
 	fmtlib/fmt
 	OPTIONS
 	"BUILD_SHARED_LIBS OFF"
-	"FMT_INSTALL OFF"
 	"FMT_SYSTEM_HEADERS ON"
+	"FMT_OS OFF"
 	EXCLUDE_FROM_ALL
 	SYSTEM
 )
@@ -127,6 +127,7 @@ cpmaddpackage(
 	"KTX_FEATURE_STATIC_LIBRARY ON"
 	"KTX_FEATURE_TOOLS OFF"
 	"KTX_FEATURE_TESTS OFF"
+	"KTX_FEATURE_KTX1 ON"
 	"KTX_FEATURE_VK_UPLOAD OFF"
 	"KTX_INSTALL_TARGETS OFF"
 	EXCLUDE_FROM_ALL

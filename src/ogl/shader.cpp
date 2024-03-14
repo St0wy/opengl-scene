@@ -1,11 +1,47 @@
-#include "ogl/shader.hpp"
+/**
+ * @file shader.cpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains various shaders utility structs.
+ * @version 1.0
+ * @date 09/11/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 
+module;
+
+#include <filesystem>
 #include <fstream>
+#include <optional>
 #include <sstream>
 #include <string>
 
-namespace stw
+export module shader;
+
+export namespace stw
 {
+enum class ShaderType : std::int8_t
+{
+	None = -1,
+	Vertex = 0,
+	Fragment = 1,
+};
+
+struct ShaderProgramSource
+{
+	/**
+	 * \brief Represents the number of different possible shaders.
+	 * Should be updated when new shaders are added.
+	 */
+	static constexpr std::size_t ShaderTypeCount = 2;
+
+	std::optional<std::string> vertex;
+	std::optional<std::string> fragment;
+
+	static ShaderProgramSource LoadFromFile(const std::filesystem::path& path);
+};
+
 ShaderProgramSource ShaderProgramSource::LoadFromFile(const std::filesystem::path& path)
 {
 	std::ifstream stream(path);
@@ -60,28 +96,15 @@ ShaderProgramSource ShaderProgramSource::LoadFromFile(const std::filesystem::pat
 	if (!vertexString.empty())
 	{
 		vertexString.insert(0, commonString);
-		shaderProgramSource.vertex = {std::move(vertexString)};
+		shaderProgramSource.vertex = { std::move(vertexString) };
 	}
 
 	if (!fragmentString.empty())
 	{
 		fragmentString.insert(0, commonString);
-		shaderProgramSource.fragment = {std::move(fragmentString)};
+		shaderProgramSource.fragment = { std::move(fragmentString) };
 	}
 
 	return shaderProgramSource;
 }
-
-std::optional<std::string> ShaderProgramSource::operator[](const ShaderType type)
-{
-	switch (type)
-	{
-	case ShaderType::Vertex:
-		return vertex;
-	case ShaderType::Fragment:
-		return fragment;
-	default:
-		return {};
-	}
-}
-}
+}// namespace stw

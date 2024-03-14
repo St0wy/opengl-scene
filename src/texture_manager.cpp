@@ -1,9 +1,46 @@
-//
-// Created by stowy on 28/06/2023.
-//
+/**
+ * @file texture_manager.cpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the TextureManager class.
+ * @version 1.0
+ * @date 28/06/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
+module;
 
-#include "texture_manager.hpp"
+#include <expected>
+#include <filesystem>
+#include <optional>
+#include <unordered_map>
+#include <vector>
+
 #include <spdlog/spdlog.h>
+
+export module texture_manager;
+
+import texture;
+import number_types;
+import consts;
+import utils;
+
+export namespace stw
+{
+class TextureManager
+{
+public:
+	std::optional<std::size_t> LoadTextureFromPath(
+		const std::filesystem::path& path, stw::TextureType type, TextureSpace space);
+	[[nodiscard]] Texture& GetTexture(std::size_t index);
+	[[nodiscard]] const Texture& GetTexture(std::size_t index) const;
+
+	void Delete();
+
+private:
+	std::vector<Texture> m_Textures;
+	std::unordered_map<std::filesystem::path, std::size_t> m_TexturesCache;
+};
 
 stw::Texture& stw::TextureManager::GetTexture(std::size_t index) { return m_Textures[index]; }
 
@@ -48,3 +85,4 @@ void stw::TextureManager::Delete()
 		texture.Delete();
 	}
 }
+}// namespace stw

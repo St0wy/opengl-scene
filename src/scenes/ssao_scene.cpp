@@ -1,28 +1,34 @@
 /**
- * @file ssao_scene.hpp
+ * @file ssao_scene.cpp
  * @author Fabian Huber (fabian.hbr@protonmail.ch)
  * @brief Contains the SsaoScene class.
  * @version 1.0
- * @date 14/07/2023
+ * @date 09/11/2023
  *
  * @copyright SAE (c) 2023
  *
  */
 
-#pragma once
+module;
 
 #include <numbers>
 #include <random>
+#include <span>
+
 #include <GL/glew.h>
 #include <glm/ext.hpp>
+#include <SDL2/SDL.h>
+#include <spdlog/spdlog.h>
 
-#include "camera.hpp"
-#include "number_types.hpp"
-#include "scene.hpp"
-#include "ogl/pipeline.hpp"
-#include "ogl/renderer.hpp"
+export module ssao_scene;
 
-namespace stw
+import number_types;
+import camera;
+import scene;
+import pipeline;
+import renderer;
+
+export namespace stw
 {
 class SsaoScene final : public Scene
 {
@@ -83,7 +89,7 @@ public:
 		{
 			spdlog::error("Error on model loading : {}", result.error());
 		}
-		
+
 		nodeVec = result.value();
 		auto nodeIdx = nodeVec[0];
 		m_Renderer->GetSceneGraph().TranslateElement(nodeIdx, glm::vec3{ -2.0f, 2.0f, 0.0f });
@@ -93,7 +99,7 @@ public:
 		{
 			spdlog::error("Error on model loading : {}", result.error());
 		}
-		
+
 		nodeVec = result.value();
 		nodeIdx = nodeVec[0];
 		m_Renderer->GetSceneGraph().TranslateElement(nodeIdx, glm::vec3{ 2.0f, 1.0f, 0.0f });
@@ -101,7 +107,7 @@ public:
 		m_Renderer->GetSceneGraph().ScaleElement(nodeIdx, glm::vec3{ 7.0f, 7.0f, 7.0f });
 
 		glm::vec3 direction{ 0.0f, -1.0f, -1.0f };
-		direction = glm::normalize(direction);
+		direction = normalize(direction);
 		const DirectionalLight directionalLight{ direction, glm::vec3{ 5.0f } };
 		m_Renderer->SetDirectionalLight(directionalLight);
 
@@ -132,7 +138,7 @@ public:
 #pragma region Camera
 		i32 keyboardStateLength = 0;
 		const uint8_t* keyboardStatePtr = SDL_GetKeyboardState(&keyboardStateLength);
-		const std::span<const u8> keyboardState{ keyboardStatePtr, static_cast<usize>(keyboardStateLength) };
+		const std::span keyboardState{ keyboardStatePtr, static_cast<usize>(keyboardStateLength) };
 
 		const CameraMovementState cameraMovementState{ .forward = static_cast<bool>(keyboardState[SDL_SCANCODE_W]),
 			.backward = static_cast<bool>(keyboardState[SDL_SCANCODE_S]),

@@ -1,47 +1,128 @@
-#include "ogl/vertex_buffer_layout.hpp"
+/**
+ * @file vertex_buffer_layout.cpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the abstraction for Vertex Buffer Layouts.
+ * @version 1.0
+ * @date 09/11/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 
-namespace stw
-{
-GLsizei VertexBufferLayout::GetStride() const
-{
-	return m_Stride;
-}
+module;
 
-const std::vector<VertexBufferElement>& VertexBufferLayout::GetElements() const
-{
-	return m_Elements;
-}
+#include <optional>
+#include <vector>
 
-std::vector<VertexBufferElement>& VertexBufferLayout::GetElements()
-{
-	return m_Elements;
-}
+#include <GL/glew.h>
+#include <spdlog/spdlog.h>
 
-template <>
-void VertexBufferLayout::Push<f32>(const GLint count)
-{
-	m_Elements.push_back({GL_FLOAT, count, GL_FALSE});
-	m_Stride += count * VertexBufferElement::GetSizeOfType(GL_FLOAT);
-}
+export module vertex_buffer_layout;
 
-template <>
-void VertexBufferLayout::Push<u32>(const GLint count)
-{
-	m_Elements.push_back({GL_UNSIGNED_INT, count, GL_FALSE});
-	m_Stride += count * VertexBufferElement::GetSizeOfType(GL_UNSIGNED_INT);
-}
+import number_types;
 
-template <>
-void VertexBufferLayout::Push<f32>(const GLint count, GLuint divisor)
+export
 {
-	m_Elements.push_back({GL_FLOAT, count, GL_FALSE, {divisor}});
-	m_Stride += count * VertexBufferElement::GetSizeOfType(GL_FLOAT);
-}
+	namespace stw
+	{
+	struct VertexBufferElement
+	{
+		GLenum type;
+		GLint count;
+		GLboolean normalized;
+		std::optional<GLuint> divisor{};
 
-template <>
-void VertexBufferLayout::Push<u32>(const GLint count, GLuint divisor)
-{
-	m_Elements.push_back({GL_UNSIGNED_INT, count, GL_FALSE, {divisor}});
-	m_Stride += count * VertexBufferElement::GetSizeOfType(GL_UNSIGNED_INT);
-}
+		static GLsizei GetSizeOfType(const GLenum type)
+		{
+			switch (type)
+			{
+			case GL_FLOAT:
+				return sizeof(GLfloat);
+			case GL_UNSIGNED_INT:
+				return sizeof(GLuint);
+			default:
+				spdlog::error("Invalid type sent in {}, {}", __FILE__, __LINE__);
+				return 0;
+			}
+		}
+	};
+
+	class VertexBufferLayout
+	{
+	public:
+		VertexBufferLayout() = default;
+
+		[[nodiscard]] GLsizei GetStride() const;
+		[[nodiscard]] const std::vector<VertexBufferElement>& GetElements() const;
+		[[nodiscard]] std::vector<VertexBufferElement>& GetElements();
+
+		template<typename T>
+		void Push(GLint count);
+
+		template<typename T>
+		void Push(GLint count, GLuint divisor);
+
+	private:
+		std::vector<VertexBufferElement> m_Elements{};
+		GLsizei m_Stride{};
+	};
+
+	template<typename>
+	void VertexBufferLayout::Push([[maybe_unused]] GLint count)
+	{
+		spdlog::error("Push of an unknown type in vertex buffer layout");
+	}
+
+	template<typename>
+	void VertexBufferLayout::Push([[maybe_unused]] GLint count, [[maybe_unused]] GLuint divisor)
+	{
+		spdlog::error("Push of an unknown type in vertex buffer layout with divisor");
+	}
+
+	template<>
+	void VertexBufferLayout::Push<f32>(GLint count);
+
+	template<>
+	void VertexBufferLayout::Push<u32>(GLint count);
+
+	template<>
+	void VertexBufferLayout::Push<f32>(GLint count, GLuint divisor);
+
+	template<>
+	void VertexBufferLayout::Push<u32>(GLint count, GLuint divisor);
+
+	GLsizei VertexBufferLayout::GetStride() const { return m_Stride; }
+
+	const std::vector<VertexBufferElement>& VertexBufferLayout::GetElements() const { return m_Elements; }
+
+	std::vector<VertexBufferElement>& VertexBufferLayout::GetElements() { return m_Elements; }
+
+	template<>
+	void VertexBufferLayout::Push<f32>(const GLint count)
+	{
+		m_Elements.push_back({ GL_FLOAT, count, GL_FALSE });
+		m_Stride += count * VertexBufferElement::GetSizeOfType(GL_FLOAT);
+	}
+
+	template<>
+	void VertexBufferLayout::Push<u32>(const GLint count)
+	{
+		m_Elements.push_back({ GL_UNSIGNED_INT, count, GL_FALSE });
+		m_Stride += count * VertexBufferElement::GetSizeOfType(GL_UNSIGNED_INT);
+	}
+
+	template<>
+	void VertexBufferLayout::Push<f32>(const GLint count, GLuint divisor)
+	{
+		m_Elements.push_back({ GL_FLOAT, count, GL_FALSE, { divisor } });
+		m_Stride += count * VertexBufferElement::GetSizeOfType(GL_FLOAT);
+	}
+
+	template<>
+	void VertexBufferLayout::Push<u32>(const GLint count, GLuint divisor)
+	{
+		m_Elements.push_back({ GL_UNSIGNED_INT, count, GL_FALSE, { divisor } });
+		m_Stride += count * VertexBufferElement::GetSizeOfType(GL_UNSIGNED_INT);
+	}
+	}// namespace stw
 }

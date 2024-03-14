@@ -1,9 +1,9 @@
 #include <SDL_main.h>
 #include <spdlog/spdlog.h>
 
-#include "scenes/ssao_scene.hpp"
-#include "window.hpp"
-
+import number_types;
+import window;
+import ssao_scene;
 
 int main(int, char*[])
 {

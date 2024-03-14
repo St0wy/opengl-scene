@@ -1,17 +1,214 @@
-#include "ogl/renderer.hpp"
+/**
+ * @file renderer.cpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the Renderer class.
+ * @version 1.0
+ * @date 09/11/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 
+module;
+
+#include <array>
+#include <expected>
+#include <filesystem>
 #include <queue>
+#include <span>
+
 #include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 #include <GL/glew.h>
+#include <glm/gtc/bitfield.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <gsl/pointers>
 #include <spdlog/spdlog.h>
 #include <expected>
 
-#include "timer.hpp"
-#include "utils.hpp"
-#include <assimp/postprocess.h>
+export module renderer;
 
-stw::Renderer::~Renderer()
+import number_types;
+import consts;
+import utils;
+import timer;
+import mesh;
+import camera;
+import texture_manager;
+import scene_graph;
+import bloom_framebuffer;
+import material;
+import material_manager;
+import framebuffer;
+import uniform_buffer;
+import pipeline;
+import scene_graph;
+import texture;
+
+export namespace stw
+{
+constexpr f32 MinLightIntensity = 5.0f;
+
+struct DirectionalLight
+{
+	glm::vec3 direction;
+	glm::vec3 color;
+};
+
+struct PointLight
+{
+	PointLight() = default;
+	PointLight(glm::vec3 position, glm::vec3 color);
+	glm::vec3 position{};
+	f32 radius{};
+	glm::vec3 color{};
+};
+
+struct ProcessMeshResult
+{
+	Mesh mesh;
+	std::size_t materialIndex;
+};
+
+class Renderer
+{
+public:
+	explicit Renderer(gsl::not_null<Camera*> camera);
+	Renderer(const Renderer&) = delete;
+	Renderer(Renderer&&) = delete;
+	~Renderer();
+
+	Renderer& operator=(const Renderer&) = delete;
+	Renderer& operator=(Renderer&&) = delete;
+
+	void Init(glm::uvec2 screenSize);
+	void InitPipelines();
+	void InitFramebuffers(glm::uvec2 screenSize);
+	void InitSsao();
+	void InitSkybox();
+
+	void SetEnableMultisample(bool enableMultisample);
+	void SetEnableDepthTest(bool enableDepthTest);
+	void SetDepthFunc(GLenum depthFunction);
+	void SetEnableCullFace(bool enableCullFace);
+	[[maybe_unused]] void SetCullFace(GLenum cullFace);
+	[[maybe_unused]] void SetFrontFace(GLenum frontFace);
+	[[maybe_unused]] void SetClearColor(const glm::vec4& clearColor);
+	void UpdateProjectionMatrix();
+	void UpdateViewMatrix();
+	void SetViewport(glm::ivec2 pos, glm::uvec2 size);
+
+	SceneGraph& GetSceneGraph();
+
+	void SetDirectionalLight(DirectionalLight directionalLight);
+	[[maybe_unused]] void RemoveDirectionalLight();
+
+	[[maybe_unused]] void PushPointLight(const PointLight& pointLight);
+	[[maybe_unused]] void PopPointLight();
+	[[maybe_unused]] void SetPointLight(usize index, const PointLight& pointLight);
+
+	void Clear(GLbitfield mask);
+
+	void DrawScene();
+
+	std::expected<std::vector<usize>, std::string> LoadModel(const std::filesystem::path& path, bool flipUVs = false);
+	[[maybe_unused]] [[nodiscard]] TextureManager& GetTextureManager();
+
+	void Delete();
+
+private:
+	bool m_EnableMultisample = false;
+	bool m_EnableDepthTest = false;
+	bool m_EnableCullFace = false;
+	bool m_IsInitialized = false;
+	GLenum m_DepthFunction = GL_LESS;
+	GLenum m_CullFace = GL_BACK;
+	GLenum m_FrontFace = GL_CCW;
+	glm::uvec2 m_ViewportSize{};
+	glm::vec4 m_ClearColor{ 0.0f, 0.0f, 0.0f, 1.0f };
+	UniformBuffer m_MatricesUniformBuffer;
+	gsl::not_null<Camera*> m_Camera;
+
+	TextureManager m_TextureManager;
+	MaterialManager m_MaterialManager;
+	std::vector<Mesh> m_Meshes;
+	SceneGraph m_SceneGraph;
+
+	Pipeline m_DepthPipeline;
+	std::array<Framebuffer, ShadowMapNumCascades> m_LightDepthMapFramebuffers;
+	Framebuffer m_HdrFramebuffer;
+	Pipeline m_HdrPipeline;
+	Mesh m_RenderQuad{};
+
+	BloomFramebuffer m_BloomFramebuffer;
+	Pipeline m_DownsamplePipeline;
+	Pipeline m_UpsamplePipeline;
+
+	Framebuffer m_GBufferFramebuffer;
+	Pipeline m_GBufferPipeline;
+	Pipeline m_GBufferNoAoPipeline;
+	Pipeline m_GBufferArmPipeline;
+	Pipeline m_DebugLightsPipeline;
+	Mesh m_DebugSphereLight{};
+	Pipeline m_PointLightPipeline;
+	Pipeline m_DirectionalLightPipeline;
+
+	std::optional<DirectionalLight> m_DirectionalLight{};
+	glm::vec3 m_OldCamViewPos{};
+	std::array<f32, ShadowMapNumCascades> m_Intervals{};
+
+	std::array<glm::vec3, SsaoKernelSize> m_SsaoKernel{};
+	std::array<glm::vec3, SsaoRandomTextureSize> m_SsaoRandomTexture{};
+	GLuint m_SsaoGlRandomTexture{};
+	Framebuffer m_SsaoFramebuffer{};
+	Framebuffer m_SsaoBlurFramebuffer{};
+	Pipeline m_SsaoPipeline{};
+	Pipeline m_SsaoBlurPipeline{};
+
+	Framebuffer m_SkyboxCaptureFramebuffer;
+	Pipeline m_EquirectangularToCubemapPipeline;
+	Texture m_HdrTexture;
+	GLuint m_EnvironmentCubemap{};
+	Mesh m_CubemapMesh;
+	Pipeline m_CubemapPipeline;
+	GLuint m_IrradianceMap{};
+	Pipeline m_IrradiancePipeline{};
+	GLuint m_PrefilterMap{};
+	Pipeline m_PrefilterShader;
+	Pipeline m_BrdfPipeline;
+	Framebuffer m_BrdfFramebuffer;
+
+	Pipeline m_AmbientIblPipeline;
+
+	u32 m_PointLightsCount = 0;
+	std::array<PointLight, MaxPointLights> m_PointLights{};
+
+	static void SetOpenGlCapability(bool enabled, GLenum capability, bool& field);
+
+	static std::optional<ProcessMeshResult> ProcessMesh(const aiMesh* assimpMesh,
+		std::size_t materialIndexOffset,
+		const std::vector<std::size_t>& loadedMaterialsIndices);
+	void RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices);
+	void RenderBloomToBloomFramebuffer(GLuint hdrTexture, float filterRadius);
+	void RenderDownsamples(GLuint hdrTexture);
+	void RenderUpsamples(float filterRadius);
+	void RenderGBuffer();
+	void RenderLightsToHdrFramebuffer();
+	void RenderDebugLights();
+	void RenderPointLights();
+	void RenderDirectionalLight(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices);
+	void RenderSsao();
+	void RenderCubemap();
+	std::optional<std::array<glm::mat4, ShadowMapNumCascades>> GetLightViewProjMatrices();
+	glm::mat4 ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane);
+	void RenderAmbient();
+};
+
+Renderer::~Renderer()
 {
 	if (m_IsInitialized)
 	{
@@ -19,7 +216,7 @@ stw::Renderer::~Renderer()
 	}
 }
 
-void stw::Renderer::Init(const glm::uvec2 screenSize)
+void Renderer::Init(const glm::uvec2 screenSize)
 {
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	m_IsInitialized = true;
@@ -44,7 +241,7 @@ void stw::Renderer::Init(const glm::uvec2 screenSize)
 	InitSkybox();
 }
 
-void stw::Renderer::InitPipelines()
+void Renderer::InitPipelines()
 {
 	m_DepthPipeline.InitFromPath("shaders/shadow_map/depth.vert", "shaders/shadow_map/depth.frag");
 	m_HdrPipeline.InitFromPath("shaders/quad.vert", "shaders/hdr/hdr.frag");
@@ -130,8 +327,8 @@ void stw::Renderer::InitPipelines()
 	m_SsaoBlurPipeline.SetInt("gSsao", 0);
 	m_SsaoBlurPipeline.UnBind();
 
-	m_EquirectangularToCubemapPipeline.InitFromPath("shaders/pbr/equirectangular.vert",
-		"shaders/pbr/equirectangular.frag");
+	m_EquirectangularToCubemapPipeline.InitFromPath(
+		"shaders/pbr/equirectangular.vert", "shaders/pbr/equirectangular.frag");
 	m_EquirectangularToCubemapPipeline.Bind();
 	m_EquirectangularToCubemapPipeline.SetInt("equirectangularMap", 0);
 	m_EquirectangularToCubemapPipeline.UnBind();
@@ -154,7 +351,7 @@ void stw::Renderer::InitPipelines()
 	m_BrdfPipeline.InitFromPath("shaders/quad.vert", "shaders/pbr/brdf.frag");
 }
 
-void stw::Renderer::InitFramebuffers(glm::uvec2 screenSize)
+void Renderer::InitFramebuffers(glm::uvec2 screenSize)
 {
 	{
 		FramebufferDepthStencilAttachment depthStencilAttachment{};
@@ -241,7 +438,7 @@ void stw::Renderer::InitFramebuffers(glm::uvec2 screenSize)
 		m_SkyboxCaptureFramebuffer.Init(framebufferDescription);
 		m_SkyboxCaptureFramebuffer.Bind();
 		constexpr GLenum buf = GL_COLOR_ATTACHMENT0;
-		glDrawBuffers(static_cast<GLsizei>(1), &buf);
+		glDrawBuffers(1, &buf);
 	}
 	{
 		FramebufferDepthStencilAttachment depthStencilAttachment{};
@@ -287,7 +484,7 @@ void stw::Renderer::InitFramebuffers(glm::uvec2 screenSize)
 	}
 }
 
-void stw::Renderer::InitSsao()
+void Renderer::InitSsao()
 {
 	m_SsaoKernel = GenerateSsaoKernel();
 	m_SsaoRandomTexture = GenerateSsaoRandomTexture();
@@ -300,7 +497,7 @@ void stw::Renderer::InitSsao()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
-void stw::Renderer::InitSkybox()
+void Renderer::InitSkybox()
 {
 	glGenTextures(1, &m_EnvironmentCubemap);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvironmentCubemap);
@@ -327,12 +524,13 @@ void stw::Renderer::InitSkybox()
 
 	const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 	const std::array captureViews = {
-		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
-		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
-		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)) };
+		lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+		lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+		lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+		lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+		lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+		lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
+	};
 
 	auto loadResult = Texture::LoadRadianceMapFromPath("data/kloofendal_overcast_4k.hdr");
 
@@ -408,11 +606,8 @@ void stw::Renderer::InitSkybox()
 	for (u32 i = 0; i < 6; ++i)
 	{
 		m_IrradiancePipeline.SetMat4("view", captureViews.at(i));
-		glFramebufferTexture2D(GL_FRAMEBUFFER,
-			GL_COLOR_ATTACHMENT0,
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-			m_IrradianceMap,
-			0);
+		glFramebufferTexture2D(
+			GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_IrradianceMap, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		m_CubemapMesh.GetVertexArray().Bind();
@@ -477,10 +672,8 @@ void stw::Renderer::InitSkybox()
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			m_CubemapMesh.GetVertexArray().Bind();
-			glDrawElements(GL_TRIANGLES,
-				static_cast<GLsizei>(m_CubemapMesh.GetIndicesSize()),
-				GL_UNSIGNED_INT,
-				nullptr);
+			glDrawElements(
+				GL_TRIANGLES, static_cast<GLsizei>(m_CubemapMesh.GetIndicesSize()), GL_UNSIGNED_INT, nullptr);
 			m_CubemapMesh.GetVertexArray().UnBind();
 		}
 	}
@@ -503,7 +696,7 @@ void stw::Renderer::InitSkybox()
 	glViewport(0, 0, static_cast<GLsizei>(m_ViewportSize.x), static_cast<GLsizei>(m_ViewportSize.y));
 }
 
-void stw::Renderer::DrawScene()
+void Renderer::DrawScene()
 {
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
@@ -537,30 +730,26 @@ void stw::Renderer::DrawScene()
 	glEnable(GL_DEPTH_TEST);
 }
 
-void stw::Renderer::RenderGBuffer()
+void Renderer::RenderGBuffer()
 {
 	m_GBufferFramebuffer.Bind();
 	glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	auto renderLambda = [this](const SceneGraphElementIndex elementIndex,
-		const std::span<const glm::mat4> transformMatrices) {
+							const std::span<const glm::mat4> transformMatrices) {
 		m_MatricesUniformBuffer.Bind();
 		const auto& material = m_MaterialManager[elementIndex.materialId];
 
-		BindMaterialForGBuffer(material,
-			m_TextureManager,
-			{ m_GBufferPipeline, m_GBufferNoAoPipeline, m_GBufferArmPipeline });
+		BindMaterialForGBuffer(
+			material, m_TextureManager, { m_GBufferPipeline, m_GBufferNoAoPipeline, m_GBufferArmPipeline });
 
 		const auto& mesh = m_Meshes[elementIndex.meshId];
 		mesh.Bind(transformMatrices);
 
 		const auto size = static_cast<GLsizei>(mesh.GetIndicesSize());
-		glDrawElementsInstanced(GL_TRIANGLES,
-			size,
-			GL_UNSIGNED_INT,
-			nullptr,
-			static_cast<GLsizei>(transformMatrices.size()));
+		glDrawElementsInstanced(
+			GL_TRIANGLES, size, GL_UNSIGNED_INT, nullptr, static_cast<GLsizei>(transformMatrices.size()));
 
 		mesh.UnBind();
 		m_MatricesUniformBuffer.UnBind();
@@ -570,7 +759,7 @@ void stw::Renderer::RenderGBuffer()
 	m_GBufferFramebuffer.UnBind();
 }
 
-void stw::Renderer::RenderSsao()
+void Renderer::RenderSsao()
 {
 	m_SsaoFramebuffer.Bind();
 	Clear(GL_COLOR_BUFFER_BIT);
@@ -607,7 +796,7 @@ void stw::Renderer::RenderSsao()
 	m_SsaoBlurPipeline.UnBind();
 }
 
-void stw::Renderer::RenderLightsToHdrFramebuffer()
+void Renderer::RenderLightsToHdrFramebuffer()
 {
 	const auto lightViewProjMatrices = GetLightViewProjMatrices();
 
@@ -661,7 +850,7 @@ void stw::Renderer::RenderLightsToHdrFramebuffer()
 	m_HdrFramebuffer.UnBind();
 }
 
-void stw::Renderer::RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices)
+void Renderer::RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices)
 {
 	glCullFace(GL_FRONT);
 	for (usize i = 0; i < lightViewProjMatrices.size(); i++)
@@ -676,17 +865,15 @@ void stw::Renderer::RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCas
 
 		Clear(GL_DEPTH_BUFFER_BIT);
 		// Render meshes on light depth buffer
-		m_SceneGraph.ForEach([this](SceneGraphElementIndex elementIndex, std::span<const glm::mat4> transformMatrices) {
+		m_SceneGraph.ForEach([this](SceneGraphElementIndex elementIndex,
+								 const std::span<const glm::mat4> transformMatrices) {
 			m_MatricesUniformBuffer.Bind();
 			const auto& mesh = m_Meshes[elementIndex.meshId];
 			mesh.Bind(transformMatrices);
 
 			const auto indicesSize = static_cast<GLsizei>(mesh.GetIndicesSize());
-			glDrawElementsInstanced(GL_TRIANGLES,
-				indicesSize,
-				GL_UNSIGNED_INT,
-				nullptr,
-				static_cast<GLsizei>(transformMatrices.size()));
+			glDrawElementsInstanced(
+				GL_TRIANGLES, indicesSize, GL_UNSIGNED_INT, nullptr, static_cast<GLsizei>(transformMatrices.size()));
 
 			mesh.UnBind();
 			m_MatricesUniformBuffer.UnBind();
@@ -700,7 +887,7 @@ void stw::Renderer::RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCas
 	glCullFace(GL_BACK);
 }
 
-void stw::Renderer::RenderAmbient()
+void Renderer::RenderAmbient()
 {
 	m_AmbientIblPipeline.Bind();
 
@@ -739,7 +926,7 @@ void stw::Renderer::RenderAmbient()
 	m_AmbientIblPipeline.UnBind();
 }
 
-void stw::Renderer::RenderPointLights()
+void Renderer::RenderPointLights()
 {
 	m_PointLightPipeline.Bind();
 	m_PointLightPipeline.SetVec2("screenSize", m_ViewportSize);
@@ -759,8 +946,8 @@ void stw::Renderer::RenderPointLights()
 	for (usize i = 0; i < m_PointLightsCount; i++)
 	{
 		const PointLight& pointLight = m_PointLights.at(i);
-		m_PointLightPipeline.SetVec3("pointLight.position",
-			glm::vec3(m_Camera->GetViewMatrix() * glm::vec4(pointLight.position, 1.0f)));
+		m_PointLightPipeline.SetVec3(
+			"pointLight.position", glm::vec3(m_Camera->GetViewMatrix() * glm::vec4(pointLight.position, 1.0f)));
 		m_PointLightPipeline.SetVec3("pointLight.color", pointLight.color);
 
 		// Render
@@ -772,24 +959,22 @@ void stw::Renderer::RenderPointLights()
 		m_MatricesUniformBuffer.Bind();
 
 		m_DebugSphereLight.GetVertexArray().Bind();
-		glDrawElements(GL_TRIANGLES,
-			static_cast<GLsizei>(m_DebugSphereLight.GetIndicesSize()),
-			GL_UNSIGNED_INT,
-			nullptr);
+		glDrawElements(
+			GL_TRIANGLES, static_cast<GLsizei>(m_DebugSphereLight.GetIndicesSize()), GL_UNSIGNED_INT, nullptr);
 		m_DebugSphereLight.GetVertexArray().UnBind();
 		m_MatricesUniformBuffer.UnBind();
 	}
 	m_PointLightPipeline.UnBind();
 }
 
-void stw::Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices)
+void Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices)
 {
 	m_DirectionalLightPipeline.Bind();
 	//	m_DirectionalLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
 	m_MatricesUniformBuffer.Bind();
 
-	m_DirectionalLightPipeline.SetVec4("csmFarDistances",
-		glm::vec4{ m_Intervals[0], m_Intervals[1], m_Intervals[2], m_Intervals[3] });
+	m_DirectionalLightPipeline.SetVec4(
+		"csmFarDistances", glm::vec4{ m_Intervals[0], m_Intervals[1], m_Intervals[2], m_Intervals[3] });
 
 	for (usize i = 0; i < lightViewProjMatrices.size(); i++)
 	{
@@ -835,7 +1020,7 @@ void stw::Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMap
 	m_DirectionalLightPipeline.UnBind();
 }
 
-void stw::Renderer::RenderDebugLights()
+void Renderer::RenderDebugLights()
 {
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
@@ -852,21 +1037,18 @@ void stw::Renderer::RenderDebugLights()
 
 		glm::mat4 model{ 1.0f };
 		model = glm::translate(model, pointLight.position);
-		model = glm::scale(model, glm::vec3{ debugLightScale });
+		model = scale(model, glm::vec3{ debugLightScale });
 
 		m_DebugSphereLight.Bind({ &model, 1 });
-		glDrawElementsInstanced(GL_TRIANGLES,
-			static_cast<GLsizei>(m_DebugSphereLight.GetIndicesSize()),
-			GL_UNSIGNED_INT,
-			nullptr,
-			1);
+		glDrawElementsInstanced(
+			GL_TRIANGLES, static_cast<GLsizei>(m_DebugSphereLight.GetIndicesSize()), GL_UNSIGNED_INT, nullptr, 1);
 		m_DebugSphereLight.UnBind();
 
 		m_MatricesUniformBuffer.UnBind();
 	}
 }
 
-void stw::Renderer::RenderBloomToBloomFramebuffer(const GLuint hdrTexture, const f32 filterRadius)
+void Renderer::RenderBloomToBloomFramebuffer(const GLuint hdrTexture, const f32 filterRadius)
 {
 	m_BloomFramebuffer.Bind();
 	RenderDownsamples(hdrTexture);
@@ -875,7 +1057,7 @@ void stw::Renderer::RenderBloomToBloomFramebuffer(const GLuint hdrTexture, const
 	glViewport(0, 0, static_cast<GLsizei>(m_ViewportSize.x), static_cast<GLsizei>(m_ViewportSize.y));
 }
 
-void stw::Renderer::RenderDownsamples(const GLuint hdrTexture)
+void Renderer::RenderDownsamples(const GLuint hdrTexture)
 {
 	m_DownsamplePipeline.Bind();
 	m_DownsamplePipeline.SetVec2("srcResolution", glm::vec2(m_ViewportSize));
@@ -900,7 +1082,7 @@ void stw::Renderer::RenderDownsamples(const GLuint hdrTexture)
 	m_DownsamplePipeline.UnBind();
 }
 
-void stw::Renderer::RenderUpsamples(const f32 filterRadius)
+void Renderer::RenderUpsamples(const f32 filterRadius)
 {
 	m_UpsamplePipeline.Bind();
 	m_UpsamplePipeline.SetFloat("filterRadius", filterRadius);
@@ -933,7 +1115,7 @@ void stw::Renderer::RenderUpsamples(const f32 filterRadius)
 	m_UpsamplePipeline.UnBind();
 }
 
-void stw::Renderer::RenderCubemap()
+void Renderer::RenderCubemap()
 {
 	m_HdrFramebuffer.Bind();
 	m_CubemapPipeline.Bind();
@@ -952,46 +1134,46 @@ void stw::Renderer::RenderCubemap()
 
 #pragma region Osef
 
-void stw::Renderer::SetEnableMultisample(const bool enableMultisample)
+void Renderer::SetEnableMultisample(const bool enableMultisample)
 {
 	SetOpenGlCapability(enableMultisample, GL_MULTISAMPLE, m_EnableMultisample);
 }
 
-void stw::Renderer::SetEnableDepthTest(const bool enableDepthTest)
+void Renderer::SetEnableDepthTest(const bool enableDepthTest)
 {
 	SetOpenGlCapability(enableDepthTest, GL_DEPTH_TEST, m_EnableDepthTest);
 }
 
-void stw::Renderer::SetDepthFunc(const GLenum depthFunction)
+void Renderer::SetDepthFunc(const GLenum depthFunction)
 {
 	m_DepthFunction = depthFunction;
 	glDepthFunc(depthFunction);
 }
 
-void stw::Renderer::SetEnableCullFace(const bool enableCullFace)
+void Renderer::SetEnableCullFace(const bool enableCullFace)
 {
 	SetOpenGlCapability(enableCullFace, GL_CULL_FACE, m_EnableCullFace);
 }
 
-[[maybe_unused]] void stw::Renderer::SetCullFace(const GLenum cullFace)
+[[maybe_unused]] void Renderer::SetCullFace(const GLenum cullFace)
 {
 	m_CullFace = cullFace;
 	glCullFace(cullFace);
 }
 
-[[maybe_unused]] void stw::Renderer::SetFrontFace(const GLenum frontFace)
+[[maybe_unused]] void Renderer::SetFrontFace(const GLenum frontFace)
 {
 	m_FrontFace = frontFace;
 	glFrontFace(m_FrontFace);
 }
 
-[[maybe_unused]] void stw::Renderer::SetClearColor(const glm::vec4& clearColor)
+[[maybe_unused]] void Renderer::SetClearColor(const glm::vec4& clearColor)
 {
 	m_ClearColor = clearColor;
 	glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 }
 
-void stw::Renderer::UpdateProjectionMatrix()
+void Renderer::UpdateProjectionMatrix()
 {
 	assert(m_IsInitialized);
 	m_MatricesUniformBuffer.Bind();
@@ -999,7 +1181,7 @@ void stw::Renderer::UpdateProjectionMatrix()
 	m_MatricesUniformBuffer.UnBind();
 }
 
-void stw::Renderer::UpdateViewMatrix()
+void Renderer::UpdateViewMatrix()
 {
 	assert(m_IsInitialized);
 	m_MatricesUniformBuffer.Bind();
@@ -1007,7 +1189,7 @@ void stw::Renderer::UpdateViewMatrix()
 	m_MatricesUniformBuffer.UnBind();
 }
 
-void stw::Renderer::SetViewport(const glm::ivec2 pos, const glm::uvec2 size)
+void Renderer::SetViewport(const glm::ivec2 pos, const glm::uvec2 size)
 {
 	m_ViewportSize = size;
 	glViewport(pos.x, pos.y, static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y));
@@ -1018,12 +1200,12 @@ void stw::Renderer::SetViewport(const glm::ivec2 pos, const glm::uvec2 size)
 	m_SsaoBlurFramebuffer.Resize(size);
 }
 
-void stw::Renderer::Clear(const GLbitfield mask)// NOLINT(readability-convert-member-functions-to-static)
+void Renderer::Clear(const GLbitfield mask)// NOLINT(readability-convert-member-functions-to-static)
 {
 	glClear(mask);
 }
 
-void stw::Renderer::SetOpenGlCapability(const bool enabled, const GLenum capability, bool& field)
+void Renderer::SetOpenGlCapability(const bool enabled, const GLenum capability, bool& field)
 {
 	field = enabled;
 	if (field)
@@ -1038,7 +1220,7 @@ void stw::Renderer::SetOpenGlCapability(const bool enabled, const GLenum capabil
 
 #pragma endregion Osef
 
-void stw::Renderer::Delete()
+void Renderer::Delete()
 {
 	m_IsInitialized = false;
 	m_MatricesUniformBuffer.Delete();
@@ -1090,16 +1272,13 @@ void stw::Renderer::Delete()
 	m_GBufferArmPipeline.Delete();
 }
 
-[[maybe_unused]] stw::TextureManager& stw::Renderer::GetTextureManager()
-{
-	return m_TextureManager;
-}
+[[maybe_unused]] TextureManager& Renderer::GetTextureManager() { return m_TextureManager; }
 
-std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const std::filesystem::path& path, bool flipUVs)
+std::expected<std::vector<usize>, std::string> Renderer::LoadModel(const std::filesystem::path& path, bool flipUVs)
 {
 	Assimp::Importer importer;
-	u32 assimpImportFlags = aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |
-	                        aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType;
+	u32 assimpImportFlags = aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices
+							| aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType;
 	if (flipUVs)
 	{
 		assimpImportFlags |= aiProcess_FlipUVs;
@@ -1117,15 +1296,13 @@ std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const st
 		return std::unexpected(importer.GetErrorString());
 	}
 
-	spdlog::info("Assimp imported the model {} in {:0.0f} ms",
-		pathString,
-		timer.RestartAndGetElapsedTime().GetInMilliseconds());
+	spdlog::info(
+		"Assimp imported the model {} in {:0.0f} ms", pathString, timer.RestartAndGetElapsedTime().GetInMilliseconds());
 
 	auto workingDirectory = path.parent_path();
 	const std::size_t materialIndexOffset = m_MaterialManager.Size();
-	const std::vector<std::size_t> materialIndicesLoaded = m_MaterialManager.LoadMaterialsFromAssimpScene(assimpScene,
-		workingDirectory,
-		m_TextureManager);
+	const std::vector<std::size_t> materialIndicesLoaded =
+		m_MaterialManager.LoadMaterialsFromAssimpScene(assimpScene, workingDirectory, m_TextureManager);
 
 	spdlog::info("Loaded materials in {:0.0f} ms", timer.RestartAndGetElapsedTime().GetInMilliseconds());
 
@@ -1138,7 +1315,7 @@ std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const st
 	std::vector<usize> addedNodes;
 
 	// Add the node that holds the mesh
-	std::optional currentParent = m_SceneGraph.AddElementToRoot(InvalidId, InvalidId, glm::mat4(1.0f));
+	std::optional<usize> currentParent = m_SceneGraph.AddElementToRoot(InvalidId, InvalidId, glm::mat4(1.0f));
 	addedNodes.push_back(currentParent.value());
 
 	std::optional<usize> currentSibling{};
@@ -1151,10 +1328,8 @@ std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const st
 		// If this node has no mesh, we create an empty one
 		if (nodeMeshIndices.empty())
 		{
-			const usize nodeIndex = m_SceneGraph.AddChild(currentParent.value(),
-				InvalidId,
-				InvalidId,
-				glm::mat4{ 1.0f });
+			const usize nodeIndex =
+				m_SceneGraph.AddChild(currentParent.value(), InvalidId, InvalidId, glm::mat4{ 1.0f });
 			currentParent = nodeIndex;
 			addedNodes.emplace_back(nodeIndex);
 		}
@@ -1186,19 +1361,15 @@ std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const st
 
 			if (currentSibling)
 			{
-				nodeIndex = m_SceneGraph.AddSibling(currentSibling.value(),
-					m_Meshes.size() - 1,
-					meshMaterialIndex,
-					transformMatrix);
+				nodeIndex = m_SceneGraph.AddSibling(
+					currentSibling.value(), m_Meshes.size() - 1, meshMaterialIndex, transformMatrix);
 				currentSibling = nodeIndex;
 			}
 
 			if (currentParent)
 			{
-				nodeIndex = m_SceneGraph.AddChild(currentParent.value(),
-					m_Meshes.size() - 1,
-					meshMaterialIndex,
-					transformMatrix);
+				nodeIndex = m_SceneGraph.AddChild(
+					currentParent.value(), m_Meshes.size() - 1, meshMaterialIndex, transformMatrix);
 				currentParent = std::nullopt;
 				currentSibling = nodeIndex;
 			}
@@ -1225,9 +1396,8 @@ std::expected<std::vector<usize>, std::string> stw::Renderer::LoadModel(const st
 	return { std::move(addedNodes) };
 }
 
-std::optional<stw::ProcessMeshResult> stw::Renderer::ProcessMesh(const aiMesh* assimpMesh,
-	std::size_t materialIndexOffset,
-	const std::vector<std::size_t>& loadedMaterialsIndices)
+std::optional<ProcessMeshResult> Renderer::ProcessMesh(
+	const aiMesh* assimpMesh, std::size_t materialIndexOffset, const std::vector<std::size_t>& loadedMaterialsIndices)
 {
 	std::vector<Vertex> vertices{};
 	vertices.reserve(assimpMesh->mNumVertices);
@@ -1250,10 +1420,18 @@ std::optional<stw::ProcessMeshResult> stw::Renderer::ProcessMesh(const aiMesh* a
 			textureCoords.y = meshTextureCoords.y;
 		}
 
-		const Vertex vertex{ { meshVertex.x, meshVertex.y, meshVertex.z, },
-		                     { meshNormal.x, meshNormal.y, meshNormal.z, },
-		                     textureCoords,
-		                     { meshTangent.x, meshTangent.y, meshTangent.z } };
+		const Vertex vertex{ {
+								 meshVertex.x,
+								 meshVertex.y,
+								 meshVertex.z,
+							 },
+			{
+				meshNormal.x,
+				meshNormal.y,
+				meshNormal.z,
+			},
+			textureCoords,
+			{ meshTangent.x, meshTangent.y, meshTangent.z } };
 		vertices.push_back(vertex);
 	}
 
@@ -1279,7 +1457,7 @@ std::optional<stw::ProcessMeshResult> stw::Renderer::ProcessMesh(const aiMesh* a
 			const std::size_t materialIndex = materialIndexOffset + i;
 			mesh.Init(std::move(vertices), std::move(indices));
 
-			return stw::ProcessMeshResult{ std::move(mesh), materialIndex };
+			return ProcessMeshResult{ std::move(mesh), materialIndex };
 		}
 	}
 
@@ -1288,21 +1466,18 @@ std::optional<stw::ProcessMeshResult> stw::Renderer::ProcessMesh(const aiMesh* a
 	return std::nullopt;
 }
 
-void stw::Renderer::SetDirectionalLight(stw::DirectionalLight directionalLight)
+void Renderer::SetDirectionalLight(DirectionalLight directionalLight)
 {
 	if (directionalLight.direction == glm::vec3{ 0.0f, -1.0f, 0.0f })
 	{
-		directionalLight.direction = glm::normalize(glm::vec3{ 0.0f, -1.0f, 0.000001f });
+		directionalLight.direction = normalize(glm::vec3{ 0.0f, -1.0f, 0.000001f });
 	}
 	m_DirectionalLight.emplace(directionalLight);
 }
 
-[[maybe_unused]] void stw::Renderer::RemoveDirectionalLight()
-{
-	m_DirectionalLight.reset();
-}
+[[maybe_unused]] void Renderer::RemoveDirectionalLight() { m_DirectionalLight.reset(); }
 
-[[maybe_unused]] void stw::Renderer::PushPointLight(const stw::PointLight& pointLight)
+[[maybe_unused]] void Renderer::PushPointLight(const PointLight& pointLight)
 {
 	if (m_PointLightsCount >= MaxPointLights)
 	{
@@ -1314,7 +1489,7 @@ void stw::Renderer::SetDirectionalLight(stw::DirectionalLight directionalLight)
 	m_PointLightsCount++;
 }
 
-[[maybe_unused]] void stw::Renderer::PopPointLight()
+[[maybe_unused]] void Renderer::PopPointLight()
 {
 	if (m_PointLightsCount == 0)
 	{
@@ -1324,7 +1499,7 @@ void stw::Renderer::SetDirectionalLight(stw::DirectionalLight directionalLight)
 	m_PointLightsCount--;
 }
 
-[[maybe_unused]] void stw::Renderer::SetPointLight(usize index, const stw::PointLight& pointLight)
+[[maybe_unused]] void Renderer::SetPointLight(usize index, const PointLight& pointLight)
 {
 	if (index >= m_PointLightsCount)
 	{
@@ -1334,25 +1509,19 @@ void stw::Renderer::SetDirectionalLight(stw::DirectionalLight directionalLight)
 	m_PointLights.at(index) = pointLight;
 }
 
-stw::SceneGraph& stw::Renderer::GetSceneGraph()
-{
-	return m_SceneGraph;
-}
+SceneGraph& Renderer::GetSceneGraph() { return m_SceneGraph; }
 
-stw::Renderer::Renderer(const gsl::not_null<Camera*> camera)
-	: m_Camera(camera)
-{
-}
+Renderer::Renderer(const gsl::not_null<Camera*> camera) : m_Camera(camera) {}
 
-std::optional<std::array<glm::mat4, stw::ShadowMapNumCascades>> stw::Renderer::GetLightViewProjMatrices()
+std::optional<std::array<glm::mat4, ShadowMapNumCascades>> Renderer::GetLightViewProjMatrices()
 {
 	if (!m_DirectionalLight)
 	{
 		return std::nullopt;
 	}
 
-	const glm::mat4 inverseView = glm::inverse(m_Camera->GetViewMatrix());
-	std::array<glm::mat4, stw::ShadowMapNumCascades> lightViewProjMatrices{};
+	const glm::mat4 inverseView = inverse(m_Camera->GetViewMatrix());
+	std::array<glm::mat4, ShadowMapNumCascades> lightViewProjMatrices{};
 	for (usize i = 0; i < m_Intervals.size(); i++)
 	{
 		const auto interval = m_Intervals.at(i);
@@ -1374,13 +1543,11 @@ std::optional<std::array<glm::mat4, stw::ShadowMapNumCascades>> stw::Renderer::G
 	return lightViewProjMatrices;
 }
 
-glm::mat4 stw::Renderer::ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane)
+glm::mat4 Renderer::ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane)
 {
 	constexpr glm::vec3 up{ 0.0f, 1.0f, 0.0f };
-	const glm::mat4 proj = glm::perspective(glm::radians(m_Camera->GetFovY()),
-		m_Camera->GetAspectRatio(),
-		nearPlane,
-		farPlane);
+	const glm::mat4 proj =
+		glm::perspective(glm::radians(m_Camera->GetFovY()), m_Camera->GetAspectRatio(), nearPlane, farPlane);
 
 	const auto frustumCorners = ComputeFrustumCorners(proj, m_Camera->GetViewMatrix());
 
@@ -1395,7 +1562,7 @@ glm::mat4 stw::Renderer::ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane)
 	}
 	center /= frustumCorners.size();
 
-	const auto lightView = glm::lookAt(center - m_DirectionalLight.value().direction, center, up);
+	const auto lightView = lookAt(center - m_DirectionalLight.value().direction, center, up);
 
 	f32 minX = (std::numeric_limits<float>::max)();
 	f32 maxX = std::numeric_limits<float>::lowest();
@@ -1434,19 +1601,15 @@ glm::mat4 stw::Renderer::ComputeLightViewProjMatrix(f32 nearPlane, f32 farPlane)
 	const glm::vec3 minLightProj{ midX - midLenX, midY - midLenY, midZ - midLenZ };
 	const glm::vec3 maxLightProj{ midX + midLenX, midY + midLenY, midZ + midLenZ };
 
-	const glm::mat4 lightProjection = glm::ortho(minLightProj.x,
-		maxLightProj.x,
-		minLightProj.y,
-		maxLightProj.y,
-		minLightProj.z,
-		maxLightProj.z);
+	const glm::mat4 lightProjection =
+		glm::ortho(minLightProj.x, maxLightProj.x, minLightProj.y, maxLightProj.y, minLightProj.z, maxLightProj.z);
 
 	return lightProjection * lightView;
 }
 
-stw::PointLight::PointLight(const glm::vec3 position, const glm::vec3 color)
-	: position(position), color(color)
+PointLight::PointLight(const glm::vec3 position, const glm::vec3 color) : position(position), color(color)
 {
 	const f32 maxColor = std::fmax(std::fmax(color.r, color.g), color.b);
 	radius = (std::sqrt(-4.0f * (1.0f - (256.0f / MinLightIntensity) * maxColor))) / (2.0f);
 }
+}// namespace stw

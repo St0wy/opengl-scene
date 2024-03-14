@@ -1,10 +1,50 @@
-#include "ogl/uniform_buffer.hpp"
+/**
+ * @file uniform_buffer.cpp
+ * @author Fabian Huber (fabian.hbr@protonmail.ch)
+ * @brief Contains the UniformBuffer class.
+ * @version 1.0
+ * @date 09/11/2023
+ *
+ * @copyright SAE (c) 2023
+ *
+ */
 
+module;
+
+#include <GL/glew.h>
 #include <spdlog/spdlog.h>
 
-#include "utils.hpp"
+export module uniform_buffer;
 
-stw::UniformBuffer::~UniformBuffer()
+import utils;
+
+export namespace stw
+{
+class UniformBuffer
+{
+public:
+	UniformBuffer() = default;
+	UniformBuffer(const UniformBuffer&) = delete;
+	UniformBuffer(UniformBuffer&&) = delete;
+	~UniformBuffer();
+
+	UniformBuffer& operator=(const UniformBuffer&) = delete;
+	UniformBuffer& operator=(UniformBuffer&&) = delete;
+
+	void Init(GLuint bindingIndex);
+	void Bind() const;
+	void Allocate(GLsizeiptr size) const;
+	void SetData(GLsizeiptr size, const GLvoid* data) const;
+	void SetSubData(GLintptr offset, GLsizeiptr size, const GLvoid* data) const;
+	void UnBind() const;
+	void Delete();
+
+private:
+	GLuint m_Ubo{};
+	GLuint m_BindingIndex{};
+};
+
+UniformBuffer::~UniformBuffer()
 {
 	if (m_Ubo != 0)
 	{
@@ -12,13 +52,13 @@ stw::UniformBuffer::~UniformBuffer()
 	}
 }
 
-void stw::UniformBuffer::Init(const GLuint bindingIndex)
+void UniformBuffer::Init(const GLuint bindingIndex)
 {
 	glGenBuffers(1, &m_Ubo);
 	m_BindingIndex = bindingIndex;
 }
 
-void stw::UniformBuffer::Bind() const
+void UniformBuffer::Bind() const
 {
 	if (m_Ubo == 0)
 	{
@@ -28,7 +68,7 @@ void stw::UniformBuffer::Bind() const
 	glBindBuffer(GL_UNIFORM_BUFFER, m_Ubo);
 }
 
-void stw::UniformBuffer::Allocate(const GLsizeiptr size) const
+void UniformBuffer::Allocate(const GLsizeiptr size) const
 {
 	if (m_Ubo == 0)
 	{
@@ -40,7 +80,7 @@ void stw::UniformBuffer::Allocate(const GLsizeiptr size) const
 	glBindBufferRange(GL_UNIFORM_BUFFER, m_BindingIndex, m_Ubo, 0, size);
 }
 
-void stw::UniformBuffer::SetData(const GLsizeiptr size, const GLvoid* data) const
+void UniformBuffer::SetData(const GLsizeiptr size, const GLvoid* data) const
 {
 	if (m_Ubo == 0)
 	{
@@ -50,7 +90,7 @@ void stw::UniformBuffer::SetData(const GLsizeiptr size, const GLvoid* data) cons
 	glBufferData(GL_UNIFORM_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
-void stw::UniformBuffer::SetSubData(const GLintptr offset, const GLsizeiptr size, const GLvoid* data) const
+void UniformBuffer::SetSubData(const GLintptr offset, const GLsizeiptr size, const GLvoid* data) const
 {
 	if (m_Ubo == 0)
 	{
@@ -59,7 +99,7 @@ void stw::UniformBuffer::SetSubData(const GLintptr offset, const GLsizeiptr size
 	glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
 }
 
-void stw::UniformBuffer::UnBind() const
+void UniformBuffer::UnBind() const
 {
 	if (m_Ubo == 0)
 	{
@@ -69,8 +109,9 @@ void stw::UniformBuffer::UnBind() const
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-void stw::UniformBuffer::Delete()
+void UniformBuffer::Delete()
 {
 	glDeleteBuffers(1, &m_Ubo);
 	m_Ubo = 0;
 }
+}// namespace stw
