@@ -94,7 +94,6 @@ target_link_system_libraries(
 
 add_dependencies(opengl_scene shader_target data_target)
 
-set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION true)
-
+set_target_properties(opengl_scene PROPERTIES INTERPROCEDURAL_OPTIMIZATION "$<IF:$<CONFIG:Debug>,TRUE,FALSE>")
 #Setting flags to have no console
 #set_target_properties(opengl_scene PROPERTIES LINK_FLAGS "/subsystem:windows /entry:mainCRTStartup")
