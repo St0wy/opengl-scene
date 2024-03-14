@@ -63,7 +63,7 @@ void BindMaterialForGBuffer(const Material& materialVariant,
 	TextureManager& textureManager,
 	const std::array<std::reference_wrapper<Pipeline>, MaterialCount>& gBufferPipelines);
 
-void stw::BindMaterialForGBuffer(const Material& materialVariant,
+void BindMaterialForGBuffer(const Material& materialVariant,
 	TextureManager& textureManager,
 	const std::array<std::reference_wrapper<Pipeline>, MaterialCount>& gBufferPipelines)
 {

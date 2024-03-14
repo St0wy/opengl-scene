@@ -38,6 +38,11 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif ()
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (UNIX AND NOT APPLE))
+	add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>)
+	add_link_options($<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>)
+endif()
+
 target_sources(
 	opengl_scene
 	PRIVATE

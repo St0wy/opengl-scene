@@ -573,7 +573,7 @@ AttachmentType FramebufferDepthStencilAttachment::GetAttachmentType() const
 	return { GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT };
 }
 
-bool stw::CheckFramebufferStatus()
+bool CheckFramebufferStatus()
 {
 	switch (const auto framebufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER))
 	{

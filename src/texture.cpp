@@ -372,7 +372,7 @@ void Texture::Delete()
 	textureId = 0;
 }
 
-const char* stw::ToString(const TextureType type)
+const char* ToString(const TextureType type)
 {
 	switch (type)
 	{
@@ -389,7 +389,7 @@ const char* stw::ToString(const TextureType type)
 	}
 }
 
-aiTextureType stw::ToAssimpTextureType(const TextureType type)
+aiTextureType ToAssimpTextureType(const TextureType type)
 {
 	switch (type)
 	{
