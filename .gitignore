@@ -1,6 +1,5 @@
 data/sponza/
 cmake-build-*/
-.idea/
 .vscode/
 compile_commands.json
 .cache/
