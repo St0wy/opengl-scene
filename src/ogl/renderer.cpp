@@ -863,7 +863,7 @@ void Renderer::RenderLightsToHdrFramebuffer()
 
 void Renderer::RenderShadowMaps(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices)
 {
-	glCullFace(GL_FRONT);
+	// glCullFace(GL_FRONT);
 	for (usize i = 0; i < lightViewProjMatrices.size(); i++)
 	{
 		glEnable(GL_DEPTH_CLAMP);
