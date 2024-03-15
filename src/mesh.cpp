@@ -38,6 +38,7 @@ struct Vertex
 	glm::vec3 position;
 	glm::vec3 normal;
 	glm::vec2 texCoords;
+	// The tangent is used to render normal maps
 	glm::vec3 tangent;
 };
 

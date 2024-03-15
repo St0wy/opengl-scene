@@ -71,6 +71,12 @@ struct SceneGraphNode
 	std::optional<std::size_t> siblingId{};
 };
 
+/**
+ * Scene graph of the renderer to be able to have objects that are parents of others.
+ * The layout is made in a way to avoid having vectors of children to avoid allocations.
+ * This is why the nodes have a siblingId that is used for the iteration of the graph.
+ * Read more here : https://blog.stowy.ch/posts/how-i-implemented-a-deferred-pbr-renderer-in-opengl/#scene-graph
+ */
 class SceneGraph
 {
 public:

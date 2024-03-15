@@ -28,7 +28,7 @@ export using u64 = std::uint64_t;
 
 export using usize = std::size_t;
 
-// If one day this project is compiled on a platform where this is not true please change accordingly
+// If one day this project is compiled on a platform where this is not true please define the correct type for it
 static_assert(sizeof(float) == 4);
 export using f32 = float;
 

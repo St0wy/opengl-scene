@@ -54,7 +54,6 @@ enum class TextureSpace : u8
 	Linear
 };
 
-const char* ToString(TextureType type);
 aiTextureType ToAssimpTextureType(TextureType type);
 
 class Texture
@@ -73,8 +72,7 @@ public:
 	static std::expected<Texture, std::string> LoadFromPath(
 		const std::filesystem::path& path, TextureType type, TextureSpace space);
 	static std::expected<Texture, std::string> LoadRadianceMapFromPath(const std::filesystem::path& path);
-	static std::expected<Texture, std::string> LoadKtxFromPath(
-		const std::filesystem::path& path, TextureType type);
+	static std::expected<Texture, std::string> LoadKtxFromPath(const std::filesystem::path& path, TextureType type);
 	static std::expected<Texture, std::string> LoadCubeMap(
 		const std::array<std::filesystem::path, CubeMapTextureCount>& paths);
 
@@ -86,7 +84,22 @@ public:
 
 	void Bind() const;
 	void Init(TextureType type, TextureSpace textureSpace);
+
+	/**
+	 * Sets the OpenGL format of the texture from the number of components.
+	 * @param nbComponents Number of color components in the texture. R = 1, RG = 2, RGB = 3, RGBA = 4. If > 4, it will
+	 * print a warning.
+	 */
 	void SetFormat(int nbComponents);
+
+	/**
+	 * Sets metadata about the texture.
+	 * @param width Width of the texture
+	 * @param height Height of the texture
+	 * @param data Pixels of the texture
+	 * @param optionalTarget If this is set, it will specify the provided texture instead of the current one.
+	 * @param dataType Data type fo the pixels of the texture.
+	 */
 	void Specify(GLsizei width,
 		GLsizei height,
 		const GLvoid* data,
@@ -168,8 +181,7 @@ std::expected<Texture, std::string> Texture::LoadFromPath(
 	return { std::move(texture) };
 }
 
-std::expected<Texture, std::string> Texture::LoadKtxFromPath(
-	const std::filesystem::path& path, const TextureType type)
+std::expected<Texture, std::string> Texture::LoadKtxFromPath(const std::filesystem::path& path, const TextureType type)
 {
 	// https://github.khronos.org/KTX-Software/libktx/index.html#overview
 	ktxTexture* kTexture = nullptr;
@@ -370,23 +382,6 @@ void Texture::Delete()
 {
 	glDeleteTextures(1, &textureId);
 	textureId = 0;
-}
-
-const char* ToString(const TextureType type)
-{
-	switch (type)
-	{
-	case TextureType::BaseColor:
-		return "texture_diffuse";
-	case TextureType::Specular:
-		return "texture_specular";
-	case TextureType::Normal:
-		return "texture_normal";
-	case TextureType::CubeMap:
-		return "texture_cube_map";
-	default:
-		return "";
-	}
 }
 
 aiTextureType ToAssimpTextureType(const TextureType type)

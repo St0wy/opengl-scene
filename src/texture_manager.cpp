@@ -27,11 +27,22 @@ import utils;
 
 export namespace stw
 {
+/**
+ * Manages all textures in this renderer. When a material wants to reference a texture, it gets an ID that can be used
+ * on this manager.
+ */
 class TextureManager
 {
 public:
+	/**
+	 * Loads a texture from the provided path.
+	 * @param path Path to the texture.
+	 * @param type What will this texture be used for ?
+	 * @param space This is usually SRGB for Base Color and Linear for the rest.
+	 * @return An index to the loaded texture or nothing if the loading failed.
+	 */
 	std::optional<std::size_t> LoadTextureFromPath(
-		const std::filesystem::path& path, stw::TextureType type, TextureSpace space);
+		const std::filesystem::path& path, TextureType type, TextureSpace space);
 	[[nodiscard]] Texture& GetTexture(std::size_t index);
 	[[nodiscard]] const Texture& GetTexture(std::size_t index) const;
 
@@ -42,12 +53,12 @@ private:
 	std::unordered_map<std::filesystem::path, std::size_t> m_TexturesCache;
 };
 
-stw::Texture& stw::TextureManager::GetTexture(std::size_t index) { return m_Textures[index]; }
+Texture& TextureManager::GetTexture(const std::size_t index) { return m_Textures[index]; }
 
-const stw::Texture& stw::TextureManager::GetTexture(std::size_t index) const { return m_Textures[index]; }
+const Texture& TextureManager::GetTexture(const std::size_t index) const { return m_Textures[index]; }
 
-std::optional<std::size_t> stw::TextureManager::LoadTextureFromPath(
-	const std::filesystem::path& path, stw::TextureType type, TextureSpace space)
+std::optional<std::size_t> TextureManager::LoadTextureFromPath(
+	const std::filesystem::path& path, const TextureType type, const TextureSpace space)
 {
 	spdlog::debug("Loading texture {}...", path.string());
 
@@ -56,7 +67,7 @@ std::optional<std::size_t> stw::TextureManager::LoadTextureFromPath(
 		return { result->second };
 	}
 
-	std::expected<stw::Texture, std::string> textureResult;
+	std::expected<Texture, std::string> textureResult;
 	const auto extension = path.extension();
 	if (extension == ".ktx" || extension == ".ktx2")
 	{
@@ -78,7 +89,7 @@ std::optional<std::size_t> stw::TextureManager::LoadTextureFromPath(
 	return { m_Textures.size() - 1 };
 }
 
-void stw::TextureManager::Delete()
+void TextureManager::Delete()
 {
 	for (auto& texture : m_Textures)
 	{

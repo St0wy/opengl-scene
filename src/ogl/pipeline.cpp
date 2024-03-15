@@ -219,7 +219,7 @@ Pipeline::~Pipeline()
 void Pipeline::InitFromPath(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath)
 {
 	// TODO : Cache already opened shaders
-	const auto vertexResult = OpenFile(vertexPath);
+	const auto vertexResult = ReadFileAsString(vertexPath);
 
 	if (!vertexResult.has_value())
 	{
@@ -227,7 +227,7 @@ void Pipeline::InitFromPath(const std::filesystem::path& vertexPath, const std::
 		return;
 	}
 
-	const auto fragmentResult = OpenFile(fragmentPath);
+	const auto fragmentResult = ReadFileAsString(fragmentPath);
 
 	if (!fragmentResult.has_value())
 	{

@@ -30,6 +30,12 @@ import scene;
 
 export namespace stw
 {
+/**
+ * This is a window that will display a scene passed as a type parameter.
+ * @tparam T This type represents and OpenGL that will be shown on the window.
+ * It is a remnant from when the app had the objective of having multiple scenes.
+ * It's not the case anymore, but right now I'm not gonna refactor it.
+ */
 template<Derived<Scene> T>
 class Window
 {
@@ -42,9 +48,15 @@ public:
 	Window& operator=(Window&& other) noexcept = default;
 	Window& operator=(const Window& other) = delete;
 
+	/**
+	 * Starts the rendering loop of the window.
+	 */
 	void Loop();
 
-	// Returns true if the window should close
+	/**
+	 * Handles the SDL window events.
+	 * @return true if the windows should close.
+	 */
 	bool HandleEvents();
 
 private:
