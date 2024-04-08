@@ -2,8 +2,8 @@
 <project version="4">
   <component name="CMakeSharedSettings">
     <configurations>
-      <configuration PROFILE_NAME="Debug-Clang" ENABLED="true" CONFIG_NAME="Debug" TOOLCHAIN_NAME="Clang" GENERATION_OPTIONS="-DCMAKE_CXX_COMPILER_LAUNCHER=sccache" />
-      <configuration PROFILE_NAME="Release-Clang" ENABLED="true" CONFIG_NAME="Release" TOOLCHAIN_NAME="Clang" GENERATION_OPTIONS="-DCMAKE_CXX_COMPILER_LAUNCHER=sccache" />
+      <configuration PROFILE_NAME="Debug-Clang" ENABLED="true" CONFIG_NAME="Debug" TOOLCHAIN_NAME="Clang" GENERATION_OPTIONS="-G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=sccache" />
+      <configuration PROFILE_NAME="Release-Clang" ENABLED="true" CONFIG_NAME="Release" TOOLCHAIN_NAME="Clang" GENERATION_OPTIONS="-G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=sccache" />
     </configurations>
   </component>
 </project>

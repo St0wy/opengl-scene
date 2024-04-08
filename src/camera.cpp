@@ -14,13 +14,16 @@ module;
 #include <algorithm>
 #include <array>
 
-#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
 
 export module camera;
 
 import number_types;
 import consts;
+#include <glm/trigonometric.hpp>
 
 export
 {
@@ -204,7 +207,7 @@ export
 		m_Up = normalize(cross(m_Right, m_Front));
 	}
 
-	void Camera::UpdateViewMatrix() { m_ViewMatrix = lookAt(m_Position, m_Position + m_Front, m_Up); }
+	void Camera::UpdateViewMatrix() { m_ViewMatrix = glm::lookAt(m_Position, m_Position + m_Front, m_Up); }
 
 	void Camera::UpdateProjectionMatrix()
 	{

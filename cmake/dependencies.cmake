@@ -1,6 +1,8 @@
 include(cmake/download-cpm.cmake)
 
-# BUILD_SHARED_LIBS must stay in comments otherwise it's ignored (idk why)
+# extra options must stay in comments otherwise it's ignored (idk why)
+
+set(CPM_USE_NAMED_CACHE_DIRECTORIES ON)
 
 cpmaddpackage("gh:libsdl-org/SDL#release-2.30.1")
 
@@ -19,12 +21,9 @@ cpmaddpackage(
 )
 
 cpmaddpackage(
-	NAME
-	glm
-	GIT_TAG
-	1.0.1
-	GITHUB_REPOSITORY
-	g-truc/glm
+	NAME glm
+	GIT_TAG	1.0.1
+	GITHUB_REPOSITORY "g-truc/glm"
 	OPTIONS
 	"BUILD_SHARED_LIBS OFF"
 	EXCLUDE_FROM_ALL
@@ -35,7 +34,7 @@ cpmaddpackage(
 	NAME
 	Assimp
 	VERSION
-	5.3.1
+	5.4.0
 	GITHUB_REPOSITORY
 	assimp/assimp
 	OPTIONS
@@ -100,7 +99,7 @@ cpmaddpackage(
 	NAME
 	KTX-Software
 	VERSION
-	4.3.1
+	4.3.2
 	GITHUB_REPOSITORY
 	KhronosGroup/KTX-Software
 	OPTIONS
