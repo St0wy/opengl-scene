@@ -1,6 +1,6 @@
-include(cmake/download-cpm.cmake)
+include(cmake/get_cpm.cmake)
 
-# extra options must stay in comments otherwise it's ignored (idk why)
+# extra options must stay in quotes otherwise it's ignored (idk why)
 
 set(CPM_USE_NAMED_CACHE_DIRECTORIES ON)
 
