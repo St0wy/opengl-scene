@@ -156,59 +156,6 @@ void ClearGlErrors()
 }
 
 /**
- * Checks if there are any OpenGL errors. If yes, it will print them with the filename and the line.
- * This function should not be used as is. Use the macro CHECK_GL_ERROR() in macros.hpp instead.
- * @param file File where we check for an error
- * @param line Line where we check for an error
- * @return Return true if the function found any OpenGL errors
- */
-bool CheckGlError(std::string_view file, u32 line)
-{
-	bool hadErrors = false;
-	GLenum err = GL_NO_ERROR;
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		hadErrors = true;
-		// Process/log the error.
-		switch (err)
-		{
-		case GL_INVALID_ENUM:
-			spdlog::error("File: {} Line: {} OpenGL: GL_INVALID_ENUM", file, line);
-			break;
-		case GL_INVALID_VALUE:
-			spdlog::error("File: {} Line: {} OpenGL: GL_INVALID_VALUE", file, line);
-			break;
-		case GL_INVALID_OPERATION:
-			spdlog::error("File: {} Line: {} OpenGL: GL_INVALID_OPERATION", file, line);
-			break;
-		case GL_STACK_OVERFLOW:
-			spdlog::error("File: {} Line: {} OpenGL: GL_STACK_OVERFLOW", file, line);
-			break;
-		case GL_STACK_UNDERFLOW:
-			spdlog::error("File: {} Line: {} OpenGL: GL_STACK_UNDERFLOW", file, line);
-			break;
-		case GL_OUT_OF_MEMORY:
-			spdlog::error("File: {} Line: {} OpenGL: GL_OUT_OF_MEMORY", file, line);
-			break;
-		case GL_INVALID_FRAMEBUFFER_OPERATION:
-			spdlog::error("File: {} Line: {} OpenGL: GL_INVALID_FRAMEBUFFER_OPERATION", file, line);
-			break;
-		case GL_CONTEXT_LOST:
-			spdlog::error("File: {} Line: {} OpenGL: GL_CONTEXT_LOST", file, line);
-			break;
-		case GL_TABLE_TOO_LARGE:
-			spdlog::error("File: {} Line: {} OpenGL: GL_TABLE_TOO_LARGE", file, line);
-			break;
-		default:
-			spdlog::error("File: {} Line: {} Other OpenGL Error", file, line);
-			break;
-		}
-	}
-
-	return hadErrors;
-}
-
-/**
  * Computes the shadow cascade ranges.
  * @return An array will every shadow cascade values.
  */

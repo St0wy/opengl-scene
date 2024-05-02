@@ -39,6 +39,6 @@ export constexpr f32 MinFovY = 1.0f;
 export constexpr f32 MaxFovY = 120.0f;
 export constexpr f32 MaxPitchAngle = 89.0f;
 export constexpr f32 DefaultAspectRatio = 16.0f / 9.0f;
-export constexpr f32 NearPlane = 0.1f;
+export constexpr f32 NearPlane = 0.3f;
 export constexpr f32 FarPlane = 1'000.0f;
 }// namespace stw

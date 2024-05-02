@@ -4,7 +4,7 @@ include(cmake/get_cpm.cmake)
 
 set(CPM_USE_NAMED_CACHE_DIRECTORIES ON)
 
-cpmaddpackage("gh:libsdl-org/SDL#release-2.30.1")
+cpmaddpackage("gh:libsdl-org/SDL#release-2.30.3")
 
 cpmaddpackage(
 	NAME
@@ -85,7 +85,7 @@ cpmaddpackage(
 	NAME
 	spdlog
 	VERSION
-	1.13.0
+	1.14.1
 	GITHUB_REPOSITORY
 	gabime/spdlog
 	OPTIONS

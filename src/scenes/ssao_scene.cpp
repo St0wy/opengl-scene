@@ -30,35 +30,16 @@ import renderer;
 
 export namespace stw
 {
+
 class SsaoScene final : public Scene
 {
 public:
 	void Init(glm::uvec2 screenSize) override
 	{
-		if (GLEW_VERSION_4_3)
-		{
-			constexpr auto messageCallback = [](GLenum source,
-												 GLenum type,
-												 GLuint id,
-												 GLenum severity,
-												 const GLsizei length,
-												 const GLchar* message,
-												 const void*) {
-				spdlog::error("[OpenGL Error source {}, type {}, id {}, severity {}] {}",
-					source,
-					type,
-					id,
-					severity,
-					std::string_view(message, length));
-			};
-			glDebugMessageCallback(messageCallback, nullptr);
-		}
-
 		m_Camera.SetMovementSpeed(4.0f);
 
 		m_Renderer = std::make_unique<Renderer>(&m_Camera);
 		m_Renderer->Init(screenSize);
-		//		m_Renderer->SetEnableMultisample(true);
 		m_Renderer->SetEnableDepthTest(true);
 		m_Renderer->SetDepthFunc(GL_LEQUAL);
 		m_Renderer->SetClearColor(glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f });

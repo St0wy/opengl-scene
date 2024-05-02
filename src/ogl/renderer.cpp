@@ -1008,14 +1008,17 @@ void Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMapNumCa
 	for (usize i = 0; i < m_LightDepthMapFramebuffers.size(); i++)
 	{
 		glActiveTexture(static_cast<GLenum>(GL_TEXTURE3 + i));
-		const auto& depthStencilAttachment = m_LightDepthMapFramebuffers.at(i).GetDepthStencilAttachment();
+		const std::optional<GLuint> depthStencilAttachment =
+			m_LightDepthMapFramebuffers.at(i).GetDepthStencilAttachment();
 		if (!depthStencilAttachment)
 		{
 			spdlog::error("No depth stencil attachment... {} {}", __FILE__, __LINE__);
 			continue;
 		}
 
-		glBindTexture(GL_TEXTURE_2D, depthStencilAttachment.value());
+		glBindTexture(GL_TEXTURE_2D, *depthStencilAttachment);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	}
 
 	const DirectionalLight& directionalLight = m_DirectionalLight.value();
@@ -1550,7 +1553,6 @@ std::optional<std::array<glm::mat4, ShadowMapNumCascades>> Renderer::GetLightVie
 		}
 	}
 
-	//	m_LightViewProjMatrices = lightViewMatrices;
 	return lightViewProjMatrices;
 }
 
