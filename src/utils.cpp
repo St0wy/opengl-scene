@@ -19,7 +19,7 @@ module;
 #include <random>
 
 #include <assimp/matrix4x4.h>
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <glm/mat4x4.hpp>
 #include <spdlog/spdlog.h>
 

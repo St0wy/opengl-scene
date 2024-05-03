@@ -11,7 +11,7 @@
 
 module;
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <spdlog/spdlog.h>
 
 export module uniform_buffer;

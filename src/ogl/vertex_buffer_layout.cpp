@@ -14,7 +14,7 @@ module;
 #include <optional>
 #include <vector>
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <spdlog/spdlog.h>
 
 export module vertex_buffer_layout;

@@ -12,10 +12,9 @@
 module;
 
 #include <numbers>
-#include <random>
 #include <span>
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <glm/ext.hpp>
 #include <SDL2/SDL.h>
 #include <spdlog/spdlog.h>

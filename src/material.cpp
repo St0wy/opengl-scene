@@ -14,7 +14,7 @@ module;
 #include <array>
 #include <variant>
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <spdlog/spdlog.h>
 
 export module material;

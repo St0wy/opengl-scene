@@ -79,7 +79,7 @@ target_link_system_libraries(
 	SDL2::SDL2-static
 	SDL2::SDL2main
 	spdlog::spdlog
-	libglew_static
+	glad
 	glm::glm
 	assimp::assimp
 	stb_image

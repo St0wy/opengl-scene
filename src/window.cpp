@@ -13,10 +13,10 @@ module;
 #include <cassert>
 #include <memory>
 
+#include <glad/glad.h>
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
-
-#include <GL/glew.h>
+#include <SDL_opengl.h>
 #include <spdlog/spdlog.h>
 
 export module window;
@@ -192,14 +192,16 @@ Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 window
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
 
 	m_GlRenderContext = SDL_GL_CreateContext(m_Window);// NOLINT(cppcoreguidelines-prefer-member-initializer)
-	SDL_GL_SetSwapInterval(0);
-	SDL_SetRelativeMouseMode(SDL_TRUE);
-
-	if (glewInit() != GLEW_OK)
+	if (!gladLoadGLLoader(SDL_GL_GetProcAddress))
 	{
 		spdlog::error("Failed to initialize OpenGL context");
 		assert(false);
 	}
+
+	// spdlog::info("Loaded OpenGL {}.{}", GLVersion.major, GLVersion.minor);
+
+	SDL_GL_SetSwapInterval(0);
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	glDebugMessageCallback(GLDebugMessageCallback, nullptr);

@@ -23,7 +23,7 @@ module;
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <glm/gtc/bitfield.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>

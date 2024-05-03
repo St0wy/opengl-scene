@@ -1,4 +1,12 @@
 #version 430
+#extension GL_NV_gpu_shader5 : enable
+#extension GL_EXT_nonuniform_qualifier : enable
+
+#ifdef GL_EXT_nonuniform_qualifier
+    #define NonUniformIndex(x) nonuniformEXT(x)
+#else
+    #define NonUniformIndex(x) (x)
+#endif
 
 struct DirectionalLight
 {
@@ -157,7 +165,7 @@ float ComputeShadowIntensity(int cascadeIndex, vec4 fragPosLightSpace, vec3 norm
     }
 
     // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coordinates)
-    float closestDepth = texture(shadowMaps[cascadeIndex], projectionCoords.xy).r;
+    float closestDepth = texture(shadowMaps[NonUniformIndex(cascadeIndex)], projectionCoords.xy).r;
 
     // Get depth of current fragment from light's perspective
     float currentDepth = projectionCoords.z;
@@ -171,12 +179,12 @@ float ComputeShadowIntensity(int cascadeIndex, vec4 fragPosLightSpace, vec3 norm
 
     // PCF (Percentage-Closer Filtering)
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMaps[cascadeIndex], 0);
+    vec2 texelSize = 1.0 / textureSize(shadowMaps[NonUniformIndex(cascadeIndex)], 0);
     for (int x = -1; x <= 1; ++x)
     {
         for (int y = -1; y <= 1; ++y)
         {
-            float pcfDepth = texture(shadowMaps[cascadeIndex], projectionCoords.xy + vec2(x, y) * texelSize).r;
+            float pcfDepth = texture(shadowMaps[NonUniformIndex(cascadeIndex)], projectionCoords.xy + vec2(x, y) * texelSize).r;
             shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
             // shadow += currentDepth > pcfDepth ? 1.0 : 0.0;
         }

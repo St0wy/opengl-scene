@@ -17,7 +17,7 @@ module;
 #include <array>
 #include <expected>
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <glm/vec2.hpp>
 #include <SDL_assert.h>
 #include <spdlog/spdlog.h>

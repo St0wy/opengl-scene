@@ -23,7 +23,7 @@ module;
 #include <stb_image/stb_image.h>
 
 #include <assimp/material.h>
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <ktx.h>
 #include <spdlog/spdlog.h>
 

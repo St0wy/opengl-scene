@@ -7,22 +7,8 @@ set(CPM_USE_NAMED_CACHE_DIRECTORIES ON)
 cpmaddpackage("gh:libsdl-org/SDL#release-2.30.3")
 
 cpmaddpackage(
-	NAME
-	glew
-	GIT_TAG
-	glew-cmake-2.2.0
-	GITHUB_REPOSITORY
-	Perlmint/glew-cmake
-	OPTIONS
-	"ONLY_LIBS ON"
-	"glew-cmake_BUILD_SHARED FALSE"
-	EXCLUDE_FROM_ALL
-	SYSTEM
-)
-
-cpmaddpackage(
 	NAME glm
-	GIT_TAG	1.0.1
+	GIT_TAG 1.0.1
 	GITHUB_REPOSITORY "g-truc/glm"
 	OPTIONS
 	"BUILD_SHARED_LIBS OFF"

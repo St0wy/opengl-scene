@@ -18,7 +18,7 @@ module;
 #include <span>
 #include <vector>
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <glm/vec2.hpp>
 #include <spdlog/spdlog.h>
 
