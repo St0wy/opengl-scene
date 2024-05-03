@@ -24,12 +24,12 @@ vec3 FresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 void main()
 {
-	vec3 fragPos = texture(gPositionAmbientOcclusion, TexCoords).rgb;
-	vec3 normal = texture(gNormalRoughness, TexCoords).rgb;
-	vec3 baseColor = texture(gBaseColorMetallic, TexCoords).rgb;
-	float roughness = texture(gNormalRoughness, TexCoords).a;
-	float metallic = texture(gBaseColorMetallic, TexCoords).a;
-	float ambientOcclusion = texture(gSsao, TexCoords).r * texture(gPositionAmbientOcclusion, TexCoords).a;
+	vec3 fragPos = textureLod(gPositionAmbientOcclusion, TexCoords, 0).rgb;
+	vec3 normal = textureLod(gNormalRoughness, TexCoords, 0).rgb;
+	vec3 baseColor = textureLod(gBaseColorMetallic, TexCoords, 0).rgb;
+	float roughness = textureLod(gNormalRoughness, TexCoords, 0).a;
+	float metallic = textureLod(gBaseColorMetallic, TexCoords, 0).a;
+	float ambientOcclusion = textureLod(gSsao, TexCoords, 0).r * textureLod(gPositionAmbientOcclusion, TexCoords, 0).a;
 
 	// V
 	vec3 viewDir = normalize(-fragPos);

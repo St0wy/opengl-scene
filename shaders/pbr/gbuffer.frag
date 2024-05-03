@@ -17,15 +17,22 @@ uniform sampler2D texture_metallic;
 
 void main()
 {
-	gPositionAmbientOcclusion.rgb = FragPos;
-	gPositionAmbientOcclusion.a  = texture(texture_ambient_occlusion, TexCoords).r;
+    vec2 ddxTexCoord = dFdx(TexCoords);
+    vec2 ddyTexCoord = dFdy(TexCoords);
+    float ddxLength = length(ddxTexCoord);
+    float ddyLength = length(ddyTexCoord);
+    float derivativeLength = max(ddxLength, ddyLength);
+    float lod = log2(derivativeLength);
 
-	vec3 tangentNormal = texture(texture_normal, TexCoords).rgb;
-	tangentNormal = tangentNormal * 2.0 - 1.0;
+    gPositionAmbientOcclusion.rgb = FragPos;
+    gPositionAmbientOcclusion.a = textureLod(texture_ambient_occlusion, TexCoords, lod).r;
 
-	gNormalRoughness.rgb = normalize(TangentToWorldMatrix * tangentNormal);
-	gNormalRoughness.a = texture(texture_roughness, TexCoords).r;
+    vec3 tangentNormal = textureLod(texture_normal, TexCoords, lod).rgb;
+    tangentNormal = tangentNormal * 2.0 - 1.0;
 
-	gBaseColorMetallic.rgb = texture(texture_base_color, TexCoords).rgb;
-	gBaseColorMetallic.a = texture(texture_metallic, TexCoords).r;
+    gNormalRoughness.rgb = normalize(TangentToWorldMatrix * tangentNormal);
+    gNormalRoughness.a = textureLod(texture_roughness, TexCoords, lod).r;
+
+    gBaseColorMetallic.rgb = textureLod(texture_base_color, TexCoords, lod).rgb;
+    gBaseColorMetallic.a = textureLod(texture_metallic, TexCoords, lod).r;
 }

@@ -1,7 +1,7 @@
 #version 430
 // This is needed for CSM : https://gist.github.com/JuanDiegoMontoya/55482fc04d70e83729bb9528ecdc1c61
-#extension GL_NV_gpu_shader5 : enable
-#extension GL_EXT_nonuniform_qualifier : enable
+#extension GL_NV_gpu_shader5: enable
+#extension GL_EXT_nonuniform_qualifier: enable
 
 #ifdef GL_EXT_nonuniform_qualifier
     #define NonUniformIndex(x) nonuniformEXT(x)
@@ -48,11 +48,11 @@ vec3 FresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 void main()
 {
-    vec3 fragPos = texture(gPositionAmbientOcclusion, TexCoords).rgb;
-    vec3 normal = texture(gNormalRoughness, TexCoords).rgb;
-    vec3 baseColor = texture(gBaseColorMetallic, TexCoords).rgb;
-    float roughness = texture(gNormalRoughness, TexCoords).a;
-    float metallic = texture(gBaseColorMetallic, TexCoords).a;
+    vec3 fragPos = textureLod(gPositionAmbientOcclusion, TexCoords, 0).rgb;
+    vec3 normal = textureLod(gNormalRoughness, TexCoords, 0).rgb;
+    vec3 baseColor = textureLod(gBaseColorMetallic, TexCoords, 0).rgb;
+    float roughness = textureLod(gNormalRoughness, TexCoords, 0).a;
+    float metallic = textureLod(gBaseColorMetallic, TexCoords, 0).a;
 
     vec3 viewDir = normalize(-fragPos);
 
@@ -94,19 +94,19 @@ void main()
 
     color *= (1.0 - shadow);
 
-//    vec3 hint = vec3(0.0);
-//    if (shadowCascadeIndex == 0) {
-//        hint = vec3(0.05, 0.0, 0.0);
-//    } else if (shadowCascadeIndex == 1) {
-//        hint = vec3(0.0, 0.05, 0.0);
-//    } else if (shadowCascadeIndex == 2) {
-//        hint = vec3(0.0, 0.0, 0.05);
-//    } else if (shadowCascadeIndex == 3) {
-//        hint = vec3(0.05, 0.05, 0.0);
-//    } else {
-//        hint = vec3(1.0, 1.0, 1.0);
-//    }
-//    color += hint;
+    //    vec3 hint = vec3(0.0);
+    //    if (shadowCascadeIndex == 0) {
+    //        hint = vec3(0.05, 0.0, 0.0);
+    //    } else if (shadowCascadeIndex == 1) {
+    //        hint = vec3(0.0, 0.05, 0.0);
+    //    } else if (shadowCascadeIndex == 2) {
+    //        hint = vec3(0.0, 0.0, 0.05);
+    //    } else if (shadowCascadeIndex == 3) {
+    //        hint = vec3(0.05, 0.05, 0.0);
+    //    } else {
+    //        hint = vec3(1.0, 1.0, 1.0);
+    //    }
+    //    color += hint;
 
     FragColor = vec4(color, 1.0);
 }
@@ -166,17 +166,14 @@ float ComputeShadowIntensity(int cascadeIndex, vec4 fragPosLightSpace, vec3 norm
     }
 
     // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coordinates)
-    float closestDepth = texture(shadowMaps[NonUniformIndex(cascadeIndex)], projectionCoords.xy).r;
+    float closestDepth = textureLod(shadowMaps[NonUniformIndex(cascadeIndex)], projectionCoords.xy, 0).r;
 
     // Get depth of current fragment from light's perspective
     float currentDepth = projectionCoords.z;
 
     // Compute bias (based on depth map resolution and slope)
     vec3 lightDirection = normalize(directionalLight.direction);
-    float bias = max(0.0005 * (1.0 / dot(normal, lightDirection)), 0.0001);
-//
-//    float shadow2 = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
-//    return shadow2;
+    float bias = max(0.0005 * (1.0 / dot(normal, lightDirection)), 0.0002);
 
     // PCF (Percentage-Closer Filtering)
     float shadow = 0.0;
@@ -185,7 +182,7 @@ float ComputeShadowIntensity(int cascadeIndex, vec4 fragPosLightSpace, vec3 norm
     {
         for (int y = -1; y <= 1; ++y)
         {
-            float pcfDepth = texture(shadowMaps[NonUniformIndex(cascadeIndex)], projectionCoords.xy + vec2(x, y) * texelSize).r;
+            float pcfDepth = textureLod(shadowMaps[NonUniformIndex(cascadeIndex)], projectionCoords.xy + vec2(x, y) * texelSize, 0).r;
             shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
             // shadow += currentDepth > pcfDepth ? 1.0 : 0.0;
         }

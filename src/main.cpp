@@ -11,7 +11,7 @@ import ssao_scene;
 int main(int, char*[])
 {
 	auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_st>();
-	console_sink->set_level(spdlog::level::warn);
+	console_sink->set_level(spdlog::level::info);
 #ifndef NDEBUG
 	console_sink->set_level(spdlog::level::debug);
 #endif
