@@ -1,4 +1,5 @@
 #version 430
+// This is needed for CSM : https://gist.github.com/JuanDiegoMontoya/55482fc04d70e83729bb9528ecdc1c61
 #extension GL_NV_gpu_shader5 : enable
 #extension GL_EXT_nonuniform_qualifier : enable
 
