@@ -18,6 +18,7 @@ uniform sampler2D gBaseColorMetallic;
 uniform PointLight pointLight;
 
 uniform vec2 screenSize;
+uniform vec3 viewPos;
 
 vec2 CalcTexCoord()
 {
@@ -40,47 +41,41 @@ void main()
     float metallic = textureLod(gBaseColorMetallic, texCoord, 0).a;
 
     // V
-    vec3 viewDir = normalize(-fragPos);
+    vec3 viewDir = normalize(viewPos - fragPos);
 
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, baseColor, metallic);
 
     vec3 Lo = vec3(0.0);
-    // I cannot loop over every light...
-    {
-        // L
-        vec3 fragToLightDir = normalize(pointLight.position - fragPos);
-        // H
-        vec3 halfwayDir = normalize(fragToLightDir + viewDir);
 
-        float distance = distance(pointLight.position, fragPos);
+    // L
+    vec3 fragToLightDir = normalize(pointLight.position - fragPos);
+    // H
+    vec3 halfwayDir = normalize(fragToLightDir + viewDir);
 
-        float attenuation = 1.0 / (distance * distance);
-        vec3 radiance = pointLight.color * attenuation;
+    float distance = distance(pointLight.position, fragPos);
 
-        // F
-        vec3 fresnel = FresnelSchlick(max(dot(halfwayDir, viewDir), 0.0), F0);
-        float normalDistributionFunction = DistributionGGX(normal, halfwayDir, roughness);
-        float geometry = GeometrySmith(normal, viewDir, fragToLightDir, roughness);
+    float attenuation = 1.0 / (distance * distance);
+    vec3 radiance = pointLight.color * attenuation;
 
-        vec3 kSpecular = fresnel;
-        vec3 kDiffuse = vec3(1.0) - kSpecular;
-        kDiffuse *= 1.0 - metallic;
+    // F
+    vec3 fresnel = FresnelSchlick(max(dot(halfwayDir, viewDir), 0.0), F0);
+    float normalDistributionFunction = DistributionGGX(normal, halfwayDir, roughness);
+    float geometry = GeometrySmith(normal, viewDir, fragToLightDir, roughness);
 
-        // Cook-Torrance BRDF
-        vec3 numerator = normalDistributionFunction * geometry * fresnel;
-        // We add a small number to prevent division by 0
-        float denominator = 4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, fragToLightDir), 0.0) + 0.0001;
-        vec3 specular = numerator / denominator;
+    vec3 kSpecular = fresnel;
+    vec3 kDiffuse = vec3(1.0) - kSpecular;
+    kDiffuse *= 1.0 - metallic;
 
-        float normalDotFragToLightDir = max(dot(normal, fragToLightDir), 0.0);
-        Lo += (kDiffuse * baseColor / PI + specular) * radiance * normalDotFragToLightDir;
-        // End of imaginary loop here
-    }
+    // Cook-Torrance BRDF
+    vec3 numerator = normalDistributionFunction * geometry * fresnel;
+    // We add a small number to prevent division by 0
+    float denominator = 4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, fragToLightDir), 0.0) + 0.0001;
+    vec3 specular = numerator / denominator;
 
-    vec3 color = Lo;
+    float normalDotFragToLightDir = max(dot(normal, fragToLightDir), 0.0);
 
-    //	color = vec3(brdf, 1.0);
+    vec3 color = (kDiffuse * baseColor / PI + specular) * radiance * normalDotFragToLightDir;
 
     FragColor = vec4(color, 1.0);
 }

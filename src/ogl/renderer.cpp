@@ -902,6 +902,8 @@ void Renderer::RenderAmbient()
 {
 	m_AmbientIblPipeline.Bind();
 
+	m_AmbientIblPipeline.SetVec3("viewPos", m_Camera->GetPosition());
+
 	// Position + Ambient Occlusion
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_GBufferFramebuffer.GetColorAttachment(0));
@@ -941,6 +943,7 @@ void Renderer::RenderPointLights()
 {
 	m_PointLightPipeline.Bind();
 	m_PointLightPipeline.SetVec2("screenSize", m_ViewportSize);
+	m_PointLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
 
 	// Position + Ambient Occlusion
 	glActiveTexture(GL_TEXTURE0);
@@ -981,7 +984,7 @@ void Renderer::RenderPointLights()
 void Renderer::RenderDirectionalLight(const std::array<glm::mat4, ShadowMapNumCascades>& lightViewProjMatrices)
 {
 	m_DirectionalLightPipeline.Bind();
-	//	m_DirectionalLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
+	m_DirectionalLightPipeline.SetVec3("viewPos", m_Camera->GetPosition());
 	m_MatricesUniformBuffer.Bind();
 
 	m_DirectionalLightPipeline.SetVec4(
@@ -1534,22 +1537,21 @@ std::optional<std::array<glm::mat4, ShadowMapNumCascades>> Renderer::GetLightVie
 		return std::nullopt;
 	}
 
-	const glm::mat4 inverseView = inverse(m_Camera->GetViewMatrix());
 	std::array<glm::mat4, ShadowMapNumCascades> lightViewProjMatrices{};
 	for (usize i = 0; i < m_Intervals.size(); i++)
 	{
 		const auto interval = m_Intervals.at(i);
 		if (i == 0)
 		{
-			lightViewProjMatrices.at(i) = ComputeLightViewProjMatrix(NearPlane, interval) * inverseView;
+			lightViewProjMatrices.at(i) = ComputeLightViewProjMatrix(NearPlane, interval);
 		}
 		else if (i < m_Intervals.size())
 		{
-			lightViewProjMatrices.at(i) = ComputeLightViewProjMatrix(m_Intervals.at(i - 1), interval) * inverseView;
+			lightViewProjMatrices.at(i) = ComputeLightViewProjMatrix(m_Intervals.at(i - 1), interval);
 		}
 		else
 		{
-			lightViewProjMatrices.at(i) = ComputeLightViewProjMatrix(m_Intervals.at(i - 1), FarPlane) * inverseView;
+			lightViewProjMatrices.at(i) = ComputeLightViewProjMatrix(m_Intervals.at(i - 1), FarPlane);
 		}
 	}
 

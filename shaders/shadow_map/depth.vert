@@ -5,13 +5,7 @@ layout (location = 4) in mat4 modelMatrix;
 
 uniform mat4 lightViewProjMatrix;
 
-layout (std140, binding = 0) uniform Matrices
-{
-	mat4 projection;
-	mat4 view;
-};
-
 void main()
 {
-	gl_Position = lightViewProjMatrix * view *  modelMatrix * vec4(aPos, 1.0);
+    gl_Position = lightViewProjMatrix * modelMatrix * vec4(aPos, 1.0);
 }

@@ -54,7 +54,7 @@ void main()
     float roughness = textureLod(gNormalRoughness, TexCoords, 0).a;
     float metallic = textureLod(gBaseColorMetallic, TexCoords, 0).a;
 
-    vec3 viewDir = normalize(-fragPos);
+    vec3 viewDir = normalize(viewPos - fragPos);
 
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, baseColor, metallic);
@@ -84,8 +84,8 @@ void main()
     float normalDotFragToLightDir = max(dot(normal, fragToLightDir), 0.0);
     vec3 color = (kDiffuse * baseColor / PI + specular) * radiance * normalDotFragToLightDir;
 
-    vec4 viewFragPos = view * vec4(fragPos, 1.0);
-    float depthValue = -viewFragPos.z;
+    vec3 viewSpaceFragPos = vec3(view * vec4(fragPos.xyz, 1.0));
+    float depthValue = -viewSpaceFragPos.z;
     vec4 res = step(csmFarDistances, vec4(depthValue));
     int shadowCascadeIndex = int(res.x + res.y + res.z + res.w);
 
@@ -173,7 +173,7 @@ float ComputeShadowIntensity(int cascadeIndex, vec4 fragPosLightSpace, vec3 norm
 
     // Compute bias (based on depth map resolution and slope)
     vec3 lightDirection = normalize(directionalLight.direction);
-    float bias = max(0.0005 * (1.0 / dot(normal, lightDirection)), 0.0002);
+    float bias = max(0.0005 * (1.0 / dot(normal, lightDirection)), 0.0003);
 
     // PCF (Percentage-Closer Filtering)
     float shadow = 0.0;
