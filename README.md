@@ -18,13 +18,14 @@ It has :
 - Model Loading (OBJ and glTF)
 - KTX Textures Loading
 
-You can read more about the implementation details of this project in this blog post : https://blog.stowy.ch/posts/opengl-renderer/
+You can read more about the implementation details of this project in this blog
+post : https://blog.stowy.ch/posts/opengl-renderer/
 
 ## How to build
 
 You need :
 
-- A C++ 23 compiler that supports C++20 modules. I use Clang 18. 
+- A C++ 23 compiler that supports C++20 modules. I use Clang 18.
 - CMake 3.28
 
 Then run :
@@ -46,7 +47,7 @@ cmake --build build -t opengl_scene
 - [glm](https://github.com/g-truc/glm) : linear algebra library
 - [assimp](https://www.assimp.org/) : 3D models importer
 - [SDL2](https://www.libsdl.org/) : handles the window
-- [GLEW](https://glew.sourceforge.net/) : loads the OpenGL functions
+- [glad](https://github.com/premake-libs/glad) : loads the OpenGL functions
 - [libktx](https://github.com/KhronosGroup/KTX-Software) : KTX textures importer
 - [Abseil](https://abseil.io) : mostly to replace `std::unordered_map` by `absl::flat_hash_map`
 - [spdlog](https://github.com/gabime/spdlog) : fast and easy logging

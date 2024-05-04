@@ -88,7 +88,7 @@ public:
 
 		glm::vec3 direction{ 0.0f, -1.0f, -1.0f };
 		direction = normalize(direction);
-		const DirectionalLight directionalLight{ direction, glm::vec3{ 10.0f } };
+		const DirectionalLight directionalLight{ direction, glm::vec3{ 5.0f } };
 		m_Renderer->SetDirectionalLight(directionalLight);
 
 		const PointLight p{ glm::vec3{ 5.0f, 0.0f, 4.0f }, glm::vec3{ 20.0f } };
