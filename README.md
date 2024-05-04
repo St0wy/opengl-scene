@@ -19,7 +19,7 @@ It has :
 - KTX Textures Loading
 
 You can read more about the implementation details of this project in this blog
-post : https://blog.stowy.ch/posts/opengl-renderer/
+post : https://blog.stowy.ch/posts/how-i-implemented-a-deferred-pbr-renderer-in-opengl/
 
 ## How to build
 
