@@ -175,7 +175,11 @@ Window<T>::Window(const std::string_view windowName, i32 windowWidth, i32 window
 
 	SDL_SetMainReady();
 
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
+	{
+		spdlog::error("SDL could not initialize! SDL Error: {}", SDL_GetError()) ;
+		assert(0);
+	}
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);

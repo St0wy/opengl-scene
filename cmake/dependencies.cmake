@@ -4,7 +4,7 @@ include(cmake/get_cpm.cmake)
 
 set(CPM_USE_NAMED_CACHE_DIRECTORIES ON)
 
-cpmaddpackage("gh:libsdl-org/SDL#release-2.30.3")
+cpmaddpackage("gh:libsdl-org/SDL#release-2.30.5")
 
 cpmaddpackage(
 	NAME glm
@@ -20,7 +20,7 @@ cpmaddpackage(
 	NAME
 	Assimp
 	VERSION
-	5.4.0
+	5.4.2
 	GITHUB_REPOSITORY
 	assimp/assimp
 	OPTIONS
@@ -56,7 +56,7 @@ cpmaddpackage(
 	NAME
 	abseil
 	GIT_TAG
-	20240116.1
+	20240116.2
 	GITHUB_REPOSITORY
 	abseil/abseil-cpp
 	OPTIONS
